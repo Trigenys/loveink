@@ -8,7 +8,12 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="css/styles-commentaires.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap">
+    <link rel="stylesheet" href="css/reader.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <script type="module" src="js/components/reader.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
@@ -178,6 +183,7 @@
                     ${renderStoryContent(currentStory.contenu)}
                 </div>
             `;
+            document.dispatchEvent(new CustomEvent('li:story-rendered', { detail: { story: currentStory, storyId } }));
         }
 
         async function renderComments() {

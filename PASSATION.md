@@ -42,3 +42,10 @@
 - Hosting deploye (`npx -y firebase-tools deploy --only hosting`) ; commit 40f9ae6 en ligne sur https://love-ink.web.app.
 - Verifie : immersive.css/js en 200, pages incluent la couche ; PASSATION.md, .claude/, .github/ en 404.
 - Reste : verification visuelle des pages connectees par Lee ; domaine loveink.site (console Firebase + DNS Spaceship).
+
+## 2026-11-05 16:34 — Mode lecture immersif (histoire.html)
+- Benchmark concurrents : docs/benchmark-lecture-2026-11.md.
+- Ajout css/reader.css + js/components/reader.js ; histoire.html emet `li:story-rendered` apres chaque rendu (seul changement de logique).
+- Livre : reglages Aa (taille/interligne/police/ambiance, localStorage `loveInk_reader`), temps de lecture/restant, reprise (`loveInk_pos_<id>`), mode focus, lettrine, separateurs de scene, fin + suggestions.
+- Verifie via tests/reader-harness.html (local, non deploye). Suggestions vides en prod tant qu'aucune histoire publiee.
+- A faire : deployer hosting apres accord ; ensuite "Continuer a lire" + histoire a la une dans le feed.
