@@ -49,3 +49,7 @@
 - Livre : reglages Aa (taille/interligne/police/ambiance, localStorage `loveInk_reader`), temps de lecture/restant, reprise (`loveInk_pos_<id>`), mode focus, lettrine, separateurs de scene, fin + suggestions.
 - Verifie via tests/reader-harness.html (local, non deploye). Suggestions vides en prod tant qu'aucune histoire publiee.
 - A faire : deployer hosting apres accord ; ensuite "Continuer a lire" + histoire a la une dans le feed.
+
+## 2026-11-05 16:36 — Deploiement du mode lecture
+- Hosting deploye (commit 8a691d1) ; reader.css/js en 200 ; PASSATION, docs/, tests/, .claude/ en 404.
+- Reste : verif visuelle connectee par Lee ; feed "Continuer a lire" + histoire a la une ; domaine loveink.site.
