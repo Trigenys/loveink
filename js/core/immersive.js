@@ -46,6 +46,8 @@
 
     // Noms de transition uniques : un seul element par nom, sinon le navigateur annule la transition.
     function nameTransitions() {
+        // Pages publiques : transition "page tournee" sur la racine, pas de morph nav/logo.
+        if (document.documentElement.classList.contains('li-public')) return;
         var nav = document.querySelector('.navbar, nav.nav');
         if (nav && !nav.style.viewTransitionName) nav.style.viewTransitionName = 'li-nav';
         var logo = document.querySelector('.logo-custom, .logo');

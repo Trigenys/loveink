@@ -127,3 +127,10 @@
 - `.lp-steps#lpSteps` : flex + `overflow-x:auto` + scroll-snap, cartes `.lp-step` de `min(440px, 82vw)` (numéro, titre, texte, maquette en bas), la piste déborde à droite jusqu'au bord de l'écran (`margin-right: calc(50% - 50vw)`), barre de défilement masquée.
 - En-tête `.lp-section__head--row` avec `.lp-track__nav` (2 boutons `data-track="lpSteps"` / `data-dir`) ; JS générique « Pistes horizontales » : scrollBy d'une carte, boutons désactivés aux extrémités, masqués ≤960.
 - Vérifié localement : desktop 1057 (3 cartes 440×402, piste 1388/1030, fin atteinte) et mobile 375 (cartes 308, swipe natif, nav none), scrollX page 0, 0 erreur console. Déploiement toujours en attente.
+
+## 2026-11-05 19:04 — Déploiement + transition « page tournée » entre pages publiques
+- Déployé 69e240e sur https://love-ink.web.app (piste horizontale vérifiée en prod via curl).
+- `<html class="li-public">` sur index/login/register. `css/immersive.css` : pour `html.li-public`, la transition cross-document (View Transitions, déjà activée par `@view-transition{navigation:auto}`) devient une page qui se tourne : `::view-transition-image-pair(root){perspective:1800px}`, old root `rotateY(0→-150deg)` origine gauche, backface caché, z-index 1, 0,75 s ; new root léger fondu de luminosité. Les autres pages gardent le fondu existant.
+- `js/core/immersive.js` : `nameTransitions()` ne nomme plus nav/logo sur les pages publiques (sinon ils flotteraient hors de la page tournée).
+- Firefox n'a pas les transitions cross-document : navigation normale. Reduced-motion : désactivé (règle existante).
+- Vérifié avec Playwright headless (Chrome installé) : `pagereveal.viewTransition` présent, animations li-turn-out/li-turn-in actives index→page test, login→register sans erreur. Le panneau navigateur masqué saute les transitions (document.hidden), d'où le test headless. Rendu réel à juger par Lee.
