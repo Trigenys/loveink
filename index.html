@@ -75,7 +75,9 @@
                     <p class="lp-hero__note lp-reveal is-in" data-delay="3"><i class="fas fa-lock" aria-hidden="true"></i>Sans publicité. Votre adresse e-mail n'est jamais affichée.</p>
                 </div>
 
-                <div class="lp-page lp-reveal is-in" data-delay="2" aria-hidden="true">
+                <div class="lp-hero__visual lp-reveal is-in" data-delay="2">
+                <img class="lp-hero__photo" src="images/landing/hero-lettre.webp" width="868" height="1086" alt="Une lettre manuscrite, une plume bordeaux et une tasse de thé près d'une fenêtre" fetchpriority="high">
+                <div class="lp-page" aria-hidden="true">
                     <div class="lp-page__sheet">
                         <div class="lp-page__kicker"><span>Premier amour</span><span>6 min</span></div>
                         <div class="lp-page__title">Les lettres de septembre</div>
@@ -89,14 +91,19 @@
                     <div class="lp-chip lp-chip--a"><i class="fas fa-bookmark"></i><span><strong>Reprise automatique</strong><small>Là où vous vous étiez arrêté</small></span></div>
                     <div class="lp-chip lp-chip--b"><i class="fas fa-font"></i><span><strong>Aa · Réglages</strong><small>Taille, police, ambiance</small></span></div>
                 </div>
+                </div>
             </div>
         </section>
 
         <!-- Categories -->
         <div class="lp-marquee" aria-hidden="true">
-            <div class="lp-marquee__track">
-                <span>Premier amour</span><span>Amour à distance</span><span>Coup de foudre</span><span>Seconde chance</span><span>Amour heureux</span><span>Histoires tristes</span><span>Amour magique</span><span>Aventure estivale</span><span>Histoires de couples</span><span>Amour virtuel</span>
-                <span>Premier amour</span><span>Amour à distance</span><span>Coup de foudre</span><span>Seconde chance</span><span>Amour heureux</span><span>Histoires tristes</span><span>Amour magique</span><span>Aventure estivale</span><span>Histoires de couples</span><span>Amour virtuel</span>
+            <div class="lp-marquee__track" id="lpMarquee">
+                <figure><img src="images/landing/cat-premier-amour.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Premier amour</figcaption></figure>
+                <figure><img src="images/landing/cat-distance.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Amour à distance</figcaption></figure>
+                <figure><img src="images/landing/cat-estivale.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Aventure estivale</figcaption></figure>
+                <figure><img src="images/landing/cat-seconde-chance.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Seconde chance</figcaption></figure>
+                <figure><img src="images/landing/cat-magique.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Amour magique</figcaption></figure>
+                <figure><img src="images/landing/cat-tristes.webp" alt="" loading="lazy" width="320" height="400"><figcaption>Histoires tristes</figcaption></figure>
             </div>
         </div>
 
@@ -167,10 +174,13 @@
         <!-- Auteurs -->
         <section class="lp-section" id="auteurs">
             <div class="lp-wrap lp-authors">
-                <div class="lp-flow lp-reveal" aria-hidden="true">
-                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Brouillon</strong><small>Écrivez, enregistrez, reprenez plus tard.</small></span><span class="lp-tag">Étape 1</span></div>
-                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Relecture</strong><small>L'équipe relit chaque texte avant publication.</small></span><span class="lp-tag">Étape 2</span></div>
-                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Publié</strong><small>Visible dans le feed, prêt à être lu et commenté.</small></span><span class="lp-tag">En ligne</span></div>
+                <div class="lp-authors__visual lp-reveal">
+                    <img class="lp-authors__photo" src="images/landing/auteur-ecriture.webp" width="1200" height="900" loading="lazy" alt="Des mains qui écrivent à la plume dans un carnet, pétales de rose sur la table">
+                    <div class="lp-flow" aria-hidden="true">
+                        <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Brouillon</strong><small>Écrivez, enregistrez, reprenez plus tard.</small></span><span class="lp-tag">Étape 1</span></div>
+                        <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Relecture</strong><small>L'équipe relit chaque texte avant publication.</small></span><span class="lp-tag">Étape 2</span></div>
+                        <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Publié</strong><small>Visible dans le feed, prêt à être lu et commenté.</small></span><span class="lp-tag">En ligne</span></div>
+                    </div>
                 </div>
                 <div class="lp-authors__copy">
                     <p class="lp-eyebrow lp-reveal">Pour celles et ceux qui écrivent</p>
@@ -189,9 +199,14 @@
 
         <!-- Manifeste -->
         <section class="lp-section" style="padding-top: 0;">
-            <div class="lp-wrap lp-quote lp-reveal">
-                <blockquote>« Ici, chaque mot est une caresse, chaque phrase un battement de cœur. »</blockquote>
-                <cite>Love Ink, depuis le premier jour</cite>
+            <div class="lp-wrap">
+                <figure class="lp-manifeste lp-reveal">
+                    <img src="images/landing/manifeste-lecture.webp" width="1344" height="576" loading="lazy" alt="Une lectrice installée dans un fauteuil près d'une fenêtre, dans une lumière rosée">
+                    <figcaption class="lp-quote">
+                        <blockquote>« Ici, chaque mot est une caresse, chaque phrase un battement de cœur. »</blockquote>
+                        <cite>Love Ink, depuis le premier jour</cite>
+                    </figcaption>
+                </figure>
             </div>
         </section>
 
@@ -270,6 +285,10 @@
             setTimeout(write, 1800);
             setInterval(write, 11000);
         }
+
+        // Bandeau : on duplique les vignettes pour une boucle continue.
+        const track = document.getElementById('lpMarquee');
+        track.innerHTML += track.innerHTML + track.innerHTML;
 
         const reveal = document.querySelectorAll('.lp-reveal:not(.is-in)');
         if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {

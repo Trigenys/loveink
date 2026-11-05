@@ -98,3 +98,9 @@
 - Hosting deploye (commit e560b70) sur https://love-ink.web.app : / et css/landing.css en 200 avec la plume, tests/ en 404.
 - A faire par Lee : juger le rendu reel du fond (opacite des mots, frequence de la plume 11 s) ; reglages dans css/landing.css bloc « Fond ».
 - Suites inchangees : domaine loveink.site ; audit 8-13 ; firebase-deploy.yml ; templates e-mail a franciser.
+
+## 2026-11-05 18:40 — Landing : images (hero, genres, auteurs, manifeste)
+- images/landing/ (nouveau) : 9 WebP convertis depuis les generations ChatGPT (C:\Users\lawry\Downloads\images_loveink) : hero-lettre 868x1086 (21 Ko), auteur-ecriture 1200x900 (40 Ko), manifeste-lecture 1344x576 (32 Ko), 6 vignettes cat-*.webp 320x400 (2-7 Ko). Reconversion : PIL via `python` (pas `python -I`).
+- index.html / css/landing.css : photo hero 4/5 avec la page mock en superposition (bas gauche), bandeau de genres = figures image + legende (defilement 60 s), bloc auteurs = photo 4/3 avec le flux de cartes en superposition, manifeste = photo 21/9 avec degrade creme et citation a droite (mobile : 4/5, degrade vertical, citation en bas). Hero en fetchpriority=high, le reste en lazy.
+- Verifie en local par etat JS : 9 fichiers en 200, layout desktop (~795px) et mobile 375px sans scroll horizontal, citation dans le cadre, 0 erreur console. Non verifie : rendu visuel reel (pane masque), >960px, e2e non relances.
+- Deploiement : attend l'accord explicite.
