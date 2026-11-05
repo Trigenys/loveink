@@ -124,11 +124,17 @@
         <!-- Comment ca marche -->
         <section class="lp-section" id="comment">
             <div class="lp-wrap">
-                <div class="lp-section__head lp-reveal">
-                    <p class="lp-eyebrow">Comment ça marche</p>
-                    <h2>Trois gestes, <em>et l'histoire</em> commence.</h2>
+                <div class="lp-section__head lp-section__head--row lp-reveal">
+                    <div>
+                        <p class="lp-eyebrow">Comment ça marche</p>
+                        <h2>Trois gestes, <em>et l'histoire</em> commence.</h2>
+                    </div>
+                    <div class="lp-track__nav">
+                        <button type="button" data-track="lpSteps" data-dir="-1" aria-label="Étape précédente"><i class="fas fa-arrow-left"></i></button>
+                        <button type="button" data-track="lpSteps" data-dir="1" aria-label="Étape suivante"><i class="fas fa-arrow-right"></i></button>
+                    </div>
                 </div>
-                <div class="lp-steps">
+                <div class="lp-steps" id="lpSteps" tabindex="0" aria-label="Les trois étapes">
                     <article class="lp-step lp-reveal">
                         <span class="lp-step__n">01</span>
                         <h3>Choisissez une histoire</h3>
@@ -390,6 +396,25 @@
         track.innerHTML += track.innerHTML + track.innerHTML;
 
         // Carrousels « livre » : la page active se tourne pour révéler la suivante.
+        // Pistes horizontales (flèches)
+        document.querySelectorAll('[data-track]').forEach((btn) => {
+            const track = document.getElementById(btn.dataset.track);
+            if (!track) return;
+            const sync = () => {
+                const max = track.scrollWidth - track.clientWidth - 1;
+                track.parentElement.querySelectorAll('[data-track="' + btn.dataset.track + '"]').forEach((b) => {
+                    b.disabled = b.dataset.dir === '-1' ? track.scrollLeft <= 0 : track.scrollLeft >= max;
+                });
+            };
+            btn.addEventListener('click', () => {
+                const card = track.firstElementChild;
+                const step = card ? card.getBoundingClientRect().width + 20 : track.clientWidth * 0.8;
+                track.scrollBy({ left: step * Number(btn.dataset.dir), behavior: 'smooth' });
+            });
+            track.addEventListener('scroll', sync, { passive: true });
+            window.addEventListener('resize', sync);
+            sync();
+        });
         document.querySelectorAll('.lp-book').forEach((book) => {
             const leaves = [...book.querySelectorAll('.lp-book__leaf')];
             const dots = [...book.querySelectorAll('[role="tab"]')];

@@ -122,3 +122,8 @@
 - `css/landing.css` : `.lp-step` passe à 4 colonnes (90px / .9fr / 1.1fr / .7fr, align center) ; ≤680 : visuel en colonne 2 sous le texte, aligné à gauche ; reduced-motion coupe la transition des couvertures.
 - Vérifié localement (1057 px et 375 px) : visuels contenus dans leur étape, pas de chevauchement texte/visuel, scrollX 0, 0 erreur console. Rendu réel non vu (panneau masqué) : à juger par Lee.
 - Déploiement toujours en attente d'accord.
+
+## 2026-11-05 18:58 — Landing : « Comment ça marche » en piste horizontale
+- `.lp-steps#lpSteps` : flex + `overflow-x:auto` + scroll-snap, cartes `.lp-step` de `min(440px, 82vw)` (numéro, titre, texte, maquette en bas), la piste déborde à droite jusqu'au bord de l'écran (`margin-right: calc(50% - 50vw)`), barre de défilement masquée.
+- En-tête `.lp-section__head--row` avec `.lp-track__nav` (2 boutons `data-track="lpSteps"` / `data-dir`) ; JS générique « Pistes horizontales » : scrollBy d'une carte, boutons désactivés aux extrémités, masqués ≤960.
+- Vérifié localement : desktop 1057 (3 cartes 440×402, piste 1388/1030, fin atteinte) et mobile 375 (cartes 308, swipe natif, nav none), scrollX page 0, 0 erreur console. Déploiement toujours en attente.
