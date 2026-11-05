@@ -53,3 +53,12 @@
 ## 2026-11-05 16:36 — Deploiement du mode lecture
 - Hosting deploye (commit 8a691d1) ; reader.css/js en 200 ; PASSATION, docs/, tests/, .claude/ en 404.
 - Reste : verif visuelle connectee par Lee ; feed "Continuer a lire" + histoire a la une ; domaine loveink.site.
+
+## 2026-11-05 16:41 — Feed : « A la une » et « Continuer a lire »
+- `js/core/reading-history.js` (nouveau) : historique local. Contrat conserve `loveInk_pos_<id>` (ratio) ; ajout `loveInk_lus` (meta titre/categorie/accroche, 12 max, ecriture seulement si le % change). `reader.js` passe par `recordReading`.
+- `js/components/feed-extras.js` + `css/feed-extras.css` (nouveaux) : ecoute `li:feed-loaded` (emis par `loadStories` de feed.html, succes et echec).
+  - A la une : histoire publiee la plus aimee des 7 derniers jours (repli : toutes), accroche = premiere phrase.
+  - Continuer a lire : positions entre 5 % et 97 %, plus recentes d'abord ; anciennes positions sans meta resolues via le feed puis `getHistoireById`.
+  - Blocs masques si vides ; rendu idempotent.
+- Verifie sur `tests/feed-harness.html` (local) : selection, exclusions (brouillon, ancienne, terminee), idempotence, etats vides, sombre, pas de debordement horizontal (correctif `min-width:0`). Mode lecture : ecriture/suppression des cles OK.
+- Non verifie : feed reel derriere connexion (prod sans histoire publiee). Deploiement : en attente d'accord.

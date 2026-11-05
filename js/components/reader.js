@@ -1,6 +1,7 @@
 // reader.js - mode lecture immersif (histoire.html).
 // Ecoute l'evenement "li:story-rendered" emis apres chaque rendu de l'histoire ; idempotent.
 import { firebaseAPI } from '../core/firebase-data.js';
+import { recordReading } from '../core/reading-history.js';
 
 const PREFS_KEY = 'loveInk_reader';
 const POS_PREFIX = 'loveInk_pos_';
@@ -191,8 +192,7 @@ function updateProgress() {
         left.textContent = ratio >= 0.98 ? 'Termine' : `Environ ${mins} min restantes`;
     }
     if (!storyId) return;
-    if (ratio >= 0.97) store.remove(POS_PREFIX + storyId);
-    else if (ratio > 0.04) store.set(POS_PREFIX + storyId, Math.round(ratio * 1000) / 1000);
+    recordReading(storyId, story, ratio);
 }
 
 function offerResume() {

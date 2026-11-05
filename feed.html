@@ -639,7 +639,9 @@
             }
         }
     </style>
+    <link rel="stylesheet" href="css/feed-extras.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <script type="module" src="js/components/feed-extras.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
@@ -654,6 +656,11 @@
             <input id="searchInput" class="search-input" type="text" placeholder="Rechercher une histoire, un auteur, une categorie...">
             <button id="searchBtn" class="search-btn">Rechercher</button>
         </div>
+    </div>
+
+    <div class="li-feed-extras">
+        <section class="li-featured" id="liFeatured" aria-label="Histoire a la une" hidden></section>
+        <section class="li-continue" id="liContinue" aria-label="Continuer a lire" hidden></section>
     </div>
 
     <section class="categories-section" id="categories">
@@ -925,10 +932,12 @@
             const result = await firebaseAPI.getHistoires(1, 12);
             allStories = result?.histoires || [];
             renderStories(allStories);
+            document.dispatchEvent(new CustomEvent('li:feed-loaded', { detail: { stories: allStories } }));
         } catch (error) {
             console.error('Erreur chargement histoires:', error);
             allStories = [];
             renderStories([]);
+            document.dispatchEvent(new CustomEvent('li:feed-loaded', { detail: { stories: [] } }));
             await notify('error', 'Impossible de charger le feed pour le moment.', { title: 'Feed' });
         }
     }

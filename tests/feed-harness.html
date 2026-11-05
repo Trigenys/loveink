@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harnais feed (local)</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+<style>
+:root{--rose-deep:#7a3e3e;--rose-mid:#b07070;--rose-soft:#d4a0a0;--rose-pale:#f5e6e6;--cream:#fdf8f5;--ink:#2a1a1a;--ink-muted:#7a5f5f;--border:rgba(180,120,120,.2);--font-serif:'Cormorant Garamond',serif;--font-sans:'DM Sans',sans-serif}
+html[data-theme=dark]{--rose-deep:#e2bcbc;--rose-mid:#d1a3a3;--rose-soft:#8e6767;--rose-pale:#3c2e2e;--cream:#1e1717;--ink:#f2e5e0;--ink-muted:#c8b0b0;--border:rgba(214,176,176,.18)}
+body{margin:0;font-family:var(--font-sans);background:var(--cream)}
+</style>
+<link rel="stylesheet" href="../css/feed-extras.css">
+<link rel="stylesheet" href="../css/immersive.css">
+<script type="module" src="../js/components/feed-extras.js"></script>
+</head>
+<body>
+<div class="li-feed-extras">
+  <section class="li-featured" id="liFeatured" hidden></section>
+  <section class="li-continue" id="liContinue" hidden></section>
+</div>
+<script type="module">
+import { recordReading } from '../js/core/reading-history.js';
+const day = 86400000, now = Date.now();
+const stories = [
+  { id: 'a', titre: 'Ancienne gloire', categorie: 'Premier amour', auteur: 'Lee', likes: 99, date: new Date(now - 30 * day).toISOString(), contenu: 'Une histoire trop ancienne pour etre a la une. Suite.' },
+  { id: 'b', titre: 'Les lettres de septembre', categorie: 'Amour a distance', auteur: 'Lee', likes: 12, date: new Date(now - 2 * day).toISOString(), contenu: 'Elle ouvrit la premiere lettre au bord de la mer, sans savoir que tout allait changer. La suite.' },
+  { id: 'c', titre: 'Brouillon', categorie: 'Divers', auteur: 'X', likes: 50, statut: 'en_attente', date: new Date(now - day).toISOString(), contenu: 'Non publie.' },
+  { id: 'd', titre: 'Un cafe a Douala', categorie: 'Coup de foudre', auteur: 'Ama', likes: 4, date: new Date(now - day).toISOString(), contenu: 'Le cafe etait froid mais son sourire ne l etait pas. Fin.' }
+];
+if (!location.search.includes('keep')) { localStorage.clear(); }
+recordReading('d', stories[3], 0.42);
+recordReading('b', stories[1], 0.08);
+recordReading('x', stories[0], 0.99);          // termine : ne doit pas apparaitre
+localStorage.setItem('loveInk_pos_a', '0.3');  // position ancienne sans meta : resolue via allStories
+document.dispatchEvent(new CustomEvent('li:feed-loaded', { detail: { stories } }));
+</script>
+</body>
+</html>
