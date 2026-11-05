@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr" class="li-public">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre compte - Love Ink</title>
+    <meta name="robots" content="noindex">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/auth-form.css">
+    <script src="js/core/immersive.js" defer></script>
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
+                <div class="logo-icon">
+                    <i class="fas fa-heart logo-heart"></i>
+                    <i class="fas fa-hand-paper logo-hand"></i>
+                    <i class="fas fa-pen-fancy logo-pen"></i>
+                </div>
+                <span class="logo-text">Love Ink</span>
+            </a>
+
+            <!-- État : chargement / vérification -->
+            <section id="stateLoading" aria-live="polite">
+                <h1>Un instant…</h1>
+                <p>Nous vérifions votre lien.</p>
+            </section>
+
+            <!-- État : adresse confirmée -->
+            <section id="stateVerified" hidden>
+                <h1>Adresse confirmée</h1>
+                <p>Votre carnet est ouvert. Vos histoires, vos lectures et vos messages sont bien à vous.</p>
+                <a class="btn btn-primary" id="verifiedCta" href="feed.html" style="width: 100%; display: inline-block; text-align: center;">Entrer dans Love Ink</a>
+            </section>
+
+            <!-- État : nouveau mot de passe -->
+            <section id="stateReset" hidden>
+                <h1>Nouveau mot de passe</h1>
+                <p>Pour le compte <strong id="resetAccount"></strong></p>
+                <form class="auth-form" id="resetForm" novalidate>
+                    <div class="form-group">
+                        <label for="password">Nouveau mot de passe</label>
+                        <div class="pw-field">
+                            <input type="password" id="password" name="password" autocomplete="new-password" required autofocus>
+                            <button type="button" class="pw-toggle" data-toggle-password="password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                        </div>
+                        <div class="pw-meter" id="pwMeter" hidden aria-live="polite"><span class="pw-meter__bar" aria-hidden="true"></span><span class="pw-meter__label"></span></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm">Confirmer le mot de passe</label>
+                        <div class="pw-field">
+                            <input type="password" id="confirm" name="confirm" autocomplete="new-password" required>
+                            <button type="button" class="pw-toggle" data-toggle-password="confirm" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="resetSubmit" style="width: 100%;">Enregistrer</button>
+                </form>
+            </section>
+
+            <!-- État : mot de passe changé -->
+            <section id="stateResetDone" hidden>
+                <h1>Mot de passe enregistré</h1>
+                <p>On a tourné la page, sans perdre l'histoire. Vous pouvez vous connecter avec votre nouveau mot de passe.</p>
+                <a class="btn btn-primary" href="login.html" style="width: 100%; display: inline-block; text-align: center;">Se connecter</a>
+            </section>
+
+            <!-- État : lien invalide ou expiré -->
+            <section id="stateError" hidden>
+                <h1>Ce lien n'est plus valable</h1>
+                <p id="errorText">Il a peut-être expiré ou déjà été utilisé.</p>
+                <a class="btn btn-primary" id="errorCta" href="login.html" style="width: 100%; display: inline-block; text-align: center;">Retour à la connexion</a>
+            </section>
+
+            <div class="auth-footer">
+                <p><a href="index.html">Retour à l'accueil</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module" src="js/pages/auth-action.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+services:
+  mailer:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /run/secrets/firebase-service-account.json
+    secrets:
+      - firebase-service-account.json
+    ports:
+      - "127.0.0.1:8787:8787"   # exposé en local seulement ; le reverse proxy (Caddy/nginx) publie en HTTPS
+
+secrets:
+  firebase-service-account.json:
+    file: ./secrets/firebase-service-account.json

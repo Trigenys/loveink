@@ -1,0 +1,16 @@
+{
+  "name": "loveink-mailer",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Service d'envoi des e-mails transactionnels Love Ink (vérification d'adresse, réinitialisation de mot de passe) via Firebase Admin + Resend.",
+  "engines": { "node": ">=20" },
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "preview": "node scripts/preview.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.7.0"
+  }
+}

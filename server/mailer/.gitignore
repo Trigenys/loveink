@@ -1,0 +1,4 @@
+.env
+secrets/
+preview/
+node_modules/

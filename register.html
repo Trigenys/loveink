@@ -94,6 +94,7 @@
     import { auth, db } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
     import { syncUserSession } from './js/core/auth-session.js';
+    import { requestVerificationEmail } from './js/core/mailer-client.js';
     import {
         PASSWORD_MIN, authErrorMessage, clearErrors, fieldError, focusFirstInvalid,
         isValidEmail, setBusy, wirePasswordToggles, wireStrengthMeter
@@ -154,7 +155,9 @@
             syncUserSession(user, profile);
 
             let verifySent = false;
-            try { await sendEmailVerification(user); verifySent = true; } catch { /* non bloquant */ }
+            // E-mail thématisé via le service mailer ; repli sur l'e-mail texte Firebase s'il est injoignable.
+            verifySent = await requestVerificationEmail(user, pseudo);
+            if (!verifySent) { try { await sendEmailVerification(user); verifySent = true; } catch { /* non bloquant */ } }
 
             await notify('success',
                 verifySent

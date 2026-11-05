@@ -67,6 +67,7 @@
     import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { auth } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
+    import { requestPasswordReset } from './js/core/mailer-client.js';
     import { authErrorMessage, clearErrors, fieldError, focusFirstInvalid, isValidEmail, setBusy, wirePasswordToggles } from './js/components/auth-form.js';
 
     const form = document.getElementById('loginForm');
@@ -128,7 +129,8 @@
         busy = true;
         setBusy(resetBtn, true, 'Envoi…');
         try {
-            await sendPasswordResetEmail(auth, email);
+            // E-mail thématisé via le service mailer ; repli sur l'e-mail texte Firebase s'il est injoignable.
+            if (!(await requestPasswordReset(email))) await sendPasswordResetEmail(auth, email);
         } catch (error) {
             // Un compte inexistant renvoie la meme confirmation : on ne revele pas quelles adresses sont inscrites.
             if (!['auth/user-not-found', 'auth/invalid-email'].includes(error?.code)) {
