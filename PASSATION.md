@@ -151,3 +151,8 @@
 - VPS ubuntu@15.235.90.215 (clé `~/.ssh/id_ed25519_fleet_vps`, docker via sudo) : code copié dans `~/loveink-mailer`, image construite, `.env` écrit sans `RESEND_API_KEY` (MAIL_FROM `Love Ink <loveink@trigenys.com>`, seul domaine Resend vérifié), Caddy `/etc/caddy/sites/loveink-mailer.caddy` → `mail.loveink.site` rechargé.
 - Verrous : (1) coller `RESEND_API_KEY` dans `~/loveink-mailer/.env` (clé Resend « Love Ink » créée) ; (2) déposer le JSON compte de service dans `~/loveink-mailer/secrets/firebase-service-account.json` ; (3) DNS Spaceship : A `mail.loveink.site` → 15.235.90.215.
 - Ensuite : `sudo docker compose up -d` + `curl https://mail.loveink.site/healthz`, déployer hosting (accord explicite), test réel inscription / reset.
+
+## 2026-11-05 23:26 — Mailer en prod sur le VPS, hosting à déployer
+- `https://mail.loveink.site/healthz` OK (Caddy + Let's Encrypt, DNS A ajouté sur Spaceship), CORS 204 pour love-ink.web.app. Conteneur `~/loveink-mailer` (HOST_PORT=8790, 8787 pris par un autre service), secrets en place (clé Resend, JSON compte de service), MAIL_FROM `Love Ink <loveink@trigenys.com>`. Reset réel envoyé avec succès (log « mail envoyé »).
+- Commits poussés : 69daca3 (réécriture lien), 6cdcab5 (HOST_PORT). `MAILER_URL` prod déjà = mail.loveink.site.
+- Prochaine étape : déployer hosting (`npx -y firebase-tools deploy --only hosting`, accord explicite), puis test complet inscription + reset en prod ; plus tard vérifier loveink.site chez Resend pour un expéditeur @loveink.site.
