@@ -76,7 +76,21 @@
                 </div>
 
                 <div class="lp-hero__visual lp-reveal is-in" data-delay="2">
-                <img class="lp-hero__photo" src="images/landing/hero-lettre.webp" width="868" height="1086" alt="Une lettre manuscrite, une plume bordeaux et une tasse de thé près d'une fenêtre" fetchpriority="high">
+                <div class="lp-book" id="lpBook" role="region" aria-roledescription="carrousel" aria-label="Ambiances Love Ink">
+                    <div class="lp-book__stack">
+                        <img class="lp-book__leaf is-active" src="images/landing/hero-lettre.webp" width="868" height="1086" alt="Une lettre manuscrite, une plume bordeaux et une tasse de thé près d'une fenêtre" fetchpriority="high">
+                        <img class="lp-book__leaf" src="images/landing/hero-carnet.webp" width="868" height="1086" alt="Une main écrit dans un carnet fleuri, à la plume">
+                        <img class="lp-book__leaf" src="images/landing/hero-lecture.webp" width="868" height="1086" alt="Un coin lecture baigné d'une lumière rosée">
+                        <img class="lp-book__leaf" src="images/landing/hero-plume.webp" width="868" height="1086" alt="Une plume trempée dans l'encre au-dessus d'une page blanche">
+                        <div class="lp-book__shade" aria-hidden="true"></div>
+                    </div>
+                    <div class="lp-book__dots" role="tablist" aria-label="Choisir une image">
+                        <button type="button" role="tab" aria-selected="true" aria-label="Image 1 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Image 2 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Image 3 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Image 4 sur 4"></button>
+                    </div>
+                </div>
                 <div class="lp-page" aria-hidden="true">
                     <div class="lp-page__sheet">
                         <div class="lp-page__kicker"><span>Premier amour</span><span>6 min</span></div>
@@ -200,13 +214,45 @@
         <!-- Manifeste -->
         <section class="lp-section" style="padding-top: 0;">
             <div class="lp-wrap">
-                <figure class="lp-manifeste lp-reveal">
-                    <img src="images/landing/manifeste-lecture.webp" width="1344" height="576" loading="lazy" alt="Une lectrice installée dans un fauteuil près d'une fenêtre, dans une lumière rosée">
-                    <figcaption class="lp-quote">
-                        <blockquote>« Ici, chaque mot est une caresse, chaque phrase un battement de cœur. »</blockquote>
-                        <cite>Love Ink, depuis le premier jour</cite>
-                    </figcaption>
-                </figure>
+                <div class="lp-manifeste lp-book lp-reveal" id="lpManifeste" role="region" aria-roledescription="carrousel" aria-label="Le manifeste Love Ink">
+                    <div class="lp-book__stack">
+                        <figure class="lp-book__leaf is-active">
+                            <img src="images/landing/manifeste-lecture.webp" width="1344" height="576" loading="lazy" alt="Une lectrice installée dans un fauteuil près d'une fenêtre, dans une lumière rosée">
+                            <figcaption class="lp-quote">
+                                <blockquote>« Ici, chaque mot est une caresse, chaque phrase un battement de cœur. »</blockquote>
+                                <cite>Love Ink, depuis le premier jour</cite>
+                            </figcaption>
+                        </figure>
+                        <figure class="lp-book__leaf">
+                            <img src="images/landing/manifeste-2.webp" width="1344" height="576" loading="lazy" alt="Deux tasses de thé et une lettre ouverte sur une table, au petit matin">
+                            <figcaption class="lp-quote">
+                                <blockquote>« On n'écrit jamais une histoire d'amour seul : il y a toujours quelqu'un qui la lit. »</blockquote>
+                                <cite>Pour celles et ceux qui écrivent</cite>
+                            </figcaption>
+                        </figure>
+                        <figure class="lp-book__leaf">
+                            <img src="images/landing/manifeste-3.webp" width="1344" height="576" loading="lazy" alt="Un carnet, une plume et des pétales dans une lumière dorée">
+                            <figcaption class="lp-quote">
+                                <blockquote>« Une lettre qu'on relit a toujours quelque chose de plus à dire. »</blockquote>
+                                <cite>Premier amour, seconde chance</cite>
+                            </figcaption>
+                        </figure>
+                        <figure class="lp-book__leaf">
+                            <img src="images/landing/manifeste-4.webp" width="1344" height="576" loading="lazy" alt="Un lecteur au bord d'une fenêtre, un livre ouvert sur les genoux">
+                            <figcaption class="lp-quote">
+                                <blockquote>« Lire tard, le cœur allumé, le reste du monde éteint. »</blockquote>
+                                <cite>Le mode nuit</cite>
+                            </figcaption>
+                        </figure>
+                        <div class="lp-book__shade" aria-hidden="true"></div>
+                    </div>
+                    <div class="lp-book__dots" role="tablist" aria-label="Choisir une citation">
+                        <button type="button" role="tab" aria-selected="true" aria-label="Citation 1 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Citation 2 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Citation 3 sur 4"></button>
+                        <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Citation 4 sur 4"></button>
+                    </div>
+                </div>
             </div>
         </section>
 
@@ -289,6 +335,50 @@
         // Bandeau : on duplique les vignettes pour une boucle continue.
         const track = document.getElementById('lpMarquee');
         track.innerHTML += track.innerHTML + track.innerHTML;
+
+        // Carrousels « livre » : la page active se tourne pour révéler la suivante.
+        document.querySelectorAll('.lp-book').forEach((book) => {
+            const leaves = [...book.querySelectorAll('.lp-book__leaf')];
+            const dots = [...book.querySelectorAll('[role="tab"]')];
+            if (leaves.length < 2) return;
+            const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            let i = 0, busy = false, timer = 0;
+            const go = (n) => {
+                n = (n + leaves.length) % leaves.length;
+                if (n === i || busy) return;
+                const cur = leaves[i], nxt = leaves[n];
+                dots.forEach((d, k) => { d.setAttribute('aria-selected', String(k === n)); d.tabIndex = k === n ? 0 : -1; });
+                if (reduced) { cur.classList.remove('is-active'); nxt.classList.add('is-active'); i = n; return; }
+                busy = true;
+                nxt.classList.add('is-next'); cur.classList.add('is-turning'); book.classList.add('is-turning');
+                let done = false;
+                const finish = () => {
+                    if (done) return; done = true;
+                    cur.classList.remove('is-active', 'is-turning'); nxt.classList.remove('is-next'); nxt.classList.add('is-active');
+                    book.classList.remove('is-turning'); i = n; busy = false;
+                };
+                cur.addEventListener('animationend', finish, { once: true });
+                setTimeout(finish, 1500);
+            };
+            const stop = () => clearInterval(timer);
+            const start = () => { stop(); if (!reduced) timer = setInterval(() => go(i + 1), 6500); };
+            dots.forEach((d, k) => d.addEventListener('click', () => { go(k); start(); }));
+            book.querySelector('[role="tablist"]').addEventListener('keydown', (e) => {
+                const step = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+                if (!step) return;
+                e.preventDefault(); const n = (i + step + leaves.length) % leaves.length; go(n); dots[n].focus(); start();
+            });
+            let x0 = null;
+            book.addEventListener('touchstart', (e) => { x0 = e.touches[0].clientX; }, { passive: true });
+            book.addEventListener('touchend', (e) => {
+                if (x0 === null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+                if (Math.abs(dx) > 40) { go(i + (dx < 0 ? 1 : -1)); start(); }
+            });
+            book.addEventListener('mouseenter', stop); book.addEventListener('mouseleave', start);
+            book.addEventListener('focusin', stop); book.addEventListener('focusout', start);
+            document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+            start();
+        });
 
         const reveal = document.querySelectorAll('.lp-reveal:not(.is-in)');
         if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {

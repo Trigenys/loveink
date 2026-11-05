@@ -104,3 +104,10 @@
 - index.html / css/landing.css : photo hero 4/5 avec la page mock en superposition (bas gauche), bandeau de genres = figures image + legende (defilement 60 s), bloc auteurs = photo 4/3 avec le flux de cartes en superposition, manifeste = photo 21/9 avec degrade creme et citation a droite (mobile : 4/5, degrade vertical, citation en bas). Hero en fetchpriority=high, le reste en lazy.
 - Verifie en local par etat JS : 9 fichiers en 200, layout desktop (~795px) et mobile 375px sans scroll horizontal, citation dans le cadre, 0 erreur console. Non verifie : rendu visuel reel (pane masque), >960px, e2e non relances.
 - Deploiement : attend l'accord explicite.
+
+## 2026-11-05 18:48 — Landing : carrousels « page tournée » (hero + manifeste)
+- Composant commun `.lp-book` (css/landing.css bloc « Carrousel ») : feuilles `.lp-book__leaf` empilées, la page active pivote autour de la reliure gauche (rotateY -180°, backface-visibility) avec ombre `.lp-book__shade`, points `role=tablist` (clic, flèches clavier, balayage tactile), auto 6,5 s, pause survol/focus/onglet caché, bascule sans animation si prefers-reduced-motion. Script inline dans index.html (boucle sur `.lp-book`).
+- Hero `#lpBook` : 4 photos 4/5 (hero-lettre, hero-carnet, hero-lecture, hero-plume). Manifeste `#lpManifeste` : 4 figures image 21/9 + citation (manifeste-lecture, manifeste-2/3/4), dégradé crème déplacé sur `.lp-book__leaf::after`.
+- Responsive : `.lp-hero__visual` a besoin de `width:100%` (sinon largeur 0 dans la grille sans image en flux) ; ≤680 px la page mock passe sous la photo (relative, chevauchement -56 px) et les points du hero vont en haut à droite ; ≤960 px `.lp-flow` calé à right:0.
+- Vérifié par état JS : 15 images en 200, page tournée effective, desktop ~1057 px / tablette 768 / mobile 375 sans chevauchement points-page-chips ni scroll horizontal, citation dans le cadre, 0 erreur console. Non vu visuellement (pane masqué).
+- Déploiement : attend l'accord explicite.
