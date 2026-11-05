@@ -37,3 +37,8 @@
 - Verifie en local (index, login, clair/sombre, 0 erreur console). Pages connectees non verifiees (pas d'identifiants).
 - A faire : deployer hosting (`npx firebase deploy --only hosting`), puis verifier que PASSATION.md et .claude/ restent en 404.
 - Pre-existant note : login.html n'applique pas le theme sombre au fond de page (theme.js absent).
+
+## 2026-11-05 16:27 — Deploiement de la couche immersive
+- Hosting deploye (`npx -y firebase-tools deploy --only hosting`) ; commit 40f9ae6 en ligne sur https://love-ink.web.app.
+- Verifie : immersive.css/js en 200, pages incluent la couche ; PASSATION.md, .claude/, .github/ en 404.
+- Reste : verification visuelle des pages connectees par Lee ; domaine loveink.site (console Firebase + DNS Spaceship).
