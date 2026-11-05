@@ -142,7 +142,29 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
 
 /* Comment ca marche : liste editoriale */
 .lp-steps { display: grid; border-top: 1px solid var(--border); }
-.lp-step { display: grid; grid-template-columns: 90px minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 24px; padding: 34px 0; border-bottom: 1px solid var(--border); align-items: baseline; }
+.lp-step { display: grid; grid-template-columns: 90px minmax(0, 0.9fr) minmax(0, 1.1fr) minmax(0, 0.7fr); gap: 24px; padding: 34px 0; border-bottom: 1px solid var(--border); align-items: center; }
+.lp-step__vis { justify-self: end; width: 100%; max-width: 260px; }
+/* 01 : couvertures en éventail */
+.lp-shelf { position: relative; height: 150px; }
+.lp-shelf img { position: absolute; bottom: 0; width: 86px; height: 112px; object-fit: cover; border-radius: 8px; box-shadow: 0 18px 36px -18px rgba(122,62,62,.6); border: 2px solid var(--paper); transition: transform .5s var(--ease); }
+.lp-shelf img:nth-child(1) { left: 8%; transform: rotate(-9deg); }
+.lp-shelf img:nth-child(2) { left: 36%; transform: translateY(-8px); z-index: 1; }
+.lp-shelf img:nth-child(3) { right: 8%; transform: rotate(9deg); }
+.lp-step:hover .lp-shelf img:nth-child(2) { transform: translateY(-16px) scale(1.04); }
+.lp-shelf__chip { position: absolute; left: 50%; top: 0; transform: translateX(-50%); white-space: nowrap; font-size: 0.7rem; letter-spacing: .04em; padding: 5px 11px; border-radius: 99px; background: var(--paper); border: 1px solid var(--border); color: var(--rose-deep); box-shadow: 0 8px 20px -12px rgba(122,62,62,.5); z-index: 2; }
+.lp-shelf__chip i { color: var(--rose-mid); margin-right: 3px; }
+/* 02 : page avec marque de reprise */
+.lp-marker { display: grid; gap: 10px; padding: 18px; border-radius: 16px; background: var(--paper); border: 1px solid var(--border); }
+.lp-marker > i { display: block; height: 5px; border-radius: 99px; background: var(--rose-pale); }
+.lp-marker > i:nth-child(3) { width: 70%; } .lp-marker > i:last-child { width: 45%; }
+.lp-marker__here { display: flex; align-items: center; gap: 8px; font-size: 0.76rem; color: var(--rose-deep); padding: 7px 10px; margin: 2px -6px; border-radius: 8px; background: var(--rose-pale); border-left: 3px solid var(--rose-deep); }
+.lp-marker__here b { font-weight: 900; }
+/* 03 : réactions + bouton d'écriture */
+.lp-react { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.lp-react__pill { display: inline-flex; align-items: center; gap: 6px; font-size: 0.78rem; padding: 7px 12px; border-radius: 99px; border: 1px solid var(--border); background: var(--paper); color: var(--ink-muted); }
+.lp-react__pill.is-on { color: var(--rose-deep); border-color: var(--rose-soft); background: var(--rose-pale); }
+.lp-react__pill.is-on i { color: #c0504d; }
+.lp-react__btn { display: inline-flex; align-items: center; gap: 8px; font-size: 0.82rem; font-weight: 500; padding: 10px 16px; border-radius: 99px; background: var(--rose-deep); color: #fff; box-shadow: 0 14px 30px -14px rgba(122,62,62,.7); }
 .lp-step__n { font-family: var(--font-serif); font-size: 2.4rem; color: var(--rose-soft); line-height: 1; }
 .lp-step h3 { font-size: clamp(1.5rem, 2.4vw, 2rem); }
 .lp-step p { color: var(--ink-muted); max-width: 52ch; }
@@ -262,8 +284,10 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
     .lp-hero__grid, .lp-authors { grid-template-columns: 1fr; }
     .lp-authors__visual .lp-flow { right: 0; }
     .lp-page { margin-top: 24px; max-width: 420px; }
-    .lp-step { grid-template-columns: 56px 1fr; }
-    .lp-step p { grid-column: 2; }
+    .lp-step { grid-template-columns: 56px 1fr; align-items: baseline; }
+    .lp-step p, .lp-step__vis { grid-column: 2; }
+    .lp-step__vis { justify-self: start; margin-top: 6px; }
+    .lp-react { justify-content: flex-start; }
     .lp-tile--4, .lp-tile--2, .lp-tile--3 { grid-column: span 3; }
 }
 @media (max-width: 680px) {
@@ -296,5 +320,5 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
     .lp-reveal { opacity: 1; transform: none; transition: none; }
     .lp-chip, .lp-marquee__track, .lp-page__bar > span, .lp-book__leaf, .lp-book__shade { animation: none; }
     .lp-page__bar > span { width: 42%; }
-    .lp-page__sheet, .lp-tile, .lp-flow__card, .lp-btn, .lp-mood { transition: none; }
+    .lp-page__sheet, .lp-tile, .lp-flow__card, .lp-btn, .lp-mood, .lp-shelf img { transition: none; }
 }

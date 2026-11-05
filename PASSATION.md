@@ -116,3 +116,9 @@
 - index.html / css/landing.css : les 4 tuiles reçoivent une maquette (`.lp-tile__vis`, grille 1fr/auto, min-height 320) : extrait typographié + pilules de réglages (`.lp-reader`), photo manifeste-4 en fond sombre + 3 mini-pages clair/sépia/nuit (`.lp-moods`), carte « Continuer à lire » avec couvertures cat-*.webp et barre de progression (`.lp-resume`), lecteur en mode focus avec paragraphes voisins estompés (`.lp-focus`). Icônes supprimées au profit des maquettes.
 - Vérifié par état JS : visuels contenus dans les tuiles en desktop (1057 px) et mobile (375 px), images chargées, pas de scroll horizontal, 0 erreur console. Non vu visuellement.
 - Déploiement : attend l'accord explicite.
+
+## 2026-11-05 18:56 — Landing : maquettes visuelles « Comment ça marche »
+- `index.html` #comment : chaque `.lp-step` a un bloc `.lp-step__vis` (aria-hidden) : 01 `.lp-shelf` (3 couvertures cat-*.webp en éventail + chip « Premier amour · 6 min »), 02 `.lp-marker` (page avec « Reprendre ici · chapitre 3 »), 03 `.lp-react` (pilules cœur/commentaire/message + bouton « Écrire une histoire »).
+- `css/landing.css` : `.lp-step` passe à 4 colonnes (90px / .9fr / 1.1fr / .7fr, align center) ; ≤680 : visuel en colonne 2 sous le texte, aligné à gauche ; reduced-motion coupe la transition des couvertures.
+- Vérifié localement (1057 px et 375 px) : visuels contenus dans leur étape, pas de chevauchement texte/visuel, scrollX 0, 0 erreur console. Rendu réel non vu (panneau masqué) : à juger par Lee.
+- Déploiement toujours en attente d'accord.
