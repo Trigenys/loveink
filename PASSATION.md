@@ -24,3 +24,8 @@
 - Gate : `npm run test:rules` 13/13, puis `npm run deploy` (règles, index, hosting) → https://love-ink.web.app en ligne, sans erreur console sur /feed.
 - Near miss corrigé : PASSATION.md et .github/** étaient servis publiquement → exclus de `hosting.ignore`, redéployé, 404 vérifié (voir tasks/lessons.md L-HOST-2026-11-05).
 - À noter : /feed affiche des auteurs fictifs codés en dur (« Claire B. », etc.) dans « Auteurs à découvrir » à remplacer avant la com. Domaine loveink.site toujours à connecter (console Firebase > Hosting > domaine personnalisé, puis DNS Spaceship).
+
+## 2026-11-05 16:05 — Feed : fin des données fictives
+- `feed.html` : « Auteurs à découvrir » est maintenant calculé à partir des histoires publiées chargées (top 4 par nombre d'histoires, sans l'utilisateur connecté, section masquée si vide). Le bouton Suivre utilise le vrai `suivreAuteur`/`estAbonne`, l'état est relu au chargement. Les compteurs inventés des catégories sont supprimés.
+- Déployé (hosting). Vérifié : syntaxe du module, page servie à jour, aucune donnée fictive dans les pages. Non vérifié par moi : le rendu une fois connecté (les tests e2e créent des comptes sur la prod, donc pas lancés).
+- Limite : pas de page profil publique (`profil.html` n'affiche que son propre profil), donc pas de lien vers l'auteur.

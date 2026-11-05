@@ -664,34 +664,9 @@
         <div class="stories-grid" id="storiesGrid"></div>
     </section>
 
-    <section class="authors-section">
+    <section class="authors-section" id="authorsSection" hidden>
         <h2 class="section-title">Auteurs a <em>decouvrir</em></h2>
-        <div class="authors-grid">
-            <div class="author-card">
-                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
-                <div class="author-name">Claire B.</div>
-                <div class="author-stories">15 histoires</div>
-                <button class="follow-btn" data-author="Claire B.">Suivre</button>
-            </div>
-            <div class="author-card">
-                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
-                <div class="author-name">Marie D.</div>
-                <div class="author-stories">8 histoires</div>
-                <button class="follow-btn" data-author="Marie D.">Suivre</button>
-            </div>
-            <div class="author-card">
-                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
-                <div class="author-name">Sophie M.</div>
-                <div class="author-stories">12 histoires</div>
-                <button class="follow-btn" data-author="Sophie M.">Suivre</button>
-            </div>
-            <div class="author-card">
-                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
-                <div class="author-name">Pierre L.</div>
-                <div class="author-stories">4 histoires</div>
-                <button class="follow-btn" data-author="Pierre L.">Suivre</button>
-            </div>
-        </div>
+        <div class="authors-grid" id="authorsGrid"></div>
     </section>
 
     <footer>
@@ -710,24 +685,24 @@
     import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
 
     const CATEGORIES = [
-        { nom: 'Premier amour', icon: 'fa-heart', count: 12 },
-        { nom: 'Amour des hommes illustres', icon: 'fa-crown', count: 5 },
-        { nom: 'Amour farfelu', icon: 'fa-hat-wizard', count: 7 },
-        { nom: 'Amour heureux', icon: 'fa-smile', count: 8 },
-        { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles', count: 6 },
-        { nom: 'Amour virtuel', icon: 'fa-globe', count: 4 },
-        { nom: 'Aventure estivale', icon: 'fa-sun', count: 9 },
-        { nom: 'Belles histoires', icon: 'fa-star', count: 15 },
-        { nom: "De l'amitie a l'amour", icon: 'fa-handshake', count: 5 },
-        { nom: 'Histoires de couples', icon: 'fa-people-arrows', count: 10 },
-        { nom: 'Histoires tristes', icon: 'fa-cloud-rain', count: 6 },
-        { nom: 'Interessant', icon: 'fa-lightbulb', count: 4 },
-        { nom: "Lettres d'amour", icon: 'fa-envelope', count: 8 },
-        { nom: 'Nos conseils', icon: 'fa-comment-dots', count: 3 },
-        { nom: "Poesie d'amour", icon: 'fa-feather', count: 7 },
-        { nom: 'Rapport occasionnel', icon: 'fa-calendar-check', count: 4 },
-        { nom: 'Rencontres', icon: 'fa-handshake-simple', count: 6 },
-        { nom: 'Divers', icon: 'fa-ellipsis', count: 2 }
+        { nom: 'Premier amour', icon: 'fa-heart' },
+        { nom: 'Amour des hommes illustres', icon: 'fa-crown' },
+        { nom: 'Amour farfelu', icon: 'fa-hat-wizard' },
+        { nom: 'Amour heureux', icon: 'fa-smile' },
+        { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles' },
+        { nom: 'Amour virtuel', icon: 'fa-globe' },
+        { nom: 'Aventure estivale', icon: 'fa-sun' },
+        { nom: 'Belles histoires', icon: 'fa-star' },
+        { nom: "De l'amitie a l'amour", icon: 'fa-handshake' },
+        { nom: 'Histoires de couples', icon: 'fa-people-arrows' },
+        { nom: 'Histoires tristes', icon: 'fa-cloud-rain' },
+        { nom: 'Interessant', icon: 'fa-lightbulb' },
+        { nom: "Lettres d'amour", icon: 'fa-envelope' },
+        { nom: 'Nos conseils', icon: 'fa-comment-dots' },
+        { nom: "Poesie d'amour", icon: 'fa-feather' },
+        { nom: 'Rapport occasionnel', icon: 'fa-calendar-check' },
+        { nom: 'Rencontres', icon: 'fa-handshake-simple' },
+        { nom: 'Divers', icon: 'fa-ellipsis' }
     ];
 
     const categoriesGrid = document.getElementById('categoriesGrid');
@@ -779,7 +754,6 @@
             card.innerHTML = `
                 <div class="cat-icon"><i class="fas ${cat.icon}"></i></div>
                 <div class="cat-name">${escapeHtml(cat.nom)}</div>
-                <div class="cat-count">${cat.count} histoire${cat.count > 1 ? 's' : ''}</div>
             `;
             card.addEventListener('click', () => {
                 searchInput.value = cat.nom;
@@ -895,11 +869,51 @@
             }
         });
 
-        document.querySelectorAll('.follow-btn').forEach((btn) => {
-            btn.addEventListener('click', () => {
-                const following = btn.classList.toggle('following');
+    }
+
+    // Auteurs reels, derives des histoires publiees chargees (hors utilisateur courant).
+    async function renderAuthors(stories, currentUid) {
+        const section = document.getElementById('authorsSection');
+        const grid = document.getElementById('authorsGrid');
+        const byAuthor = new Map();
+        stories.forEach((story) => {
+            if (!story.auteurId || story.auteurId === currentUid) return;
+            const entry = byAuthor.get(story.auteurId) || { id: story.auteurId, nom: story.auteur || 'Auteur', count: 0 };
+            entry.count += 1;
+            byAuthor.set(story.auteurId, entry);
+        });
+        const authors = [...byAuthor.values()].sort((a, b) => b.count - a.count).slice(0, 4);
+        grid.innerHTML = '';
+        section.hidden = authors.length === 0;
+        if (!authors.length) return;
+
+        const states = await Promise.all(authors.map((a) => firebaseAPI.estAbonne(currentUid, a.id)));
+        authors.forEach((author, idx) => {
+            const card = document.createElement('div');
+            card.className = 'author-card';
+            card.innerHTML = `
+                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="author-name">${escapeHtml(author.nom)}</div>
+                <div class="author-stories">${author.count} histoire${author.count > 1 ? 's' : ''} recente${author.count > 1 ? 's' : ''}</div>
+                <button class="follow-btn" type="button">Suivre</button>
+            `;
+            const btn = card.querySelector('.follow-btn');
+            const setState = (following) => {
+                btn.classList.toggle('following', following);
                 btn.textContent = following ? 'Abonne ✓' : 'Suivre';
+            };
+            setState(states[idx]);
+            btn.addEventListener('click', async () => {
+                btn.disabled = true;
+                const result = await firebaseAPI.suivreAuteur(currentUid, author.id);
+                btn.disabled = false;
+                if (result.error) {
+                    await notify('error', "Impossible de mettre a jour l'abonnement.", { title: 'Abonnement' });
+                    return;
+                }
+                setState(result.following);
             });
+            grid.appendChild(card);
         });
     }
 
@@ -931,10 +945,11 @@
     requireAuth({
         auth,
         redirectTo: 'index.html',
-        onReady: async (_user, { pseudo }) => {
+        onReady: async (user, { pseudo }) => {
             setNavPseudo(pseudo);
             renderCategories();
             await loadStories();
+            await renderAuthors(allStories, user?.uid);
         }
     });
 
