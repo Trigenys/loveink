@@ -25,6 +25,34 @@ body.lp { margin: 0; font-family: var(--font-sans); color: var(--ink); backgroun
 .lp-eyebrow { font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rose-mid); font-weight: 500; }
 .lp-lead { font-size: clamp(1.05rem, 1.5vw, 1.2rem); color: var(--ink-muted); max-width: 54ch; }
 
+/* ---------- Fond : mots parallax + plume ---------- */
+body.lp { position: relative; }
+.lp > main, .lp > footer { position: relative; z-index: 1; }
+.lp > header { position: sticky; z-index: 5; }
+.lp-ink { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.lp-ink__word { position: absolute; left: var(--x); top: var(--y); font-family: var(--font-serif); font-style: italic; font-weight: 300; font-size: clamp(2.6rem, var(--s), 9rem); line-height: 1; white-space: nowrap; color: var(--rose-mid); opacity: 0.13; transform: rotate(-4deg); will-change: transform; user-select: none; }
+html[data-theme="dark"] .lp-ink__word { opacity: 0.1; }
+.lp-ink__quill { position: fixed; left: var(--qx, 20vw); top: var(--qy, 40vh); width: min(520px, 70vw); height: 110px; opacity: 0; }
+.lp-ink__quill.is-writing { animation: lp-quill-show 7.5s var(--ease) both; }
+.lp-ink__script text { font-family: var(--font-serif); font-style: italic; font-size: 64px; fill: none; stroke: var(--rose-deep); stroke-width: 1.1; stroke-linejoin: round; stroke-dasharray: 1400; stroke-dashoffset: 1400; opacity: 0.55; }
+.lp-ink__quill.is-writing text { animation: lp-write 4s cubic-bezier(0.4, 0, 0.6, 1) 0.3s forwards; }
+.lp-ink__nib { position: absolute; left: 0; top: 8px; font-size: 34px; color: var(--rose-deep); opacity: 0.7; transform: translate(0, 0) rotate(-35deg); transform-origin: 20% 90%; }
+.lp-ink__nib.is-writing { animation: lp-nib 4s cubic-bezier(0.4, 0, 0.6, 1) 0.3s forwards, lp-nib-wobble 0.35s ease-in-out 0.3s 11; }
+@keyframes lp-quill-show { 0% { opacity: 0; } 8% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes lp-write { to { stroke-dashoffset: 0; } }
+@keyframes lp-nib { from { left: 0; } to { left: var(--qw, 60%); } }
+@keyframes lp-nib-wobble { 0%, 100% { transform: translate(0, 0) rotate(-35deg); } 50% { transform: translate(1px, 3px) rotate(-31deg); } }
+@media (max-width: 680px) {
+    .lp-ink__word { font-size: clamp(2.2rem, 11vw, 3.2rem); }
+    .lp-ink__word:nth-child(even) { display: none; }
+    .lp-ink__quill { height: 80px; }
+    .lp-ink__nib { font-size: 26px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lp-ink__quill { display: none; }
+    .lp-ink__word { transform: rotate(-4deg) !important; }
+}
+
 /* ---------- Boutons ---------- */
 .lp-btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 26px; border-radius: 999px; font-weight: 500; font-size: 0.95rem; text-decoration: none; white-space: nowrap; border: 1px solid transparent; transition: transform 0.4s var(--ease), box-shadow 0.4s var(--ease), background-color 0.3s; }
 .lp-btn:active { transform: scale(0.98); }

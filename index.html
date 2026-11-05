@@ -23,6 +23,22 @@
 </head>
 
 <body class="lp">
+    <!-- Fond : mots des genres en parallax + plume qui ecrit -->
+    <div class="lp-ink" id="lpInk" aria-hidden="true">
+        <span class="lp-ink__word" style="--x:4%;--y:9%;--d:0.06;--s:9vw">Premier amour</span>
+        <span class="lp-ink__word" style="--x:58%;--y:16%;--d:0.14;--s:6vw">Coup de foudre</span>
+        <span class="lp-ink__word" style="--x:12%;--y:31%;--d:0.1;--s:7vw">Lettres d'été</span>
+        <span class="lp-ink__word" style="--x:55%;--y:41%;--d:0.18;--s:8vw">Seconde chance</span>
+        <span class="lp-ink__word" style="--x:2%;--y:52%;--d:0.08;--s:6vw">Amour à distance</span>
+        <span class="lp-ink__word" style="--x:50%;--y:63%;--d:0.16;--s:7vw">Histoires tristes</span>
+        <span class="lp-ink__word" style="--x:8%;--y:74%;--d:0.12;--s:8vw">Amour magique</span>
+        <span class="lp-ink__word" style="--x:48%;--y:86%;--d:0.07;--s:6vw">Jusqu'à l'aube</span>
+        <div class="lp-ink__quill" id="lpQuill">
+            <svg class="lp-ink__script" viewBox="0 0 520 110" preserveAspectRatio="xMinYMid meet"><text id="lpScript" x="6" y="78"></text></svg>
+            <i class="fas fa-feather-pointed lp-ink__nib" id="lpNib"></i>
+        </div>
+    </div>
+
     <header class="lp-nav" id="lpNav">
         <div class="lp-wrap lp-nav__in">
             <a href="index.html" class="logo-custom" aria-label="Love Ink, accueil">
@@ -224,6 +240,36 @@
             burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
         });
         links.addEventListener('click', (e) => { if (e.target.closest('a')) { links.classList.remove('is-open'); burger.setAttribute('aria-expanded', 'false'); } });
+
+        // Fond : parallax des mots + plume qui ecrit.
+        const ink = document.getElementById('lpInk');
+        const words = [...ink.querySelectorAll('.lp-ink__word')];
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!reduced) {
+            let ticking = false;
+            const parallax = () => { ticking = false; const y = window.scrollY; words.forEach((w) => { w.style.transform = `translate3d(0, ${-y * parseFloat(w.style.getPropertyValue('--d'))}px, 0) rotate(-4deg)`; }); };
+            addEventListener('scroll', () => { if (!ticking) { ticking = true; requestAnimationFrame(parallax); } }, { passive: true });
+            parallax();
+
+            const quill = document.getElementById('lpQuill');
+            const script = document.getElementById('lpScript');
+            const nib = document.getElementById('lpNib');
+            const phrases = ['Je t’aime', 'À jamais', 'Reviens-moi', 'Pour toujours', 'Si tu savais…', 'Mon cœur', 'Encore une page'];
+            let i = Math.floor(Math.random() * phrases.length);
+            const write = () => {
+                if (document.hidden) return;
+                script.textContent = phrases[i++ % phrases.length];
+                const len = script.getComputedTextLength();
+                const widthPx = quill.clientWidth * Math.min(1, (len + 12) / 520);
+                quill.style.setProperty('--qx', `${8 + Math.random() * 50}vw`);
+                quill.style.setProperty('--qy', `${18 + Math.random() * 60}vh`);
+                quill.style.setProperty('--qw', `${widthPx}px`);
+                quill.classList.remove('is-writing'); void quill.offsetWidth; quill.classList.add('is-writing');
+                nib.classList.remove('is-writing'); void nib.offsetWidth; nib.classList.add('is-writing');
+            };
+            setTimeout(write, 1800);
+            setInterval(write, 11000);
+        }
 
         const reveal = document.querySelectorAll('.lp-reveal:not(.is-in)');
         if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {

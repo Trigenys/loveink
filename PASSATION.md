@@ -88,3 +88,8 @@
 - Bannière `?compte=suspendu|banni` (renvoi de auth-session.js) desormais affichee ; smoke e2e vise `.lp-hero` au lieu de `.hero-slideshow`.
 - Verifie en local par etat JS (795px et 375px, clair/sombre, menu burger, 0 erreur console, pas de scroll horizontal). Non verifie : rendu >960px (2 colonnes) faute de pane plus large ; e2e non relances.
 - Deploiement : attend l'accord explicite.
+
+## 2026-11-05 17:39 — Landing : fond plume + mots parallax
+- index.html / css/landing.css : couche .lp-ink (z 0) avec 8 titres de genres en serif italique (parallax au scroll via --d, rotation -4deg, moitie masques en mobile) et une plume (fa-feather-pointed) fixe qui « ecrit » toutes les 11 s une phrase en SVG (stroke-dashoffset) a une position aleatoire. Desactive si prefers-reduced-motion ou onglet cache.
+- Verifie en local par etat JS : plume active, parallax applique, nav sticky au-dessus du contenu, 0 erreur console, pas de scroll horizontal.
+- Deploiement : attend l'accord explicite.
