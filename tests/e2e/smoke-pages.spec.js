@@ -4,7 +4,7 @@ const { makeUser, registerWithUi, ensureFeedLoaded } = require('./helpers/app');
 test.describe('Love Ink - smoke global pages', () => {
     test('pages publiques: index/login/register chargent', async ({ page }) => {
         await page.goto('/index.html');
-        await expect(page.locator('.hero-slideshow')).toBeVisible();
+        await expect(page.locator('.lp-hero')).toBeVisible();
         await expect(page.locator('.logo-custom .logo-text')).toContainText('Love Ink');
 
         await page.goto('/login.html');

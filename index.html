@@ -4,190 +4,237 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Love Ink - L'encre des cœurs</title>
+    <meta name="description" content="Love Ink : lire, écrire et partager des histoires d'amour en français. Lecture gratuite, mode lecture immersif, relecture bienveillante pour les auteurs.">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/landing.css">
     <script src="js/core/immersive.js" defer></script>
+    <script type="module">
+    import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { auth } from './js/core/firebase-config.js';
+    // Deja connecte : on va directement au feed.
+    onAuthStateChanged(auth, (user) => { if (user) window.location.href = 'feed.html'; });
+    </script>
 </head>
 
-<script type="module">
-import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-import { auth } from './js/core/firebase-config.js';
-
-// ===== REDIRECTION SI DEJA CONNECTE =====
-onAuthStateChanged(auth, (user) => {
-    if (user) {
-        console.log("Deja connecte, redirection vers feed...");
-        window.location.href = 'feed.html';
-    }
-});
-</script>
-
-<body>
-    <!-- Petite barre de navigation pour la page d'accueil -->
-    <nav class="navbar">
-        <div class="container">
-            <!-- NOUVEAU LOGO AJOUTÉ ICI -->
-            <a href="index.html" class="logo-custom">
-                <div class="logo-icon">
+<body class="lp">
+    <header class="lp-nav" id="lpNav">
+        <div class="lp-wrap lp-nav__in">
+            <a href="index.html" class="logo-custom" aria-label="Love Ink, accueil">
+                <div class="logo-icon" aria-hidden="true">
                     <i class="fas fa-heart logo-heart"></i>
                     <i class="fas fa-hand-paper logo-hand"></i>
                     <i class="fas fa-pen-fancy logo-pen"></i>
                 </div>
                 <span class="logo-text">Love Ink</span>
             </a>
-            <ul class="nav-links">
-                <li><a href="index.html">Accueil</a></li>
-                <li><a href="#apropos">À propos</a></li>
+            <button class="lp-nav__burger" id="lpBurger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="lpLinks"><i class="fas fa-bars" aria-hidden="true"></i></button>
+            <ul class="lp-nav__links" id="lpLinks">
+                <li><a href="#lecture">Lire</a></li>
+                <li><a href="#auteurs">Écrire</a></li>
                 <li><a href="login.html">Connexion</a></li>
-                <li><a href="register.html" class="btn btn-primary" style="padding: 8px 20px;">S'inscrire</a></li>
+                <li><a href="register.html" class="lp-btn lp-btn--primary">Créer un compte</a></li>
             </ul>
         </div>
-    </nav>
+    </header>
 
-    <!-- Diaporama -->
-    <div class="hero-slideshow">
-        <div class="slide slide1 active">
-            <div class="slide-content">
-                <h2>L'encre de vos histoires</h2>
-                <p>Ici, chaque mot est une caresse, chaque phrase un battement de cœur. Love Ink est l'endroit où les âmes sœurs littéraires se rencontrent.</p>
-                <a href="register.html" class="btn btn-primary">Commencer l'aventure</a>
-            </div>
-        </div>
-        <div class="slide slide2">
-            <div class="slide-content">
-                <h2>Une communauté de cœurs</h2>
-                <p>Des milliers d'auteurs et de lecteurs partagent leurs plus belles histoires. Trouvez votre public, échangez, grandissez ensemble.</p>
-                <a href="register.html" class="btn btn-primary">Rejoindre la communauté</a>
-            </div>
-        </div>
-        <div class="slide slide3">
-            <div class="slide-content">
-                <h2>Devenez auteur</h2>
-                <p>Publiez vos histoires, recevez des retours, construisez votre univers. Votre plume mérite d'être lue.</p>
-                <a href="register.html" class="btn btn-primary">Écrire mon histoire</a>
-            </div>
-        </div>
-        <button class="slide-prev" onclick="changerSlide(-1)">❮</button>
-        <button class="slide-next" onclick="changerSlide(1)">❯</button>
-        <div class="slide-dots">
-            <span class="dot active-dot" onclick="allerAuSlide(0)"></span>
-            <span class="dot" onclick="allerAuSlide(1)"></span>
-            <span class="dot" onclick="allerAuSlide(2)"></span>
-        </div>
-    </div>
+    <main>
+        <div class="lp-wrap"><p class="lp-notice" id="lpNotice" role="status" hidden></p></div>
+        <!-- Hero -->
+        <section class="lp-hero">
+            <div class="lp-wrap lp-hero__grid">
+                <div class="lp-hero__copy">
+                    <p class="lp-eyebrow lp-reveal is-in">Histoires d'amour · lecture &amp; écriture</p>
+                    <h1 class="lp-reveal is-in" data-delay="1">L'encre des cœurs, <em>une histoire</em> à la fois.</h1>
+                    <p class="lp-lead lp-reveal is-in" data-delay="2">Love Ink est une plateforme francophone où l'on lit, écrit et partage des histoires d'amour : premier amour, seconde chance, amours à distance. La lecture est gratuite, chaque texte est relu avant publication, et le mode lecture est pensé pour s'y perdre.</p>
+                    <div class="lp-hero__cta lp-reveal is-in" data-delay="3">
+                        <a href="register.html" class="lp-btn lp-btn--primary">Créer un compte gratuit <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                        <a href="login.html" class="lp-btn lp-btn--ghost">Se connecter</a>
+                    </div>
+                    <p class="lp-hero__note lp-reveal is-in" data-delay="3"><i class="fas fa-lock" aria-hidden="true"></i>Sans publicité. Votre adresse e-mail n'est jamais affichée.</p>
+                </div>
 
-    <!-- Section À propos -->
-    <section id="apropos" class="categories-section" style="background: white; padding: 80px 0;">
-        <div class="container">
-            <h2 class="section-title">Pourquoi Love Ink ?</h2>
-            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; text-align: center;">
-                <div>
-                    <i class="fas fa-feather-alt" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
-                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Pour les auteurs</h3>
-                    <p style="color: #666;">Publiez vos histoires, construisez votre communauté, recevez des avis authentiques.</p>
-                </div>
-                <div>
-                    <i class="fas fa-heart" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
-                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Pour les lecteurs</h3>
-                    <p style="color: #666;">Des milliers d'histoires d'amour à découvrir, des auteurs à suivre, une communauté bienveillante.</p>
-                </div>
-                <div>
-                    <i class="fas fa-comments" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
-                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Messagerie privée</h3>
-                    <p style="color: #666;">Échangez directement avec vos auteurs préférés ou discutez entre lecteurs.</p>
+                <div class="lp-page lp-reveal is-in" data-delay="2" aria-hidden="true">
+                    <div class="lp-page__sheet">
+                        <div class="lp-page__kicker"><span>Premier amour</span><span>6 min</span></div>
+                        <div class="lp-page__title">Les lettres de septembre</div>
+                        <div class="lp-page__text">
+                            <p>Elle ouvrit la première lettre au bord de la mer, sans savoir que tout allait changer. Le papier sentait encore la lavande et l'été qui s'en va.</p>
+                            <p>« Si tu lis ces lignes, c'est que je n'ai pas eu le courage de te les dire. » Elle sourit. Lui non plus n'avait jamais su parler.</p>
+                        </div>
+                        <div class="lp-page__bar"><span></span></div>
+                        <div class="lp-page__foot"><span>42 % lu</span><span>Encore 3 min</span></div>
+                    </div>
+                    <div class="lp-chip lp-chip--a"><i class="fas fa-bookmark"></i><span><strong>Reprise automatique</strong><small>Là où vous vous étiez arrêté</small></span></div>
+                    <div class="lp-chip lp-chip--b"><i class="fas fa-font"></i><span><strong>Aa · Réglages</strong><small>Taille, police, ambiance</small></span></div>
                 </div>
             </div>
-            <div style="text-align: center; margin-top: 60px;">
-                <a href="register.html" class="btn btn-primary" style="padding: 15px 50px;">Rejoindre Love Ink</a>
+        </section>
+
+        <!-- Categories -->
+        <div class="lp-marquee" aria-hidden="true">
+            <div class="lp-marquee__track">
+                <span>Premier amour</span><span>Amour à distance</span><span>Coup de foudre</span><span>Seconde chance</span><span>Amour heureux</span><span>Histoires tristes</span><span>Amour magique</span><span>Aventure estivale</span><span>Histoires de couples</span><span>Amour virtuel</span>
+                <span>Premier amour</span><span>Amour à distance</span><span>Coup de foudre</span><span>Seconde chance</span><span>Amour heureux</span><span>Histoires tristes</span><span>Amour magique</span><span>Aventure estivale</span><span>Histoires de couples</span><span>Amour virtuel</span>
             </div>
         </div>
-    </section>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div style="text-align: center; color: #b76e6e;">
-                <p>© 2024 Love Ink - L'encre des cœurs</p>
-                <p style="margin-top: 10px; font-size: 0.9rem;">Fait avec <i class="fas fa-heart" style="color: #b76e6e;"></i> pour les amoureux des mots</p>
+        <!-- Comment ca marche -->
+        <section class="lp-section" id="comment">
+            <div class="lp-wrap">
+                <div class="lp-section__head lp-reveal">
+                    <p class="lp-eyebrow">Comment ça marche</p>
+                    <h2>Trois gestes, <em>et l'histoire</em> commence.</h2>
+                </div>
+                <div class="lp-steps">
+                    <article class="lp-step lp-reveal">
+                        <span class="lp-step__n">01</span>
+                        <h3>Choisissez une histoire</h3>
+                        <p>Par catégorie, par auteur, ou parmi celles mises à la une. Chaque fiche indique le temps de lecture avant que vous ne vous lanciez.</p>
+                    </article>
+                    <article class="lp-step lp-reveal" data-delay="1">
+                        <span class="lp-step__n">02</span>
+                        <h3>Lisez à votre rythme</h3>
+                        <p>Le mode lecture retient votre position. Revenez le lendemain : l'histoire vous attend dans « Continuer à lire ».</p>
+                    </article>
+                    <article class="lp-step lp-reveal" data-delay="2">
+                        <span class="lp-step__n">03</span>
+                        <h3>Réagissez, puis écrivez</h3>
+                        <p>Un cœur, un commentaire, un message à l'auteur. Et quand vous aurez envie de prendre la plume, votre premier brouillon n'est qu'à un clic.</p>
+                    </article>
+                </div>
             </div>
+        </section>
+
+        <!-- Lecture -->
+        <section class="lp-section" id="lecture" style="padding-top: 0;">
+            <div class="lp-wrap">
+                <div class="lp-section__head lp-reveal">
+                    <p class="lp-eyebrow">Le mode lecture</p>
+                    <h2>Une lecture faite <em>pour s'y perdre.</em></h2>
+                    <p class="lp-lead">Pas de distraction, pas de publicité : le texte, votre rythme, et quelques réglages qui changent tout.</p>
+                </div>
+                <div class="lp-bento">
+                    <article class="lp-tile lp-tile--4 lp-tile--aa lp-reveal">
+                        <div>
+                            <i class="fas fa-font lp-tile__icon" aria-hidden="true"></i>
+                            <h3>Typographie réglable</h3>
+                            <p>Taille, interligne et police au choix. Vos réglages sont conservés d'une histoire à l'autre.</p>
+                        </div>
+                        <div class="lp-aa" aria-hidden="true"><span>Aa</span><span>Aa</span><span>Aa</span></div>
+                    </article>
+                    <article class="lp-tile lp-tile--2 lp-tile--night lp-reveal" data-delay="1">
+                        <i class="fas fa-moon lp-tile__icon" aria-hidden="true"></i>
+                        <h3>Ambiances</h3>
+                        <p>Clair, sépia ou nuit, pour lire tard sans fatiguer les yeux.</p>
+                    </article>
+                    <article class="lp-tile lp-tile--3 lp-reveal">
+                        <i class="fas fa-bookmark lp-tile__icon" aria-hidden="true"></i>
+                        <div class="lp-tile__bar" aria-hidden="true"><span></span></div>
+                        <h3>Reprise automatique</h3>
+                        <p>Votre progression est mémorisée. Le feed vous propose de reprendre là où vous en étiez.</p>
+                    </article>
+                    <article class="lp-tile lp-tile--3 lp-reveal" data-delay="1">
+                        <i class="fas fa-eye lp-tile__icon" aria-hidden="true"></i>
+                        <h3>Mode focus</h3>
+                        <p>Le reste de la page s'efface : temps de lecture restant, lettrines, séparateurs de scène. Rien d'autre.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- Auteurs -->
+        <section class="lp-section" id="auteurs">
+            <div class="lp-wrap lp-authors">
+                <div class="lp-flow lp-reveal" aria-hidden="true">
+                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Brouillon</strong><small>Écrivez, enregistrez, reprenez plus tard.</small></span><span class="lp-tag">Étape 1</span></div>
+                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Relecture</strong><small>L'équipe relit chaque texte avant publication.</small></span><span class="lp-tag">Étape 2</span></div>
+                    <div class="lp-flow__card"><span class="lp-flow__dot"></span><span><strong>Publié</strong><small>Visible dans le feed, prêt à être lu et commenté.</small></span><span class="lp-tag">En ligne</span></div>
+                </div>
+                <div class="lp-authors__copy">
+                    <p class="lp-eyebrow lp-reveal">Pour celles et ceux qui écrivent</p>
+                    <h2 class="lp-reveal" data-delay="1">Votre plume <em>mérite</em> d'être lue.</h2>
+                    <p class="lp-lead lp-reveal" data-delay="2">Publiez à votre rythme, dans un espace où chaque texte est relu avant d'être mis en ligne. Pas d'algorithme opaque : des lecteurs, des réactions, et des échanges directs.</p>
+                    <ul class="lp-authors__list lp-reveal" data-delay="3">
+                        <li><i class="fas fa-check" aria-hidden="true"></i><span><strong>Relecture bienveillante.</strong> Un regard humain avant publication, jamais une note.</span></li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i><span><strong>Vos lecteurs vous suivent.</strong> Abonnés, cœurs, commentaires : vous voyez qui vous lit.</span></li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i><span><strong>Messagerie privée.</strong> Échangez avec vos lecteurs et les autres auteurs.</span></li>
+                        <li><i class="fas fa-check" aria-hidden="true"></i><span><strong>Vos textes restent à vous.</strong> Vous en gardez tous les droits.</span></li>
+                    </ul>
+                    <div class="lp-reveal" data-delay="3"><a href="register.html?type=auteur" class="lp-btn lp-btn--primary">Publier ma première histoire <i class="fas fa-arrow-right" aria-hidden="true"></i></a></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Manifeste -->
+        <section class="lp-section" style="padding-top: 0;">
+            <div class="lp-wrap lp-quote lp-reveal">
+                <blockquote>« Ici, chaque mot est une caresse, chaque phrase un battement de cœur. »</blockquote>
+                <cite>Love Ink, depuis le premier jour</cite>
+            </div>
+        </section>
+
+        <!-- CTA final -->
+        <section class="lp-section" style="padding-top: 0;">
+            <div class="lp-wrap">
+                <div class="lp-final lp-reveal">
+                    <p class="lp-eyebrow">C'est gratuit, et ça commence maintenant</p>
+                    <h2>Rejoignez <em>Love Ink.</em></h2>
+                    <p class="lp-lead">Un pseudo, une adresse e-mail, et vous lisez dans la minute. Écrire viendra quand vous voudrez.</p>
+                    <div class="lp-hero__cta">
+                        <a href="register.html" class="lp-btn lp-btn--primary">Créer mon compte <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                        <a href="login.html" class="lp-btn lp-btn--ghost">J'ai déjà un compte</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="lp-footer">
+        <div class="lp-wrap lp-footer__in">
+            <span>© 2026 Love Ink · L'encre des cœurs</span>
+            <nav aria-label="Liens de bas de page">
+                <a href="conditions.html">Conditions d'utilisation</a>
+                <a href="confidentialite.html">Confidentialité</a>
+                <a href="login.html">Connexion</a>
+                <a href="register.html">Inscription</a>
+            </nav>
         </div>
     </footer>
 
     <script>
-        let slideIndex = 0;
-        const slides = document.querySelectorAll('.slide');
-        const dots = document.querySelectorAll('.dot');
+    (() => {
+        const nav = document.getElementById('lpNav');
+        const burger = document.getElementById('lpBurger');
+        const links = document.getElementById('lpLinks');
+        // Compte suspendu/banni : auth-session.js renvoie ici avec ?compte=<statut>.
+        const compte = new URLSearchParams(location.search).get('compte');
+        const notices = { suspendu: 'Votre compte est suspendu. Contactez l’équipe Love Ink pour en savoir plus.', banni: 'Votre compte a été désactivé. Contactez l’équipe Love Ink si vous pensez qu’il s’agit d’une erreur.' };
+        if (notices[compte]) { const n = document.getElementById('lpNotice'); n.textContent = notices[compte]; n.hidden = false; }
+        const onScroll = () => nav.classList.toggle('is-stuck', window.scrollY > 8);
+        onScroll(); addEventListener('scroll', onScroll, { passive: true });
+        burger.addEventListener('click', () => {
+            const open = links.classList.toggle('is-open');
+            burger.setAttribute('aria-expanded', String(open));
+            burger.setAttribute('aria-label', open ? 'Fermer le menu' : 'Ouvrir le menu');
+        });
+        links.addEventListener('click', (e) => { if (e.target.closest('a')) { links.classList.remove('is-open'); burger.setAttribute('aria-expanded', 'false'); } });
 
-        function afficherSlide(index) {
-            if (index >= slides.length) slideIndex = 0;
-            if (index < 0) slideIndex = slides.length - 1;
-            slides.forEach(slide => slide.classList.remove('active'));
-            dots.forEach(dot => dot.classList.remove('active-dot'));
-            slides[slideIndex].classList.add('active');
-            dots[slideIndex].classList.add('active-dot');
+        const reveal = document.querySelectorAll('.lp-reveal:not(.is-in)');
+        if (!('IntersectionObserver' in window) || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            reveal.forEach((el) => el.classList.add('is-in'));
+            return;
         }
-
-        function changerSlide(direction) {
-            slideIndex += direction;
-            afficherSlide(slideIndex);
-        }
-
-        function allerAuSlide(index) {
-            slideIndex = index;
-            afficherSlide(slideIndex);
-        }
-
-        setInterval(() => {
-            slideIndex++;
-            afficherSlide(slideIndex);
-        }, 5000);
+        const io = new IntersectionObserver((entries) => {
+            entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add('is-in'); io.unobserve(en.target); } });
+        }, { rootMargin: '0px 0px -10% 0px', threshold: 0.12 });
+        reveal.forEach((el) => io.observe(el));
+    })();
     </script>
-
-    <style>
-        .slide-prev, .slide-next {
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255,255,255,0.3);
-            color: white;
-            border: none;
-            padding: 20px 15px;
-            cursor: pointer;
-            font-size: 1.5rem;
-            border-radius: 0 5px 5px 0;
-            transition: background 0.3s;
-            z-index: 10;
-        }
-        .slide-next {
-            right: 0;
-            border-radius: 5px 0 0 5px;
-        }
-        .slide-prev:hover, .slide-next:hover {
-            background: rgba(255,255,255,0.5);
-        }
-        .slide-dots {
-            position: absolute;
-            bottom: 30px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 15px;
-            z-index: 10;
-        }
-        .dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.5);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .active-dot, .dot:hover {
-            background: white;
-            transform: scale(1.2);
-        }
-    </style>
 </body>
 </html>

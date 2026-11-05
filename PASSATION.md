@@ -82,3 +82,9 @@
 - Hosting deploye (commit dc95152) sur https://love-ink.web.app ; nouveaux fichiers en 200, register/login a jour ; tests/ et PASSATION.md en 404.
 - A faire par Lee : tester une inscription reelle (e-mail de verification recu ?) et « Mot de passe oublie » ; franciser les templates e-mail (console Auth > Templates) ; relire conditions.html / confidentialite.html et confirmer contact@loveink.site.
 - Suites : domaine loveink.site ; audit 8-13 restant (liste blanche cles users, hierarchie censeurs, validation liens notifications, CSP) ; firebase-deploy.yml avec FIREBASE_TOKEN deprecie.
+
+## 2026-11-05 17:38 — Refonte landing (index.html)
+- index.html reecrit (nav sticky glass + burger mobile, hero asymetrique avec page de lecture mock, bandeau categories, etapes editoriales, bento mode lecture, bloc auteurs, manifeste, CTA final, footer avec liens legaux) ; nouveau css/landing.css (tokens du feed, Cormorant Garamond + DM Sans, sombre via html[data-theme="dark"], reduced-motion). Redirection onAuthStateChanged -> feed.html conservee ; carrousel, faux chiffres et styles inline supprimes.
+- Bannière `?compte=suspendu|banni` (renvoi de auth-session.js) desormais affichee ; smoke e2e vise `.lp-hero` au lieu de `.hero-slideshow`.
+- Verifie en local par etat JS (795px et 375px, clair/sombre, menu burger, 0 erreur console, pas de scroll horizontal). Non verifie : rendu >960px (2 colonnes) faute de pane plus large ; e2e non relances.
+- Deploiement : attend l'accord explicite.
