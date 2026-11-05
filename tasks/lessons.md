@@ -34,3 +34,11 @@ Date de creation: 2026-03-18
 - Cause racine: Regles ecrites "par champ" (le demandeur est-il dans la liste ?) sans verifier l'invariant metier (ID deterministe, statut force, coherence compteur/doc via existsAfter). Aucun test de regles.
 - Regle preventive: Toute regle Firestore qui touche a l'acces ou a un compteur a un test emulateur dans `tests/rules/` (cas autorise + cas d'attaque). Les ecritures liees (doc + compteur) passent par `writeBatch`. Les regles de lecture doivent etre prouvables par la requete (pas de `size()` sur une liste interrogee en array-contains).
 - Action appliquee: `firestore.rules` durci, client passe en batch (likes/commentaires) et requetes messages filtrees par participant, `npm run test:rules` ajoute (Java requis pour l'emulateur).
+
+## L-HOST-2026-11-05 — Fichiers internes servis par Firebase Hosting
+- Contexte : premier déploiement public ; `PASSATION.md` et `.github/**` répondaient en 200 sur love-ink.web.app.
+- Cause racine : Hosting publie la racine du dépôt (`"public": "."`) ; liste `ignore` en liste noire, `**/.*` ne couvre pas le contenu des dossiers commençant par un point.
+- Classification : near miss, exposition d'informations internes (pas de secret).
+- Résolution : ajout de `PASSATION*.md`, `.github/**`, `.claude/**` à `hosting.ignore`, redéploiement, vérification 404.
+- Prévention : après chaque déploiement, `curl` des chemins internes (PASSATION.md, .github/…, tests/…, package.json) doit renvoyer 404. Cible : servir un dossier `public/` dédié (liste blanche).
+- Leçon : un hébergement à la racine du dépôt est une liste noire ; tout nouveau fichier interne est public par défaut.
