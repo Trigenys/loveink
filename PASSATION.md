@@ -134,3 +134,7 @@
 - `js/core/immersive.js` : `nameTransitions()` ne nomme plus nav/logo sur les pages publiques (sinon ils flotteraient hors de la page tournée).
 - Firefox n'a pas les transitions cross-document : navigation normale. Reduced-motion : désactivé (règle existante).
 - Vérifié avec Playwright headless (Chrome installé) : `pagereveal.viewTransition` présent, animations li-turn-out/li-turn-in actives index→page test, login→register sans erreur. Le panneau navigateur masqué saute les transitions (document.hidden), d'où le test headless. Rendu réel à juger par Lee.
+
+## 2026-11-05 19:36 — Déploiement transition page tournée
+- 091f4d6 déployé sur https://love-ink.web.app ; vérifié par curl : li-public sur /, login, register ; li-turn-out dans immersive.css ; garde li-public dans immersive.js ; vt-probe.html absent (404).
+- Prochaine étape : retour de Lee sur le rendu réel (piste horizontale, page tournée). Suites connues inchangées (domaine loveink.site, audit 8-13, FIREBASE_TOKEN, e2e non relancés).
