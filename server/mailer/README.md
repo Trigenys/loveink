@@ -55,9 +55,13 @@ mail.loveink.site {
 }
 ```
 
-Puis côté app : renseigner l'URL publique dans `js/core/mailer-client.js` (`MAILER_URL`) et, dans la
-console Firebase → Authentication → Templates, mettre l'URL d'action sur `https://<app>/auth-action.html`
-pour que les e-mails de repli Firebase ouvrent la même page.
+Puis côté app : renseigner l'URL publique dans `js/core/mailer-client.js` (`MAILER_URL`).
+
+Les liens générés par l'Admin SDK pointent sur l'URL d'action du projet (par défaut
+`https://<projet>.firebaseapp.com/__/auth/action`) ; le service les réécrit vers
+`APP_BASE_URL/auth-action.html` en conservant la query (`link.js`), car la console refuse la
+personnalisation de l'URL d'action sur le plan gratuit (`EMAIL_TEMPLATE_UPDATE_NOT_ALLOWED`).
+Seuls les e-mails de repli (envoi direct par Firebase) ouvrent encore la page Firebase par défaut.
 
 ## Compte de service Firebase
 

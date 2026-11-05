@@ -8,6 +8,7 @@ const admin = require('firebase-admin');
 const cfg = require('./config');
 const { sendEmail } = require('./resend');
 const { templates } = require('./templates');
+const { rewriteActionLink } = require('./link');
 
 // Admin SDK : GOOGLE_APPLICATION_CREDENTIALS (chemin du compte de service) ou FIREBASE_SERVICE_ACCOUNT_JSON.
 const saJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -15,6 +16,9 @@ admin.initializeApp(saJson ? { credential: admin.credential.cert(JSON.parse(saJs
 const auth = admin.auth();
 
 const actionUrl = `${cfg.appBaseUrl}${cfg.actionPath}`;
+const continueUrl = `${cfg.appBaseUrl}/feed.html`;
+// La console peut refuser l'URL d'action personnalisée (plan gratuit) : on réécrit le lien nous-mêmes.
+const actionLink = (raw) => rewriteActionLink(raw, actionUrl);
 const templateCtx = { brandName: cfg.brandName, appBaseUrl: cfg.appBaseUrl, logoUrl: cfg.logoUrl };
 
 // --- Utilitaires ---------------------------------------------------------
@@ -75,7 +79,7 @@ async function handleVerification(req, res) {
     if (decoded.email_verified) return json(res, 200, { ok: true, alreadyVerified: true });
     if (rateLimited(`v:${decoded.uid}`)) return json(res, 429, { error: 'trop de demandes, réessayez plus tard' });
     const body = await readJson(req).catch(() => ({}));
-    const link = await auth.generateEmailVerificationLink(decoded.email, { url: actionUrl });
+    const link = actionLink(await auth.generateEmailVerificationLink(decoded.email, { url: continueUrl }));
     await deliver('verification', decoded.email, { pseudo: String(body.pseudo || decoded.name || '').slice(0, 40), link });
     json(res, 200, { ok: true });
 }
@@ -87,7 +91,7 @@ async function handlePasswordReset(req, res) {
     // Réponse toujours identique : ne révèle pas l'existence d'un compte.
     if (rateLimited(`r:${clientIp(req)}`) || rateLimited(`r:${email}`)) return json(res, 200, { ok: true });
     try {
-        const link = await auth.generatePasswordResetLink(email, { url: actionUrl });
+        const link = actionLink(await auth.generatePasswordResetLink(email, { url: `${cfg.appBaseUrl}/login.html` }));
         await deliver('passwordReset', email, { link });
     } catch (e) {
         // Compte inconnu : même réponse. Autre panne (Admin SDK, Resend) : 502 pour que le front se replie sur Firebase.
