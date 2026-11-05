@@ -29,3 +29,11 @@
 - `feed.html` : « Auteurs à découvrir » est maintenant calculé à partir des histoires publiées chargées (top 4 par nombre d'histoires, sans l'utilisateur connecté, section masquée si vide). Le bouton Suivre utilise le vrai `suivreAuteur`/`estAbonne`, l'état est relu au chargement. Les compteurs inventés des catégories sont supprimés.
 - Déployé (hosting). Vérifié : syntaxe du module, page servie à jour, aucune donnée fictive dans les pages. Non vérifié par moi : le rendu une fois connecté (les tests e2e créent des comptes sur la prod, donc pas lancés).
 - Limite : pas de page profil publique (`profil.html` n'affiche que son propre profil), donc pas de lien vers l'auteur.
+
+## 2026-11-05 16:11 — Modernisation immersive (couche partagee)
+- Ajout `css/immersive.css` + `js/core/immersive.js`, inclus avant `</head>` sur les 12 pages (additif, palette rose/encre conservee).
+- Contenu : View Transitions inter-pages, aurore rose + halo pointeur + grain (calques fixes, pointer-events none), nav en verre, apparition au defilement (hors `.animate`), retour tactile boutons, focus visible, barre de lecture sur histoire.html, squelettes de chargement du feed.
+- Accessibilite : prefers-reduced-motion et prefers-reduced-transparency respectes ; impression sans calques.
+- Verifie en local (index, login, clair/sombre, 0 erreur console). Pages connectees non verifiees (pas d'identifiants).
+- A faire : deployer hosting (`npx firebase deploy --only hosting`), puis verifier que PASSATION.md et .claude/ restent en 404.
+- Pre-existant note : login.html n'applique pas le theme sombre au fond de page (theme.js absent).
