@@ -77,3 +77,8 @@
 - Choix : `requireAuth` n'exige PAS emailVerified (ne pas bloquer les comptes existants) ; a durcir plus tard pour la publication si souhaite.
 - Verifie en local (127.0.0.1:5178, etat JS) : erreurs inline, focus premier champ invalide, jauge, oeil, bloc reset (prerempli, aria-expanded), aucune erreur console. Non verifie : envoi reel des e-mails Firebase (necessite un vrai compte) ; template d'e-mail Firebase en anglais par defaut (console Auth > Templates, a franciser par Lee).
 - Deploiement : en attente d'accord.
+
+## 2026-11-05 17:12 — Deploiement auth durcie
+- Hosting deploye (commit dc95152) sur https://love-ink.web.app ; nouveaux fichiers en 200, register/login a jour ; tests/ et PASSATION.md en 404.
+- A faire par Lee : tester une inscription reelle (e-mail de verification recu ?) et « Mot de passe oublie » ; franciser les templates e-mail (console Auth > Templates) ; relire conditions.html / confidentialite.html et confirmer contact@loveink.site.
+- Suites : domaine loveink.site ; audit 8-13 restant (liste blanche cles users, hierarchie censeurs, validation liens notifications, CSP) ; firebase-deploy.yml avec FIREBASE_TOKEN deprecie.
