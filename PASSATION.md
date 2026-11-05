@@ -62,3 +62,8 @@
   - Blocs masques si vides ; rendu idempotent.
 - Verifie sur `tests/feed-harness.html` (local) : selection, exclusions (brouillon, ancienne, terminee), idempotence, etats vides, sombre, pas de debordement horizontal (correctif `min-width:0`). Mode lecture : ecriture/suppression des cles OK.
 - Non verifie : feed reel derriere connexion (prod sans histoire publiee). Deploiement : en attente d'accord.
+
+## 2026-11-05 16:48 — Deploiement feed (A la une / Continuer a lire)
+- Deploye sur https://love-ink.web.app (accord explicite). Nouveaux fichiers en 200, feed.html et reader.js a jour ; tests/ et PASSATION.md en 404.
+- A tester par Lee une fois connectee, avec au moins une histoire publiee : bloc a la une, puis lire une histoire a moitie et revenir au feed.
+- Suites du benchmark : commentaires par paragraphe, son d'ambiance optionnel.
