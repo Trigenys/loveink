@@ -111,3 +111,8 @@
 - Responsive : `.lp-hero__visual` a besoin de `width:100%` (sinon largeur 0 dans la grille sans image en flux) ; ≤680 px la page mock passe sous la photo (relative, chevauchement -56 px) et les points du hero vont en haut à droite ; ≤960 px `.lp-flow` calé à right:0.
 - Vérifié par état JS : 15 images en 200, page tournée effective, desktop ~1057 px / tablette 768 / mobile 375 sans chevauchement points-page-chips ni scroll horizontal, citation dans le cadre, 0 erreur console. Non vu visuellement (pane masqué).
 - Déploiement : attend l'accord explicite.
+
+## 2026-11-05 18:52 — Landing : bento « mode lecture » plus visuel
+- index.html / css/landing.css : les 4 tuiles reçoivent une maquette (`.lp-tile__vis`, grille 1fr/auto, min-height 320) : extrait typographié + pilules de réglages (`.lp-reader`), photo manifeste-4 en fond sombre + 3 mini-pages clair/sépia/nuit (`.lp-moods`), carte « Continuer à lire » avec couvertures cat-*.webp et barre de progression (`.lp-resume`), lecteur en mode focus avec paragraphes voisins estompés (`.lp-focus`). Icônes supprimées au profit des maquettes.
+- Vérifié par état JS : visuels contenus dans les tuiles en desktop (1057 px) et mobile (375 px), images chargées, pas de scroll horizontal, 0 erreur console. Non vu visuellement.
+- Déploiement : attend l'accord explicite.
