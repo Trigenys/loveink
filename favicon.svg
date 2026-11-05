@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="liBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f7ece8"/>
+      <stop offset="100%" stop-color="#f1dfd8"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#liBg)"/>
+
+  <path d="M32 37c-.9 0-1.8-.3-2.5-.9l-7-6.5c-2.3-2.1-3.4-4.1-3.4-6.4 0-3.6 2.9-6.5 6.4-6.5 2.1 0 4 1 5.3 2.7l1.2 1.8 1.2-1.8c1.3-1.7 3.2-2.7 5.3-2.7 3.5 0 6.4 2.9 6.4 6.5 0 2.3-1.1 4.3-3.4 6.4l-7 6.5c-.7.6-1.6.9-2.5.9z" fill="#b76e6e"/>
+
+  <g transform="translate(38 40) rotate(32)">
+    <rect x="-2" y="-2" width="16" height="5" rx="1.6" fill="#8b5a2b"/>
+    <polygon points="14,0.5 19,-1.5 19,2.5" fill="#d8c5a0"/>
+  </g>
+</svg>

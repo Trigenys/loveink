@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
+                <div class="logo-icon">
+                    <i class="fas fa-heart logo-heart"></i>
+                    <i class="fas fa-hand-paper logo-hand"></i>
+                    <i class="fas fa-pen-fancy logo-pen"></i>
+                </div>
+                <span class="logo-text">Love Ink</span>
+            </a>
+            <h1>Bon retour parmi nous</h1>
+            <p>Connectez-vous pour retrouver vos histoires</p>
+            
+            <form class="auth-form" id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="vous@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe</label>
+                    <input type="password" id="password" placeholder="••••••••" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Pas encore de compte ? <a href="register.html">Inscrivez-vous</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+    import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { auth } from './js/core/firebase-config.js';
+    import { notify } from './js/components/ui-notify.js';
+
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        
+        try {
+            console.log("Connexion...");
+            await signInWithEmailAndPassword(auth, email, password);
+            console.log("Connecte");
+            window.location.href = 'feed.html';
+        } catch (error) {
+            console.error("Erreur:", error);
+
+            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+            let message = "Erreur de connexion";
+            if (error.code === 'auth/user-not-found') message = "Email non trouve";
+            else if (error.code === 'auth/wrong-password') message = "Mot de passe incorrect";
+            else if (error.code === 'auth/network-request-failed') {
+                message = isOffline
+                    ? "Aucune connexion Internet detectee. Reconnectez-vous puis reessayez."
+                    : "Impossible de joindre Firebase Auth (identitytoolkit.googleapis.com). Verifiez DNS, VPN/Proxy, bloqueur de pub ou firewall puis reessayez.";
+            } else if (error.code === 'auth/unauthorized-domain') {
+                message = "Domaine non autorise dans Firebase Auth. Ajoutez love-ink.web.app dans les domaines autorises.";
+            } else {
+                message = error?.message || message;
+            }
+
+            await notify('error', message, { title: 'Connexion' });
+        }
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .notifications-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 30px rgba(183, 110, 110, 0.15);
+            overflow: hidden;
+        }
+        
+        .notifications-header {
+            background: #b76e6e;
+            color: white;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notifications-header h1 {
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .mark-all-read {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .mark-all-read:hover {
+            background: rgba(255,255,255,0.3);
+        }
+        
+        .notifications-list {
+            padding: 20px;
+        }
+        
+        .notification-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            border-bottom: 1px solid #f0e4e0;
+            transition: background 0.3s;
+            cursor: pointer;
+        }
+        
+        .notification-item:hover {
+            background: #fefaf8;
+        }
+        
+        .notification-item.unread {
+            background: #fff5f2;
+            border-left: 4px solid #b76e6e;
+        }
+        
+        .notification-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fae9e5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b76e6e;
+            font-size: 1.5rem;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-message {
+            color: #5c3e35;
+            margin-bottom: 5px;
+        }
+        
+        .notification-time {
+            color: #999;
+            font-size: 0.85rem;
+        }
+        
+        .notification-type-badge {
+            display: inline-block;
+            background: #f0e4e0;
+            color: #5c3e35;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            margin-top: 5px;
+        }
+        
+        .no-notifications {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
+        
+        .no-notifications i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 60px;
+            color: #b76e6e;
+        }
+    </style>
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'notifications', showUser: true, showPublish: true });
+    </script>
+
+    <!-- Notifications -->
+    <div class="container">
+        <div class="notifications-container">
+            <div class="notifications-header">
+                <h1><i class="fas fa-bell"></i> Notifications</h1>
+                <button class="mark-all-read" id="markAllRead">
+                    <i class="fas fa-check-double"></i> Tout marquer comme lu
+                </button>
+            </div>
+            
+            <div class="notifications-list" id="notificationsList">
+                <div class="loading-spinner">
+                    <i class="fas fa-spinner fa-spin fa-3x"></i>
+                    <p>Chargement...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth } from './js/core/firebase-config.js';
+        import { firebaseAPI } from './js/core/firebase-data.js';
+        import { logoutAndRedirect, requireAuth } from './js/core/auth-session.js';
+        import { setNavPseudo, setNavNotificationsBadge, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        let currentUser = null;
+        let notifications = [];
+        const markAllReadBtn = document.getElementById('markAllRead');
+
+        const typeIconMap = {
+            commentaire: 'fa-comment',
+            follow: 'fa-user-plus',
+            like: 'fa-heart',
+            publication: 'fa-pen-fancy',
+            publication_approuvee: 'fa-circle-check',
+            rejet: 'fa-circle-xmark',
+            sanction: 'fa-gavel',
+            system: 'fa-bell',
+            info: 'fa-circle-info',
+            warning: 'fa-triangle-exclamation'
+        };
+
+        const typeLabelMap = {
+            commentaire: 'Nouveau commentaire',
+            follow: 'Nouvel abonne',
+            like: "J'aime",
+            publication: 'Nouvelle histoire',
+            publication_approuvee: 'Publication approuvee',
+            rejet: 'Histoire rejetee',
+            sanction: 'Sanction',
+            system: 'Notification',
+            info: 'Information',
+            warning: 'Alerte'
+        };
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'index.html',
+            onReady: async (user, { pseudo }) => {
+                currentUser = user;
+                setNavPseudo(pseudo);
+                await chargerNotifications();
+            }
+        });
+
+        function formatNotifDate(dateValue) {
+            const date = dateValue instanceof Date
+                ? dateValue
+                : (typeof dateValue?.toDate === 'function' ? dateValue.toDate() : new Date(dateValue));
+            if (Number.isNaN(date.getTime())) return 'Date inconnue';
+            return date.toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        async function ouvrirNotification(notificationId, histoireId, lien) {
+            await firebaseAPI.marquerNotificationLue(notificationId, currentUser?.uid || '');
+
+            if (lien) {
+                window.location.href = String(lien);
+                return;
+            }
+
+            if (histoireId) {
+                window.location.href = `histoire.html?id=${encodeURIComponent(String(histoireId))}`;
+                return;
+            }
+
+            await chargerNotifications();
+        }
+
+        function createNotificationItem(notif) {
+            const item = document.createElement('div');
+            item.className = `notification-item ${notif.lu ? '' : 'unread'}`.trim();
+
+            const iconWrap = document.createElement('div');
+            iconWrap.className = 'notification-icon';
+
+            const icon = document.createElement('i');
+            const typeIcon = typeIconMap[notif.type] || 'fa-bell';
+            icon.className = `fas ${typeIcon}`;
+            iconWrap.appendChild(icon);
+
+            const content = document.createElement('div');
+            content.className = 'notification-content';
+
+            const message = document.createElement('div');
+            message.className = 'notification-message';
+            message.textContent = String(notif.message || 'Notification');
+
+            const time = document.createElement('div');
+            time.className = 'notification-time';
+            time.textContent = formatNotifDate(notif.date);
+
+            const badge = document.createElement('span');
+            badge.className = 'notification-type-badge';
+            badge.textContent = typeLabelMap[notif.type] || 'Notification';
+
+            content.append(message, time, badge);
+            item.append(iconWrap, content);
+            item.addEventListener('click', () => ouvrirNotification(notif.id, notif.histoireId || '', notif.lien || ''));
+            return item;
+        }
+	
+        async function chargerNotifications() {
+            const list = document.getElementById('notificationsList');
+            
+            try {
+                notifications = await firebaseAPI.getNotifications(currentUser.uid);
+                
+                if (notifications.length === 0) {
+                    list.innerHTML = `
+                        <div class="no-notifications">
+                            <i class="fas fa-bell-slash"></i>
+                            <p>Aucune notification pour le moment</p>
+                        </div>
+                    `;
+                    setNavNotificationsBadge(0);
+                } else {
+                    list.innerHTML = '';
+                    notifications.forEach((notif) => {
+                        list.appendChild(createNotificationItem(notif));
+                    });
+                    const unreadCount = notifications.filter((notif) => !notif.lu).length;
+                    setNavNotificationsBadge(unreadCount);
+                }
+            } catch (error) {
+                console.error("Erreur:", error);
+                list.innerHTML = '<div class="no-notifications">Erreur de chargement</div>';
+                setNavNotificationsBadge(0);
+            }
+        }
+
+        async function marquerToutLu() {
+            for (const notif of notifications) {
+                if (!notif.lu) {
+                    await firebaseAPI.marquerNotificationLue(notif.id, currentUser?.uid || '');
+                }
+            }
+            await chargerNotifications();
+        }
+
+        if (markAllReadBtn) {
+            markAllReadBtn.addEventListener('click', marquerToutLu);
+        }
+    </script>
+</body>
+</html>

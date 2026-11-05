@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --rose-deep:  #7a3e3e;
+            --rose-mid:   #b07070;
+            --rose-soft:  #d4a0a0;
+            --rose-pale:  #f0e0dc;
+            --rose-blush: #faf4f2;
+            --cream:      #fdf8f5;
+            --ink:        #2a1a1a;
+            --ink-muted:  #7a5f5f;
+            --ink-faint:  #c4a8a8;
+            --border:     rgba(180,120,120,0.15);
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans:  'DM Sans', sans-serif;
+            --t:          0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+        }
+
+        .nav {
+            position: sticky; top: 0; z-index: 100;
+            background: rgba(253,248,245,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 5vw;
+            display: flex; align-items: center; justify-content: space-between;
+            min-height: 64px;
+            gap: 16px;
+        }
+        .nav-links {
+            display: flex; align-items: center; gap: 28px;
+            list-style: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .nav-links a {
+            font-size: 13px;
+            letter-spacing: 0.04em;
+            color: var(--ink-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color var(--t);
+        }
+        .nav-links a:hover { color: var(--rose-deep); }
+        .nav-links .nav-publish a {
+            background: var(--rose-deep);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .nav-links .nav-publish a:hover { background: #6a3030; }
+
+        .nav-user { display: flex; align-items: center; gap: 10px; cursor: pointer; position: relative; }
+        .nav-avatar {
+            width: 36px; height: 36px;
+            background: var(--rose-pale);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            position: relative;
+        }
+        .nav-avatar i { color: var(--rose-mid); font-size: 16px; }
+        .online-dot {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 9px;
+            height: 9px;
+            background: #4caf7d;
+            border-radius: 50%;
+            border: 2px solid var(--cream);
+        }
+        .nav-username { font-size: 13px; color: var(--ink-muted); }
+        .nav-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 180px;
+            box-shadow: 0 12px 32px rgba(100,40,40,0.08);
+            padding: 8px 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity var(--t), transform var(--t);
+            z-index: 110;
+        }
+        .nav-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+        .nav-dropdown a {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--ink-muted);
+            text-decoration: none;
+            transition: background var(--t), color var(--t);
+        }
+        .nav-dropdown a:hover { background: var(--rose-blush); color: var(--rose-deep); }
+
+        .cover-band {
+            height: 140px;
+            background: linear-gradient(135deg, var(--rose-deep) 0%, #a05050 50%, var(--rose-mid) 100%);
+            position: relative;
+            overflow: hidden;
+        }
+        .cover-band::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 40px,
+                rgba(255,255,255,0.03) 40px,
+                rgba(255,255,255,0.03) 80px
+            );
+        }
+
+        .profile-header {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 5vw 32px;
+        }
+        .profile-top {
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            transform: translateY(-40px);
+            margin-bottom: -12px;
+            flex-wrap: wrap;
+        }
+        .avatar-wrap { position: relative; flex-shrink: 0; }
+        .avatar-circle {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 20px rgba(122,62,62,0.15);
+        }
+        .avatar-circle i { font-size: 52px; color: var(--rose-soft); }
+        .avatar-circle .avatar-initials {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-sans);
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            border: 1px solid transparent;
+        }
+        .avatar-online {
+            position: absolute;
+            bottom: 6px;
+            right: 6px;
+            width: 16px;
+            height: 16px;
+            background: #4caf7d;
+            border-radius: 50%;
+            border: 3px solid white;
+        }
+        .profile-name-row { padding-bottom: 4px; flex: 1; min-width: 220px; }
+        .profile-name {
+            font-family: var(--font-serif);
+            font-size: 28px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            line-height: 1.1;
+        }
+        .profile-bio-short {
+            font-size: 14px;
+            color: var(--ink-muted);
+            margin-top: 4px;
+            line-height: 1.5;
+        }
+        .profile-actions { display: flex; gap: 10px; align-items: center; padding-bottom: 4px; }
+
+        .btn-primary,
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 9px 20px;
+            border-radius: 24px;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--t);
+            white-space: nowrap;
+            text-decoration: none;
+        }
+        .btn-primary { background: var(--rose-deep); color: white; border: none; }
+        .btn-primary:hover { background: #6a3030; }
+        .btn-secondary { background: white; color: var(--rose-mid); border: 1.5px solid var(--rose-soft); }
+        .btn-secondary:hover { background: var(--rose-blush); border-color: var(--rose-mid); }
+
+        .stats-strip {
+            display: flex;
+            gap: 0;
+            border-top: 1px solid var(--border);
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+        .stat-item {
+            flex: 1;
+            min-width: 130px;
+            text-align: center;
+            padding: 18px 0;
+            border-right: 1px solid var(--border);
+            transition: background var(--t);
+        }
+        .stat-item:last-child { border-right: none; }
+        .stat-item:hover { background: var(--rose-blush); }
+        .stat-num {
+            font-family: var(--font-serif);
+            font-size: 26px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            line-height: 1;
+        }
+        .stat-lbl {
+            font-size: 11px;
+            color: var(--ink-faint);
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            margin-top: 4px;
+        }
+
+        .tabs-wrap {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 0 5vw;
+            display: flex;
+            gap: 0;
+            position: sticky;
+            top: 64px;
+            z-index: 90;
+            flex-wrap: wrap;
+        }
+        .tab-btn {
+            background: none;
+            border: none;
+            padding: 16px 24px;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--ink-faint);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: color var(--t), border-color var(--t);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .tab-btn:hover { color: var(--rose-mid); }
+        .tab-btn.active { color: var(--rose-deep); border-bottom-color: var(--rose-deep); }
+        .tab-btn i { font-size: 12px; }
+
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
+        .stories-tab,
+        .favoris-tab,
+        .apropos-tab {
+            padding: 40px 5vw 60px;
+        }
+
+        .stories-tab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 28px;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .stories-tab-header h3 {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--rose-deep);
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .story-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: transform var(--t), box-shadow var(--t);
+        }
+        .story-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(122,62,62,0.1); }
+        .story-cat-bar { height: 4px; background: var(--rose-soft); }
+        .story-body { padding: 18px 20px 16px; }
+        .story-cat-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 500;
+            letter-spacing: 0.07em;
+            text-transform: uppercase;
+            color: var(--rose-mid);
+            margin-bottom: 8px;
+        }
+        .story-title {
+            font-family: var(--font-serif);
+            font-size: 17px;
+            font-weight: 600;
+            color: var(--ink);
+            line-height: 1.35;
+            margin-bottom: 8px;
+        }
+        .story-excerpt {
+            font-size: 13px;
+            color: var(--ink-muted);
+            line-height: 1.6;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            margin-bottom: 14px;
+        }
+        .story-foot {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        .story-meta-stats { display: flex; gap: 12px; }
+        .story-meta-stats span {
+            font-size: 12px;
+            color: var(--ink-faint);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .story-meta-stats i { color: var(--rose-soft); }
+        .story-edit-btn {
+            font-size: 12px;
+            color: var(--rose-mid);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            border: 1px solid var(--rose-pale);
+            transition: background var(--t), border-color var(--t);
+        }
+        .story-edit-btn:hover { background: var(--rose-blush); border-color: var(--rose-soft); }
+
+        .empty-state { text-align: center; padding: 60px 20px; grid-column: 1/-1; }
+        .empty-state i { font-size: 40px; color: var(--rose-pale); display: block; margin-bottom: 14px; }
+        .empty-state p { color: var(--ink-faint); font-size: 14px; margin-bottom: 20px; }
+
+        .favoris-tab h3 {
+            font-family: var(--font-serif);
+            font-size: 20px;
+            font-weight: 400;
+            color: var(--rose-deep);
+            margin-bottom: 28px;
+        }
+        .fav-empty { text-align: center; padding: 80px 20px; }
+        .fav-empty i { font-size: 48px; color: var(--rose-pale); display: block; margin-bottom: 16px; }
+        .fav-empty p { color: var(--ink-faint); font-size: 14px; }
+
+        .apropos-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 36px;
+            max-width: 760px;
+        }
+        .apropos-card h3 {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--rose-deep);
+            margin-bottom: 16px;
+        }
+        .apropos-card p { font-size: 14px; color: var(--ink-muted); line-height: 1.8; }
+        .apropos-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--border); }
+        .apropos-section h4 {
+            font-family: var(--font-serif);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            margin-bottom: 12px;
+        }
+        .genre-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .genre-tag {
+            background: var(--rose-blush);
+            color: var(--rose-mid);
+            font-size: 12px;
+            font-weight: 500;
+            padding: 5px 14px;
+            border-radius: 20px;
+        }
+        .membre-date { font-size: 14px; color: var(--ink-muted); }
+
+        /* Status filters */
+        .status-filters { display: flex; gap: 8px; flex-wrap: wrap; }
+        .status-filter-btn {
+            background: none;
+            border: 1.5px solid var(--rose-pale);
+            border-radius: 20px;
+            padding: 6px 16px;
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--ink-muted);
+            cursor: pointer;
+            transition: all var(--t);
+        }
+        .status-filter-btn:hover { border-color: var(--rose-soft); color: var(--rose-mid); }
+        .status-filter-btn.active { background: var(--rose-deep); border-color: var(--rose-deep); color: white; }
+
+        /* Story status badge */
+        .story-status-badge {
+            display: inline-block;
+            font-size: 10px;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+        .reject-motif {
+            font-size: 12px;
+            color: #b76e6e;
+            background: #fff0ee;
+            border-left: 3px solid #b76e6e;
+            padding: 6px 10px;
+            border-radius: 0 6px 6px 0;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        /* Abonnements */
+        .abonnements-grid { display: flex; flex-direction: column; gap: 12px; max-width: 600px; }
+        .abonnement-card {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+        .ab-avatar {
+            width: 42px; height: 42px;
+            border-radius: 50%;
+            background: var(--rose-pale);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--rose-mid);
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+        .ab-info { flex: 1; }
+        .ab-name { font-weight: 500; font-size: 14px; color: var(--ink); }
+
+        /* Moderation */
+        .modo-list { display: flex; flex-direction: column; gap: 16px; }
+        .modo-item {
+            display: flex;
+            gap: 20px;
+            align-items: flex-start;
+            padding: 20px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            flex-wrap: wrap;
+        }
+        .modo-item-info { flex: 1; min-width: 200px; }
+        .modo-item-title { font-family: var(--font-serif); font-size: 17px; font-weight: 600; color: var(--ink); margin-bottom: 4px; }
+        .modo-item-meta { font-size: 12px; color: var(--ink-faint); margin-bottom: 6px; }
+        .modo-item-excerpt { font-size: 13px; color: var(--ink-muted); line-height: 1.5; }
+        .modo-item-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .sanction-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
+        .sanction-section h4 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; color: var(--rose-deep); margin-bottom: 16px; }
+        .sanction-item {
+            display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+            padding: 14px 18px; background: white;
+            border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px;
+        }
+        .sanction-type-badge {
+            display: inline-block; font-size: 11px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.04em;
+            padding: 3px 10px; border-radius: 10px; color: white; flex-shrink: 0;
+        }
+        .sanction-info { flex: 1; min-width: 160px; }
+        .sanction-info .s-motif { font-size: 13px; color: var(--ink); margin-bottom: 2px; }
+        .sanction-info .s-meta { font-size: 11px; color: var(--ink-faint); }
+        .duration-field { display: none; }
+        .duration-field.visible { display: block; }
+        .modo-count-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+            height: 18px;
+            padding: 0 5px;
+            background: #e0a030;
+            color: white;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        .ops-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
+        .ops-section h4 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; color: var(--rose-deep); margin-bottom: 14px; }
+        .ops-list { display: flex; flex-direction: column; gap: 10px; }
+        .ops-item {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 14px 16px;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            flex-wrap: wrap;
+        }
+        .ops-item-main { flex: 1; min-width: 220px; }
+        .ops-item-title { font-size: 14px; color: var(--ink); margin-bottom: 4px; line-height: 1.45; }
+        .ops-item-meta { font-size: 11px; color: var(--ink-faint); line-height: 1.4; }
+        .ops-item-note { font-size: 12px; color: var(--ink-muted); margin-top: 6px; line-height: 1.5; white-space: pre-wrap; }
+        .ops-item-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .ops-log-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background: var(--rose-mid);
+            margin-bottom: 6px;
+        }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(40,20,20,0.45);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+            padding: 16px;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-box {
+            background: white;
+            border-radius: 20px;
+            padding: 36px;
+            width: 500px;
+            max-width: 92vw;
+            box-shadow: 0 24px 60px rgba(80,30,30,0.15);
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: none; }
+        }
+        .modal-title {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-weight: 400;
+            color: var(--rose-deep);
+            margin-bottom: 24px;
+        }
+
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            color: var(--ink-muted);
+            margin-bottom: 6px;
+        }
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1.5px solid var(--rose-pale);
+            border-radius: 10px;
+            font-family: var(--font-sans);
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--rose-blush);
+            resize: vertical;
+            transition: border-color var(--t), background var(--t);
+            outline: none;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus { border-color: var(--rose-mid); background: white; }
+
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 28px;
+        }
+        .modal-actions .btn-primary,
+        .modal-actions .btn-secondary {
+            flex: 1;
+            justify-content: center;
+        }
+
+        footer {
+            background: var(--rose-deep);
+            color: rgba(255,255,255,0.7);
+            padding: 32px 5vw;
+            text-align: center;
+        }
+        footer .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 22px;
+            font-style: italic;
+            font-weight: 300;
+            color: white;
+            margin-bottom: 8px;
+        }
+        footer p { font-size: 12px; line-height: 1.8; }
+
+        @media (max-width: 920px) {
+            .nav-links {
+                gap: 18px;
+            }
+            .profile-actions {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .nav {
+                padding: 10px 4vw;
+            }
+            .nav-links {
+                font-size: 12px;
+                gap: 12px;
+            }
+            .nav-username {
+                display: none;
+            }
+            .tabs-wrap {
+                top: 72px;
+            }
+            .profile-top {
+                gap: 14px;
+            }
+            .profile-name {
+                font-size: 24px;
+            }
+            .apropos-card {
+                padding: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'feed', active: 'profil', showUser: true });
+    </script>
+
+    <div class="cover-band"></div>
+
+    <div class="profile-header">
+        <div class="profile-top">
+            <div class="avatar-wrap">
+                <div class="avatar-circle">
+                    <span class="avatar-initials" id="profileInitials">LI</span>
+                </div>
+                <span class="avatar-online"></span>
+            </div>
+
+            <div class="profile-name-row">
+                <div class="profile-name" id="profilPseudo">...</div>
+                <div class="profile-bio-short" id="profilBio">...</div>
+            </div>
+
+            <div class="profile-actions">
+                <a href="messagerie.html" class="btn-primary"><i class="fas fa-envelope"></i> Message</a>
+                <button class="btn-secondary" id="editProfileBtn"><i class="fas fa-edit"></i> Modifier</button>
+            </div>
+        </div>
+
+        <div class="stats-strip">
+            <div class="stat-item">
+                <div class="stat-num" id="statHistoires">0</div>
+                <div class="stat-lbl">Histoires</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statAbonnes">0</div>
+                <div class="stat-lbl">Abonnes</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statAbonnements">0</div>
+                <div class="stat-lbl">Abonnements</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-num" id="statLectures">0</div>
+                <div class="stat-lbl">Lectures</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tabs-wrap">
+        <button class="tab-btn active" data-tab="histoires"><i class="fas fa-book"></i> Mes histoires</button>
+        <button class="tab-btn" data-tab="abonnements"><i class="fas fa-user-friends"></i> Abonnements</button>
+        <button class="tab-btn" data-tab="favoris"><i class="fas fa-heart"></i> Favoris</button>
+        <button class="tab-btn" data-tab="apropos"><i class="fas fa-info-circle"></i> A propos</button>
+        <button class="tab-btn" id="tabModeration" data-tab="moderation" style="display:none"><i class="fas fa-shield-alt"></i> Moderation<span class="modo-count-badge" id="modoCountBadge" style="display:none">0</span></button>
+    </div>
+
+    <div class="tab-panel active" id="panel-histoires">
+        <div class="stories-tab">
+            <div class="stories-tab-header">
+                <h3>Mes publications</h3>
+                <div class="status-filters">
+                    <button class="status-filter-btn active" data-status="publie">Publiees</button>
+                    <button class="status-filter-btn" data-status="en_attente">En revision</button>
+                    <button class="status-filter-btn" data-status="rejete">Rejetees</button>
+                </div>
+                <button class="btn-primary" id="newStoryBtn"><i class="fas fa-plus"></i> Nouvelle histoire</button>
+            </div>
+            <div class="stories-grid" id="mesHistoires"></div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="panel-abonnements">
+        <div class="apropos-tab">
+            <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:28px;">Mes abonnements</h3>
+            <div class="abonnements-grid" id="abonnementsGrid"></div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="panel-favoris">
+        <div class="favoris-tab">
+            <h3>Histoires favorites</h3>
+            <div class="fav-empty">
+                <i class="fas fa-heart"></i>
+                <p>Vos histoires favorites apparaitront ici.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="panel-apropos">
+        <div class="apropos-tab">
+            <div class="apropos-card">
+                <h3>A propos de moi</h3>
+                <p id="proposComplet">...</p>
+
+                <div class="apropos-section">
+                    <h4>Genres de predilection</h4>
+                    <div class="genre-tags" id="genresList"></div>
+                </div>
+
+                <div class="apropos-section">
+                    <h4>Membre depuis</h4>
+                    <p class="membre-date" id="membreDepuis">...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-panel" id="panel-moderation">
+        <div class="apropos-tab">
+            <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:8px;">Histoires en attente de validation</h3>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace moderation actif pour les roles <strong>moderateur</strong> et <strong>censeur</strong>.</p>
+            <div class="modo-list" id="moderationList"></div>
+            <div id="censeurOpsRoot"></div>
+        </div>
+    </div>
+
+    <!-- Modal sanction (censeurs) -->
+    <div class="modal-overlay" id="sanctionModal">
+        <div class="modal-box">
+            <div class="modal-title">Sanctionner un utilisateur</div>
+            <div id="sanctionTargetInfo" style="font-size:13px;color:var(--ink-muted);margin-bottom:20px;padding:10px 14px;background:var(--rose-blush);border-radius:8px;"></div>
+            <div class="form-group">
+                <label>Type de sanction</label>
+                <select id="sanctionType" style="width:100%;padding:10px 12px;border:1.5px solid var(--rose-pale);border-radius:10px;font-family:var(--font-sans);font-size:14px;background:var(--rose-blush);outline:none;">
+                    <option value="avertissement">Avertissement</option>
+                    <option value="suspension_temporaire">Suspension temporaire</option>
+                    <option value="bannissement">Bannissement definitif</option>
+                </select>
+            </div>
+            <div class="form-group duration-field" id="durationField">
+                <label>Duree (en heures)</label>
+                <input type="number" id="sanctionDuree" min="1" max="8760" placeholder="Ex: 24 pour 1 jour, 168 pour 1 semaine">
+            </div>
+            <div class="form-group">
+                <label>Motif <span style="color:#b76e6e">*</span></label>
+                <textarea id="sanctionMotif" rows="3" placeholder="Expliquez la raison de cette sanction (500 caracteres max)." maxlength="500"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="sanctionConfirmBtn" style="background:#b76e6e"><i class="fas fa-gavel"></i> Appliquer</button>
+                <button class="btn-secondary" id="sanctionCancelBtn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal rejet modération -->
+    <div class="modal-overlay" id="rejectModal">
+        <div class="modal-box">
+            <div class="modal-title">Rejeter cette histoire</div>
+            <div class="form-group">
+                <label>Motif du rejet <span style="color:#b76e6e">*</span></label>
+                <textarea id="rejectMotifInput" rows="4" placeholder="Expliquez pourquoi cette histoire est rejetee. L'auteur recevra ce message." maxlength="1000"></textarea>
+                <div style="text-align:right;font-size:11px;color:var(--ink-faint);margin-top:4px"><span id="rejectMotifCount">0</span>/1000</div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-primary" id="rejectConfirmBtn" style="background:#b76e6e"><i class="fas fa-times"></i> Confirmer le rejet</button>
+                <button class="btn-secondary" id="rejectCancelBtn">Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-box">
+            <div class="modal-title">Modifier mon profil</div>
+            <form id="editProfileForm">
+                <div class="form-group">
+                    <label>Pseudo</label>
+                    <input type="text" id="editPseudo" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Bio courte</label>
+                    <textarea id="editBio" rows="2" placeholder="Une courte presentation..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>A propos (detaille)</label>
+                    <textarea id="editAPropos" rows="4" placeholder="Parlez de vous, de votre parcours d'ecrivain..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Genres (separes par des virgules)</label>
+                    <input type="text" id="editGenres" placeholder="Premier amour, Poesie, Triste...">
+                </div>
+
+                <div class="modal-actions">
+                    <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Enregistrer</button>
+                    <button type="button" class="btn-secondary" id="closeModal">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-logo">Love Ink</div>
+        <p>© 2026 Love Ink - L'encre des coeurs</p>
+        <p style="margin-top:6px">Fait avec <i class="fas fa-heart"></i> pour les amoureux des mots</p>
+        <p style="margin-top:14px"><a href="candidature-modo.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:1px;"><i class="fas fa-shield-alt" style="margin-right:5px"></i>Devenir modérateur</a></p>
+    </footer>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+        import { updateProfile } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { auth, db } from './js/core/firebase-config.js';
+        import { firebaseAPI } from './js/core/firebase-data.js';
+        import { notify } from './js/components/ui-notify.js';
+        import { logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
+        import { applyInitialsAvatar } from './js/components/avatar-initials.js';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        let currentUser = null;
+        let currentStatus = 'publie';
+
+        const modal = document.getElementById('editModal');
+        const censeurOpsRoot = document.getElementById('censeurOpsRoot');
+        const pseudoCache = new Map();
+
+        // ── URL params ──────────────────────────────────────────────────────────
+        function getTabParam() { return new URLSearchParams(location.search).get('tab') || 'histoires'; }
+        function getStatusParam() { return new URLSearchParams(location.search).get('status') || 'publie'; }
+        function pushParams(tab, status) {
+            const p = new URLSearchParams();
+            p.set('tab', tab);
+            if (status) p.set('status', status);
+            history.replaceState(null, '', '?' + p.toString());
+        }
+
+        // ── Tabs ────────────────────────────────────────────────────────────────
+        function activateTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabName));
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById('panel-' + tabName)?.classList.add('active');
+        }
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tab = btn.dataset.tab;
+                activateTab(tab);
+                pushParams(tab, tab === 'histoires' ? currentStatus : null);
+                if (tab === 'histoires') renderStories(currentStatus);
+                if (tab === 'abonnements') renderAbonnements();
+                if (tab === 'moderation') renderModeration();
+            });
+        });
+
+        // ── Status filters ──────────────────────────────────────────────────────
+        document.querySelectorAll('.status-filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.status-filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentStatus = btn.dataset.status;
+                pushParams('histoires', currentStatus);
+                renderStories(currentStatus);
+            });
+        });
+
+        // ── Helpers ─────────────────────────────────────────────────────────────
+        function escapeHtml(v) {
+            return String(v || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function getDateLabel(v) {
+            const d = new Date(v || Date.now());
+            return isNaN(d.getTime()) ? 'Date inconnue' : d.toLocaleDateString('fr-FR', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        function formatDateShort(v) {
+            const d = v instanceof Date ? v : new Date(v || Date.now());
+            return isNaN(d.getTime()) ? '' : d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+        async function getPseudoOrUid(uid) {
+            const id = String(uid || '').trim();
+            if (!id) return '';
+            if (pseudoCache.has(id)) return pseudoCache.get(id);
+            try {
+                const user = await firebaseAPI.getUtilisateur(id);
+                const label = String(user?.pseudo || id);
+                pseudoCache.set(id, label);
+                return label;
+            } catch (_) {
+                pseudoCache.set(id, id);
+                return id;
+            }
+        }
+
+        const STATUS_LABELS = { publie: 'Publiee', en_attente: 'En revision', rejete: 'Rejetee' };
+        const STATUS_COLORS = { publie: '#4caf7d', en_attente: '#e0a030', rejete: '#b76e6e' };
+
+        // ── Render stories ───────────────────────────────────────────────────────
+        async function renderStories(statut) {
+            const grid = document.getElementById('mesHistoires');
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+
+            const histoires = await firebaseAPI.getHistoiresAuteur(currentUser.uid, statut);
+            grid.innerHTML = '';
+
+            if (!histoires.length) {
+                const empty = document.createElement('div');
+                empty.className = 'empty-state';
+                empty.innerHTML = '<i class="fas fa-book-open"></i><p>Aucune histoire pour ce filtre.</p>'
+                    + (statut === 'publie' ? '<button class="btn-primary" id="emptyStoryBtn"><i class="fas fa-plus"></i> Ecrire mon histoire</button>' : '');
+                grid.appendChild(empty);
+                document.getElementById('emptyStoryBtn')?.addEventListener('click', () => { window.location.href = 'publier.html'; });
+                return;
+            }
+
+            histoires.forEach(h => {
+                const card = document.createElement('div');
+                card.className = 'story-card';
+                const badge = h.statut ? `<span class="story-status-badge" style="background:${STATUS_COLORS[h.statut] || '#aaa'}">${STATUS_LABELS[h.statut] || h.statut}</span>` : '';
+                const motif = h.statut === 'rejete' && h.motifRejet ? `<div class="reject-motif"><i class="fas fa-info-circle"></i> ${escapeHtml(h.motifRejet)}</div>` : '';
+                card.innerHTML = `
+                    <div class="story-cat-bar"></div>
+                    <div class="story-body">
+                        <div class="story-cat-badge">${escapeHtml(h.categorie)}</div>
+                        <h3 class="story-title">${escapeHtml(h.titre)}</h3>
+                        <p class="story-excerpt">${escapeHtml(h.extrait || '')}</p>
+                        ${motif}
+                        <div class="story-foot">
+                            <div class="story-meta-stats">
+                                <span><i class="fas fa-heart"></i> ${Number(h.likes || 0)}</span>
+                                <span><i class="fas fa-comment"></i> ${Number(h.commentaires || 0)}</span>
+                                ${badge}
+                            </div>
+                            ${h.statut === 'publie' ? `<a href="histoire.html?id=${encodeURIComponent(h.id)}" class="story-edit-btn"><i class="fas fa-eye"></i> Voir</a>` : ''}
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ── Render abonnements ───────────────────────────────────────────────────
+        async function renderAbonnements() {
+            const grid = document.getElementById('abonnementsGrid');
+            if (!grid) return;
+            grid.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+
+            const abonnements = await firebaseAPI.getAbonnements(currentUser.uid);
+            grid.innerHTML = '';
+
+            if (!abonnements.length) {
+                grid.innerHTML = '<div class="fav-empty"><i class="fas fa-user-friends"></i><p>Vous ne suivez personne pour l\'instant.</p></div>';
+                return;
+            }
+
+            abonnements.forEach(user => {
+                const card = document.createElement('div');
+                card.className = 'abonnement-card';
+                card.innerHTML = `
+                    <div class="ab-avatar"><i class="fas fa-user"></i></div>
+                    <div class="ab-info"><div class="ab-name">${escapeHtml(user.pseudo || user.id)}</div></div>
+                    <a href="profil.html?uid=${encodeURIComponent(user.id)}" class="btn-secondary" style="font-size:12px;padding:6px 14px;">Voir profil</a>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // ── Render moderation ────────────────────────────────────────────────────
+        function updateModoCount() {
+            const badge = document.getElementById('modoCountBadge');
+            if (!badge) return;
+            const count = document.getElementById('moderationList')?.querySelectorAll('.modo-item').length || 0;
+            badge.textContent = count;
+            badge.style.display = count > 0 ? 'inline-flex' : 'none';
+        }
+
+        function ensureCenseurOpsLayout() {
+            if (!censeurOpsRoot) return;
+            censeurOpsRoot.innerHTML = `
+                <div class="ops-section">
+                    <h4><i class="fas fa-gavel" style="margin-right:8px;color:var(--rose-mid)"></i>Historique des sanctions</h4>
+                    <div id="sanctionHistory" class="ops-list"></div>
+                </div>
+                <div class="ops-section">
+                    <h4><i class="fas fa-user-shield" style="margin-right:8px;color:var(--rose-mid)"></i>Candidatures moderateur</h4>
+                    <div id="candidaturesList" class="ops-list"></div>
+                </div>
+                <div class="ops-section">
+                    <h4><i class="fas fa-arrow-up-right-dots" style="margin-right:8px;color:var(--rose-mid)"></i>Promotions vers censeur</h4>
+                    <div id="promotionsList" class="ops-list"></div>
+                </div>
+                <div class="ops-section">
+                    <h4><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--rose-mid)"></i>Journal ops</h4>
+                    <div id="opsLogsList" class="ops-list"></div>
+                </div>
+            `;
+        }
+
+        async function refreshCenseurOpsSections() {
+            if (!currentUser || currentUser.role !== 'censeur') return;
+            ensureCenseurOpsLayout();
+            await Promise.all([
+                renderSanctionHistory(),
+                renderCandidaturesModerateur(),
+                renderPromotionsRole(),
+                renderOpsLogsPanel()
+            ]);
+        }
+
+        async function renderModeration() {
+            const list = document.getElementById('moderationList');
+            if (!list) return;
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
+
+            const isCenseur = currentUser.role === 'censeur';
+            if (censeurOpsRoot) {
+                censeurOpsRoot.innerHTML = isCenseur ? '<div class="ops-section"><div style="font-size:13px;color:var(--ink-faint)">Chargement des operations censeur...</div></div>' : '';
+            }
+            const histoires = await firebaseAPI.getHistoiresEnAttente();
+            list.innerHTML = '';
+
+            if (!histoires.length) {
+                list.innerHTML = '<div class="empty-state"><i class="fas fa-check-circle" style="color:#4caf7d"></i><p>Aucune histoire en attente.</p></div>';
+                updateModoCount();
+            } else {
+                histoires.forEach(h => {
+                    const item = document.createElement('div');
+                    item.className = 'modo-item';
+                    item.innerHTML = `
+                        <div class="modo-item-info">
+                            <div class="modo-item-title">${escapeHtml(h.titre)}</div>
+                            <div class="modo-item-meta">Par <strong>${escapeHtml(h.auteur || h.auteurId)}</strong> · Soumis le ${formatDateShort(h.date)}</div>
+                            <div class="modo-item-excerpt">${escapeHtml((h.extrait || '').substring(0, 160))}…</div>
+                        </div>
+                        <div class="modo-item-actions">
+                            <a href="histoire.html?id=${encodeURIComponent(h.id)}&preview=1" class="btn-secondary" style="font-size:12px;padding:6px 14px;" target="_blank"><i class="fas fa-eye"></i> Lire</a>
+                            <a href="publier.html?edit=${encodeURIComponent(h.id)}" class="btn-secondary" style="font-size:12px;padding:6px 14px;" target="_blank"><i class="fas fa-pen"></i> Modifier</a>
+                            <button class="btn-primary modo-approve" style="font-size:12px;padding:6px 14px;background:#4caf7d;border:none"><i class="fas fa-check"></i> Approuver</button>
+                            <button class="btn-secondary modo-reject" style="font-size:12px;padding:6px 14px;color:#b76e6e;border-color:#b76e6e"><i class="fas fa-times"></i> Rejeter</button>
+                            ${isCenseur ? `<button class="btn-secondary modo-sanction" style="font-size:12px;padding:6px 14px;color:#7a3e3e;border-color:#c4a0a0"><i class="fas fa-gavel"></i> Sanctionner</button>` : ''}
+                        </div>
+                    `;
+                    item.querySelector('.modo-approve').addEventListener('click', async () => {
+                        const ok = await firebaseAPI.approuverHistoire(h.id, currentUser.uid);
+                        if (ok) {
+                            item.remove();
+                            updateModoCount();
+                            if (isCenseur) await renderOpsLogsPanel();
+                        } else {
+                            await notify('error', "Erreur lors de l'approbation.", { title: 'Moderation' });
+                        }
+                    });
+                    item.querySelector('.modo-reject').addEventListener('click', () => openRejectModal(h.id, item));
+                    item.querySelector('.modo-sanction')?.addEventListener('click', () => openSanctionModal(h.auteurId, h.auteur || h.auteurId));
+                    list.appendChild(item);
+                });
+            }
+
+            updateModoCount();
+            if (isCenseur) {
+                await refreshCenseurOpsSections();
+            }
+        }
+
+        async function renderCandidaturesModerateur() {
+            const list = document.getElementById('candidaturesList');
+            if (!list) return;
+            list.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
+            try {
+                const candidatures = await firebaseAPI.getCandidaturesModerateur('en_attente', 80);
+                if (!candidatures.length) {
+                    list.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucune candidature en attente.</p>';
+                    return;
+                }
+                list.innerHTML = '';
+                candidatures.forEach((c) => {
+                    const item = document.createElement('div');
+                    item.className = 'ops-item';
+                    item.innerHTML = `
+                        <div class="ops-item-main">
+                            <div class="ops-item-title"><strong>${escapeHtml(c.pseudo || c.userId)}</strong> (${escapeHtml(c.email || 'email inconnu')})</div>
+                            <div class="ops-item-meta">Soumise le ${formatDateShort(c.date)} · UID: ${escapeHtml(c.userId || '')}</div>
+                            <div class="ops-item-note">${escapeHtml(c.motivation || '')}</div>
+                        </div>
+                        <div class="ops-item-actions">
+                            <button class="btn-primary approve-candidature" style="font-size:12px;padding:6px 14px;background:#4caf7d;border:none"><i class="fas fa-check"></i> Promouvoir modo</button>
+                            <button class="btn-secondary reject-candidature" style="font-size:12px;padding:6px 14px;color:#b76e6e;border-color:#b76e6e"><i class="fas fa-times"></i> Refuser</button>
+                        </div>
+                    `;
+                    item.querySelector('.approve-candidature')?.addEventListener('click', async () => {
+                        const result = await firebaseAPI.traiterCandidatureModerateur(c.id, 'approuvee', { promotionRole: 'moderateur' });
+                        if (!result.ok) {
+                            await notify('error', "Impossible d'approuver cette candidature.", { title: 'Candidature' });
+                            return;
+                        }
+                        await notify('success', `Candidature approuvee: ${c.pseudo || c.userId} est moderateur.`, { title: 'Candidature' });
+                        await refreshCenseurOpsSections();
+                    });
+                    item.querySelector('.reject-candidature')?.addEventListener('click', async () => {
+                        const result = await firebaseAPI.traiterCandidatureModerateur(c.id, 'refusee');
+                        if (!result.ok) {
+                            await notify('error', "Impossible de refuser cette candidature.", { title: 'Candidature' });
+                            return;
+                        }
+                        await notify('success', `Candidature refusee pour ${c.pseudo || c.userId}.`, { title: 'Candidature' });
+                        await refreshCenseurOpsSections();
+                    });
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Erreur renderCandidaturesModerateur:', error);
+                list.innerHTML = '<p style="font-size:13px;color:#b76e6e">Erreur de chargement des candidatures.</p>';
+            }
+        }
+
+        async function renderPromotionsRole() {
+            const list = document.getElementById('promotionsList');
+            if (!list) return;
+            list.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
+            try {
+                const moderateurs = await firebaseAPI.getUtilisateursParRole('moderateur', 120);
+                const eligibles = moderateurs.filter((u) => String(u.uid || u.id || '') !== String(currentUser.uid || ''));
+                if (!eligibles.length) {
+                    list.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucun moderateur eligible a promouvoir.</p>';
+                    return;
+                }
+                list.innerHTML = '';
+                eligibles.forEach((user) => {
+                    const uid = String(user.uid || user.id || '');
+                    const item = document.createElement('div');
+                    item.className = 'ops-item';
+                    item.innerHTML = `
+                        <div class="ops-item-main">
+                            <div class="ops-item-title"><strong>${escapeHtml(user.pseudo || uid)}</strong></div>
+                            <div class="ops-item-meta">Role actuel: moderateur · UID: ${escapeHtml(uid)}</div>
+                        </div>
+                        <div class="ops-item-actions">
+                            <button class="btn-secondary promote-censeur" style="font-size:12px;padding:6px 14px;color:#7a3e3e;border-color:#c4a0a0"><i class="fas fa-arrow-up"></i> Promouvoir censeur</button>
+                        </div>
+                    `;
+                    item.querySelector('.promote-censeur')?.addEventListener('click', async () => {
+                        const result = await firebaseAPI.promouvoirUtilisateurRole(uid, 'censeur', 'profil_ops');
+                        if (!result.ok) {
+                            await notify('error', "Impossible de promouvoir ce moderateur.", { title: 'Promotion' });
+                            return;
+                        }
+                        await notify('success', `${user.pseudo || uid} est maintenant censeur.`, { title: 'Promotion' });
+                        await refreshCenseurOpsSections();
+                    });
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Erreur renderPromotionsRole:', error);
+                list.innerHTML = '<p style="font-size:13px;color:#b76e6e">Erreur de chargement des promotions.</p>';
+            }
+        }
+
+        async function renderOpsLogsPanel() {
+            const list = document.getElementById('opsLogsList');
+            if (!list) return;
+            list.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
+            try {
+                const logs = await firebaseAPI.getOpsLogs(100);
+                if (!logs.length) {
+                    list.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucun log operationnel disponible.</p>';
+                    return;
+                }
+
+                const actionMap = {
+                    story_approve: { label: 'Approbation', color: '#4caf7d' },
+                    story_reject: { label: 'Rejet', color: '#e07030' },
+                    story_edit: { label: 'Edition', color: '#9b7ecb' },
+                    sanction_apply: { label: 'Sanction', color: '#b76e6e' },
+                    sanction_lift: { label: 'Levee', color: '#4caf7d' },
+                    candidature_approuvee: { label: 'Candidature OK', color: '#4caf7d' },
+                    candidature_refusee: { label: 'Candidature KO', color: '#e07030' },
+                    role_promotion: { label: 'Promotion role', color: '#7a3e3e' }
+                };
+
+                const rows = await Promise.all(logs.map(async (log) => {
+                    const actor = await getPseudoOrUid(log.actorId);
+                    const target = log.targetUserId ? await getPseudoOrUid(log.targetUserId) : '';
+                    return { ...log, actor, target };
+                }));
+
+                list.innerHTML = '';
+                rows.forEach((log) => {
+                    const actionMeta = actionMap[log.action] || { label: log.action || 'Log', color: '#b07070' };
+                    const item = document.createElement('div');
+                    item.className = 'ops-item';
+                    item.innerHTML = `
+                        <div class="ops-item-main">
+                            <span class="ops-log-chip" style="background:${actionMeta.color}">${escapeHtml(actionMeta.label)}</span>
+                            <div class="ops-item-title">${escapeHtml(log.message || 'Action operationnelle')}</div>
+                            <div class="ops-item-meta">
+                                Acteur: ${escapeHtml(log.actor || log.actorId || '')}
+                                ${log.target ? ` · Cible: ${escapeHtml(log.target)}` : ''}
+                                ${log.targetStoryId ? ` · Histoire: ${escapeHtml(log.targetStoryId)}` : ''}
+                                · ${formatDateShort(log.date)}
+                            </div>
+                        </div>
+                    `;
+                    list.appendChild(item);
+                });
+            } catch (error) {
+                console.error('Erreur renderOpsLogsPanel:', error);
+                list.innerHTML = '<p style="font-size:13px;color:#b76e6e">Impossible de charger les logs ops.</p>';
+            }
+        }
+
+        // ── Stats ────────────────────────────────────────────────────────────────
+        async function loadStats() {
+            try {
+                const [histoiresPub, abonnesCount, abonnements] = await Promise.all([
+                    firebaseAPI.getHistoiresAuteur(currentUser.uid, 'publie'),
+                    firebaseAPI.getAbonnes(currentUser.uid),
+                    firebaseAPI.getAbonnements(currentUser.uid)
+                ]);
+                document.getElementById('statHistoires').textContent = histoiresPub.length;
+                document.getElementById('statAbonnes').textContent = abonnesCount;
+                document.getElementById('statAbonnements').textContent = abonnements.length;
+                document.getElementById('statLectures').textContent = histoiresPub.reduce((s, h) => s + Number(h.likes || 0), 0);
+            } catch (e) {
+                console.error('Erreur stats:', e);
+            }
+        }
+
+        // ── Genres ───────────────────────────────────────────────────────────────
+        function renderGenres(genres) {
+            const container = document.getElementById('genresList');
+            container.innerHTML = '';
+            const list = genres ? genres.split(',').map(g => g.trim()).filter(Boolean) : ['Premier amour', 'Poesie'];
+            list.forEach(g => {
+                const tag = document.createElement('span');
+                tag.className = 'genre-tag';
+                tag.textContent = g;
+                container.appendChild(tag);
+            });
+        }
+
+        // ── Render profile header ─────────────────────────────────────────────────
+        function renderProfile() {
+            setNavPseudo(currentUser.pseudo);
+            document.getElementById('profilPseudo').textContent = currentUser.pseudo;
+            document.getElementById('profilBio').textContent = String(currentUser.bio || '').trim() || "Amoureux(se) des mots, ecrivain(e) en herbe…";
+            document.getElementById('proposComplet').textContent = String(currentUser.aPropos || '').trim() || "Je suis passionne(e) par l'ecriture et les histoires d'amour. Bienvenue dans mon univers !";
+            document.getElementById('membreDepuis').textContent = getDateLabel(currentUser.dateInscription);
+            applyInitialsAvatar(document.getElementById('profileInitials'), currentUser.pseudo);
+            renderGenres(currentUser.genres || '');
+            if (['moderateur', 'censeur'].includes(currentUser.role)) {
+                document.getElementById('tabModeration')?.style.removeProperty('display');
+            }
+        }
+
+        // ── Modal sanction ─────────────────────────────────────────────────────────
+        const sanctionModal = document.getElementById('sanctionModal');
+        const sanctionType = document.getElementById('sanctionType');
+        const durationField = document.getElementById('durationField');
+        let sanctionPending = null; // { utilisateurId, auteurNom }
+
+        const SANCTION_COLORS = { avertissement: '#e0a030', suspension_temporaire: '#e07030', bannissement: '#b76e6e' };
+        const SANCTION_LABELS = { avertissement: 'Avertissement', suspension_temporaire: 'Suspension', bannissement: 'Bannissement' };
+
+        sanctionType?.addEventListener('change', () => {
+            durationField.classList.toggle('visible', sanctionType.value === 'suspension_temporaire');
+        });
+
+        function openSanctionModal(utilisateurId, auteurNom) {
+            sanctionPending = { utilisateurId, auteurNom };
+            document.getElementById('sanctionTargetInfo').textContent = `Utilisateur ciblé : ${auteurNom}`;
+            document.getElementById('sanctionMotif').value = '';
+            document.getElementById('sanctionDuree').value = '';
+            sanctionType.value = 'avertissement';
+            durationField.classList.remove('visible');
+            sanctionModal.classList.add('open');
+        }
+        function closeSanctionModal() { sanctionModal.classList.remove('open'); sanctionPending = null; }
+
+        document.getElementById('sanctionCancelBtn')?.addEventListener('click', closeSanctionModal);
+        sanctionModal?.addEventListener('click', e => { if (e.target === sanctionModal) closeSanctionModal(); });
+
+        document.getElementById('sanctionConfirmBtn')?.addEventListener('click', async () => {
+            const motif = document.getElementById('sanctionMotif').value.trim();
+            if (!motif) { document.getElementById('sanctionMotif').focus(); return; }
+            if (!sanctionPending) return;
+            const type = sanctionType.value;
+            const duree = type === 'suspension_temporaire' ? Number(document.getElementById('sanctionDuree').value) : null;
+            if (type === 'suspension_temporaire' && (!duree || duree < 1)) {
+                document.getElementById('sanctionDuree').focus(); return;
+            }
+            const { utilisateurId, auteurNom } = sanctionPending;
+            closeSanctionModal();
+            const ok = await firebaseAPI.creerSanction(utilisateurId, type, motif, duree);
+            if (ok) {
+                await notify('success', `Sanction appliquee a ${auteurNom}.`, { title: 'Moderation' });
+                await refreshCenseurOpsSections();
+            } else {
+                await notify('error', "Erreur lors de la sanction.", { title: 'Moderation' });
+            }
+        });
+
+        // ── Section historique sanctions ────────────────────────────────────────────
+        async function renderSanctionHistory() {
+            const section = document.getElementById('sanctionHistory');
+            if (!section) return;
+            section.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
+
+            try {
+                const allSanctions = await firebaseAPI.getHistoriqueSanctions(220, false);
+
+                if (!allSanctions.length) {
+                    section.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucune sanction enregistree.</p>';
+                    return;
+                }
+
+                section.innerHTML = '';
+                allSanctions.forEach(s => {
+                    const item = document.createElement('div');
+                    item.className = 'sanction-item';
+                    const color = SANCTION_COLORS[s.type] || '#999';
+                    const label = SANCTION_LABELS[s.type] || s.type;
+                    const debut = s.dateDebut ? formatDateShort(s.dateDebut) : '';
+                    const fin = s.dateFin ? ` · Fin ${new Date(s.dateFin).toLocaleDateString('fr-FR')}` : '';
+                    const etat = s.actif ? 'Active' : 'Archivee';
+                    item.innerHTML = `
+                        <span class="sanction-type-badge" style="background:${color}">${label} · ${etat}</span>
+                        <div class="sanction-info">
+                            <div class="s-motif">${escapeHtml(s.motif || '')}</div>
+                            <div class="s-meta">Utilisateur : ${escapeHtml(s.utilisateurId)} · Debut ${escapeHtml(debut)}${fin}</div>
+                        </div>
+                        ${s.actif ? `<button class="btn-secondary" data-sid="${escapeHtml(s.id)}" data-uid="${escapeHtml(s.utilisateurId)}" style="font-size:12px;padding:5px 12px;color:#4caf7d;border-color:#4caf7d" title="Lever la sanction"><i class="fas fa-unlock"></i></button>` : ''}
+                    `;
+                    item.querySelector('button')?.addEventListener('click', async (e) => {
+                        const btn = e.currentTarget;
+                        const ok = await firebaseAPI.desactiverSanction(btn.dataset.sid, btn.dataset.uid);
+                        if (ok) await refreshCenseurOpsSections();
+                        else await notify('error', "Erreur lors de la levee de sanction.", { title: 'Moderation' });
+                    });
+                    section.appendChild(item);
+                });
+            } catch (err) {
+                console.error('Erreur historique sanctions:', err);
+                section.innerHTML = '<p style="font-size:13px;color:#b76e6e">Impossible de charger les sanctions.</p>';
+            }
+        }
+
+        // ── Modal rejet ────────────────────────────────────────────────────────────
+        const rejectModal = document.getElementById('rejectModal');
+        const rejectMotifInput = document.getElementById('rejectMotifInput');
+        const rejectMotifCount = document.getElementById('rejectMotifCount');
+        let rejectPending = null; // { histoireId, itemEl }
+
+        rejectMotifInput?.addEventListener('input', () => {
+            rejectMotifCount.textContent = rejectMotifInput.value.length;
+        });
+
+        function openRejectModal(histoireId, itemEl) {
+            rejectPending = { histoireId, itemEl };
+            rejectMotifInput.value = '';
+            rejectMotifCount.textContent = '0';
+            rejectModal.classList.add('open');
+            rejectMotifInput.focus();
+        }
+        function closeRejectModal() {
+            rejectModal.classList.remove('open');
+            rejectPending = null;
+        }
+
+        document.getElementById('rejectCancelBtn')?.addEventListener('click', closeRejectModal);
+        rejectModal?.addEventListener('click', e => { if (e.target === rejectModal) closeRejectModal(); });
+
+        document.getElementById('rejectConfirmBtn')?.addEventListener('click', async () => {
+            const motif = rejectMotifInput.value.trim();
+            if (!motif) { rejectMotifInput.focus(); return; }
+            if (!rejectPending) return;
+            const { histoireId, itemEl } = rejectPending;
+            closeRejectModal();
+            const ok = await firebaseAPI.rejeterHistoire(histoireId, currentUser.uid, motif);
+            if (ok) {
+                itemEl.remove();
+                updateModoCount();
+                if (currentUser.role === 'censeur') await renderOpsLogsPanel();
+            } else {
+                await notify('error', "Erreur lors du rejet.", { title: 'Moderation' });
+            }
+        });
+
+        // ── Modal profil ───────────────────────────────────────────────────────────
+        function openModal() { modal.classList.add('open'); }
+        function closeModal() { modal.classList.remove('open'); }
+
+        document.getElementById('closeModal')?.addEventListener('click', closeModal);
+        modal?.addEventListener('click', e => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('editProfileBtn').addEventListener('click', () => {
+            if (!currentUser) return;
+            document.getElementById('editPseudo').value = currentUser.pseudo;
+            document.getElementById('editBio').value = currentUser.bio || '';
+            document.getElementById('editAPropos').value = currentUser.aPropos || '';
+            document.getElementById('editGenres').value = currentUser.genres || '';
+            openModal();
+        });
+
+        document.getElementById('newStoryBtn')?.addEventListener('click', () => { window.location.href = 'publier.html'; });
+
+        document.getElementById('editProfileForm').addEventListener('submit', async e => {
+            e.preventDefault();
+            if (!currentUser) return;
+            currentUser.pseudo = document.getElementById('editPseudo').value.trim() || currentUser.pseudo;
+            currentUser.bio = document.getElementById('editBio').value.trim();
+            currentUser.aPropos = document.getElementById('editAPropos').value.trim();
+            currentUser.genres = document.getElementById('editGenres').value.trim();
+            try {
+                await setDoc(doc(db, 'utilisateurs', currentUser.uid), {
+                    uid: currentUser.uid,
+                    pseudo: currentUser.pseudo,
+                    bio: currentUser.bio,
+                    aPropos: currentUser.aPropos,
+                    genres: currentUser.genres,
+                    type: currentUser.type || 'lecteur',
+                    dateInscription: currentUser.dateInscription ? new Date(currentUser.dateInscription) : serverTimestamp()
+                }, { merge: true });
+                if (auth.currentUser?.displayName !== currentUser.pseudo) {
+                    await updateProfile(auth.currentUser, { displayName: currentUser.pseudo });
+                }
+                syncUserSession(currentUser, { pseudo: currentUser.pseudo, bio: currentUser.bio, aPropos: currentUser.aPropos, genres: currentUser.genres, type: currentUser.type, dateInscription: currentUser.dateInscription });
+                renderProfile();
+                closeModal();
+                await notify('success', 'Profil mis a jour !', { title: 'Profil' });
+            } catch (err) {
+                console.error('Erreur mise a jour profil:', err);
+                await notify('error', "Impossible d'enregistrer le profil.", { title: 'Profil' });
+            }
+        });
+
+        // ── Nav ───────────────────────────────────────────────────────────────────
+        wireNavInteractions({
+            variant: 'feed',
+            onLogout: async () => {
+                try { await logoutAndRedirect({ auth, redirectTo: 'index.html' }); }
+                catch { await notify('error', 'Impossible de vous deconnecter.', { title: 'Deconnexion' }); }
+            }
+        });
+
+        // ── Init ──────────────────────────────────────────────────────────────────
+        requireAuth({
+            auth,
+            redirectTo: 'index.html',
+            onReady: async (fbUser, { session }) => {
+                const userDoc = await firebaseAPI.getUtilisateur(fbUser.uid);
+                const sess = session && session.uid === fbUser.uid ? session : {};
+                const dateInscription = userDoc?.dateInscription?.toDate
+                    ? userDoc.dateInscription.toDate().toISOString()
+                    : (typeof userDoc?.dateInscription === 'string' ? userDoc.dateInscription : (sess.dateInscription || new Date().toISOString()));
+
+                currentUser = {
+                    uid: fbUser.uid,
+                    pseudo: fbUser.displayName || userDoc?.pseudo || sess.pseudo || fbUser.email.split('@')[0],
+                    email: fbUser.email,
+                    type: userDoc?.type ?? sess.type ?? 'lecteur',
+                    role: userDoc?.role ?? sess.role ?? 'user',
+                    bio: typeof userDoc?.bio === 'string' ? userDoc.bio : (sess.bio || ''),
+                    aPropos: typeof userDoc?.aPropos === 'string' ? userDoc.aPropos : (sess.aPropos || ''),
+                    genres: typeof userDoc?.genres === 'string' ? userDoc.genres : (sess.genres || ''),
+                    dateInscription
+                };
+
+                syncUserSession(currentUser, { pseudo: currentUser.pseudo, bio: currentUser.bio, aPropos: currentUser.aPropos, genres: currentUser.genres, type: currentUser.type, dateInscription: currentUser.dateInscription });
+                renderProfile();
+
+                // Apply URL params
+                const tabParam = getTabParam();
+                currentStatus = getStatusParam();
+                document.querySelectorAll('.status-filter-btn').forEach(b => {
+                    b.classList.toggle('active', b.dataset.status === currentStatus);
+                });
+                activateTab(tabParam);
+
+                if (tabParam === 'abonnements') renderAbonnements();
+                else if (tabParam === 'moderation' && ['moderateur', 'censeur'].includes(currentUser.role)) renderModeration();
+                else renderStories(currentStatus); // histoires (défaut) + favoris/apropos chargent les histoires en background
+
+                loadStats();
+
+                // Pre-load moderation count for badge
+                if (['moderateur', 'censeur'].includes(currentUser.role)) {
+                    firebaseAPI.getHistoiresEnAttente().then(hs => {
+                        const badge = document.getElementById('modoCountBadge');
+                        if (badge && hs.length > 0) {
+                            badge.textContent = hs.length;
+                            badge.style.display = 'inline-flex';
+                        }
+                    }).catch(() => {});
+                }
+            }
+        });
+    </script>
+</body>
+</html>

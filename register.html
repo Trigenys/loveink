@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inscription - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
+                <div class="logo-icon">
+                    <i class="fas fa-heart logo-heart"></i>
+                    <i class="fas fa-hand-paper logo-hand"></i>
+                    <i class="fas fa-pen-fancy logo-pen"></i>
+                </div>
+                <span class="logo-text">Love Ink</span>
+            </a>
+            <h1>Rejoignez l'aventure</h1>
+            <p>Créez votre compte d'auteur ou de lecteur</p>
+            
+            <form class="auth-form" id="registerForm">
+                <div class="form-group">
+                    <label for="pseudo">Pseudo *</label>
+                    <input type="text" id="pseudo" placeholder="Votre nom d'auteur" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email *</label>
+                    <input type="email" id="email" placeholder="vous@email.com" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Mot de passe *</label>
+                    <input type="password" id="password" placeholder="Minimum 6 caractères" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmer le mot de passe *</label>
+                    <input type="password" id="confirmPassword" placeholder="Identique au précédent" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="type">Je suis *</label>
+                    <select id="type" required>
+                        <option value="lecteur">Lecteur (je veux lire)</option>
+                        <option value="auteur">Auteur (je veux publier)</option>
+                        <option value="lesdeux">Les deux !</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="bio">Bio (optionnel)</label>
+                    <textarea id="bio" rows="3" placeholder="Parlez-nous de vous..."></textarea>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">Créer mon compte</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>Déjà inscrit ? <a href="login.html">Connectez-vous</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+    import {
+        createUserWithEmailAndPassword,
+        updateProfile
+    } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+    import { auth, db } from './js/core/firebase-config.js';
+    import { notify } from './js/components/ui-notify.js';
+    import { syncUserSession } from './js/core/auth-session.js';
+
+    // ===== INSCRIPTION =====
+    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        console.log("Creation du compte...");
+        
+        const pseudo = document.getElementById('pseudo').value.trim();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value;
+        const confirm = document.getElementById('confirmPassword').value;
+        const type = document.getElementById('type').value;
+        const bio = document.getElementById('bio').value.trim();
+        
+        // Validations
+        if (password !== confirm) {
+            await notify('warning', 'Les mots de passe ne correspondent pas', { title: 'Inscription' });
+            return;
+        }
+        
+        if (password.length < 6) {
+            await notify('warning', 'Le mot de passe doit faire au moins 6 caracteres', { title: 'Inscription' });
+            return;
+        }
+        
+        try {
+            console.log("Creation de l'utilisateur...");
+            
+            // Créer l'utilisateur
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            
+            console.log("Utilisateur cree:", user.uid);
+            
+            // Mettre à jour le profil
+            await updateProfile(user, {
+                displayName: pseudo
+            });
+            
+            console.log("Profil mis a jour");
+            
+            // Sauvegarder dans Firestore
+            try {
+                const now = new Date().toISOString();
+                await setDoc(doc(db, 'utilisateurs', user.uid), {
+                    uid: user.uid,
+                    pseudo: pseudo,
+                    type: type,
+                    bio: bio || "Amoureux(se) des mots",
+                    dateInscription: serverTimestamp(),
+                    abonnes: 0,
+                    histoires: 0
+                }, { merge: true });
+
+                syncUserSession(user, {
+                    pseudo,
+                    type,
+                    bio: bio || "Amoureux(se) des mots",
+                    dateInscription: now
+                });
+                console.log("Donnees sauvegardees");
+            } catch (e) {
+                console.log("Firestore indisponible, on continue");
+                syncUserSession(user, {
+                    pseudo,
+                    type,
+                    bio: bio || "Amoureux(se) des mots",
+                    dateInscription: new Date().toISOString()
+                });
+            }
+            
+            await notify('success', 'Bienvenue ' + pseudo + ' ! ❤️', { title: 'Inscription reussie' });
+            window.location.href = 'feed.html';
+            
+        } catch (error) {
+            console.error("Erreur:", error);
+
+            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
+            let message = "Erreur d'inscription";
+            if (error.code === 'auth/email-already-in-use') message = "Cet email est deja utilise";
+            else if (error.code === 'auth/invalid-email') message = "Email invalide";
+            else if (error.code === 'auth/weak-password') message = "Mot de passe trop faible";
+            else if (error.code === 'auth/network-request-failed') {
+                message = isOffline
+                    ? "Aucune connexion Internet detectee. Reconnectez-vous puis reessayez."
+                    : "Impossible de joindre Firebase Auth (identitytoolkit.googleapis.com). Verifiez DNS, VPN/Proxy, bloqueur de pub ou firewall puis reessayez.";
+            } else if (error.code === 'auth/unauthorized-domain') {
+                message = "Domaine non autorise dans Firebase Auth. Ajoutez love-ink.web.app dans les domaines autorises.";
+            } else {
+                message = error?.message || message;
+            }
+
+            await notify('error', message, { title: 'Inscription' });
+        }
+    });
+    </script>
+</body>
+</html>

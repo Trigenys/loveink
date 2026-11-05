@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes histoires - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'mes-histoires', showUser: true, showPublish: true });
+    </script>
+
+    <main class="container" style="padding: 40px 20px;">
+        <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 6px 24px rgba(0,0,0,0.06);">
+            <h1 style="color: #b76e6e; margin-bottom: 10px;">Mes histoires</h1>
+            <p style="color: #5c3e35; margin-bottom: 20px;">
+                Cette page redirige vers la vue profil en attendant la section dediee.
+            </p>
+            <a href="profil.html" class="btn btn-primary">Aller a mon profil</a>
+            <a href="publier.html" class="btn btn-secondary" style="margin-left: 10px;">Publier une histoire</a>
+        </div>
+    </main>
+
+    <script type="module">
+        import { auth } from './js/core/firebase-config.js';
+        import { logoutAndRedirect, requireAuth } from './js/core/auth-session.js';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'index.html',
+            onReady: async (_firebaseUser, { pseudo }) => {
+                setNavPseudo(pseudo);
+            }
+        });
+    </script>
+</body>
+</html>

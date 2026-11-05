@@ -1,0 +1,568 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Utilise .get('key', default) pour la compatibilite avec les documents
+    // existants qui n'ont pas encore les champs role/statut.
+    function isModo() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('role', 'user') in ['moderateur', 'censeur'];
+    }
+
+    function isCenseur() {
+      return signedIn() &&
+        exists(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('role', 'user') == 'censeur';
+    }
+
+    // Censeurs = ops/admin de moderation dans le contexte Spark (sans backend privileged).
+    function isOpsAdmin() {
+      return isCenseur();
+    }
+
+    // Traite les comptes sans champ statut (existants) comme actifs.
+    function isActif() {
+      return !signedIn() ||
+        !exists(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)) ||
+        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('statut', 'actif') == 'actif';
+    }
+
+    function likePath(histoireId) {
+      return /databases/$(database)/documents/likes/$(histoireId + "_" + request.auth.uid);
+    }
+
+    // Compteurs : chaque +1/-1 doit etre ecrit dans le meme batch que le doc
+    // like/commentaire correspondant (existsAfter), sinon gonflage possible.
+    function storyCountersOnly(histoireId) {
+      return request.resource.data.likes is int &&
+        request.resource.data.commentaires is int &&
+        request.resource.data.likes >= 0 &&
+        request.resource.data.commentaires >= 0 &&
+        (
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+            request.resource.data.likes == resource.data.likes + 1 &&
+            !exists(likePath(histoireId)) &&
+            existsAfter(likePath(histoireId))
+          ) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+            resource.data.likes > 0 &&
+            request.resource.data.likes == resource.data.likes - 1 &&
+            exists(likePath(histoireId)) &&
+            !existsAfter(likePath(histoireId))
+          ) ||
+          (
+            request.resource.data.diff(resource.data).affectedKeys().hasOnly(['commentaires', 'dernierCommentaireId']) &&
+            request.resource.data.commentaires == resource.data.commentaires + 1 &&
+            request.resource.data.dernierCommentaireId is string &&
+            !exists(/databases/$(database)/documents/commentaires/$(request.resource.data.dernierCommentaireId)) &&
+            existsAfter(/databases/$(database)/documents/commentaires/$(request.resource.data.dernierCommentaireId)) &&
+            getAfter(/databases/$(database)/documents/commentaires/$(request.resource.data.dernierCommentaireId)).data.histoireId == histoireId &&
+            getAfter(/databases/$(database)/documents/commentaires/$(request.resource.data.dernierCommentaireId)).data.auteurId == request.auth.uid
+          )
+        );
+    }
+
+    // Conversation 1-1 : ID deterministe = UIDs tries joints par "_".
+    // Empeche un tiers de pre-creer la conversation de deux autres utilisateurs.
+    function validConversationCreate(conversationId) {
+      return request.resource.data.keys().hasOnly(['participants', 'derniereActivite', 'dernierMessage', 'expediteurDernierMessage']) &&
+        request.resource.data.participants is list &&
+        request.resource.data.participants.size() == 2 &&
+        request.auth.uid in request.resource.data.participants &&
+        (
+          (
+            request.resource.data.participants[0] < request.resource.data.participants[1] &&
+            conversationId == request.resource.data.participants[0] + "_" + request.resource.data.participants[1]
+          ) ||
+          (
+            request.resource.data.participants[1] < request.resource.data.participants[0] &&
+            conversationId == request.resource.data.participants[1] + "_" + request.resource.data.participants[0]
+          )
+        );
+    }
+
+    function conversationOf(conversationId) {
+      return get(/databases/$(database)/documents/conversations/$(conversationId));
+    }
+
+    // Creation de compte : role force a "user", statut force a "actif".
+    function validUserDataCreate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.pseudo is string &&
+        request.resource.data.pseudo.size() > 0 &&
+        request.resource.data.pseudo.size() <= 40 &&
+        (
+          !('type' in request.resource.data) ||
+          request.resource.data.type in ['lecteur', 'auteur', 'lesdeux']
+        ) &&
+        (
+          !('bio' in request.resource.data) ||
+          (request.resource.data.bio is string && request.resource.data.bio.size() <= 600)
+        ) &&
+        (
+          !('aPropos' in request.resource.data) ||
+          (request.resource.data.aPropos is string && request.resource.data.aPropos.size() <= 4000)
+        ) &&
+        (
+          !('genres' in request.resource.data) ||
+          (request.resource.data.genres is string && request.resource.data.genres.size() <= 300)
+        ) &&
+        (
+          !('enLigne' in request.resource.data) ||
+          request.resource.data.enLigne is bool
+        ) &&
+        (
+          !('lastHeartbeat' in request.resource.data) ||
+          request.resource.data.lastHeartbeat is timestamp
+        ) &&
+        (
+          !('lastSeen' in request.resource.data) ||
+          request.resource.data.lastSeen is timestamp
+        ) &&
+        (
+          !('presenceSessionId' in request.resource.data) ||
+          (request.resource.data.presenceSessionId is string && request.resource.data.presenceSessionId.size() <= 120)
+        ) &&
+        (
+          !('presencePage' in request.resource.data) ||
+          (request.resource.data.presencePage is string && request.resource.data.presencePage.size() <= 120)
+        ) &&
+        (!('role' in request.resource.data) || request.resource.data.role == 'user') &&
+        (!('statut' in request.resource.data) || request.resource.data.statut == 'actif') &&
+        !request.resource.data.keys().hasAny(['admin', 'isAdmin', 'roles']);
+    }
+
+    // Mise a jour profil : le client ne peut pas modifier role/statut/suspensionJusqua.
+    function validUserDataUpdate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.pseudo is string &&
+        request.resource.data.pseudo.size() > 0 &&
+        request.resource.data.pseudo.size() <= 40 &&
+        (
+          !('type' in request.resource.data) ||
+          request.resource.data.type in ['lecteur', 'auteur', 'lesdeux']
+        ) &&
+        (
+          !('bio' in request.resource.data) ||
+          (request.resource.data.bio is string && request.resource.data.bio.size() <= 600)
+        ) &&
+        (
+          !('aPropos' in request.resource.data) ||
+          (request.resource.data.aPropos is string && request.resource.data.aPropos.size() <= 4000)
+        ) &&
+        (
+          !('genres' in request.resource.data) ||
+          (request.resource.data.genres is string && request.resource.data.genres.size() <= 300)
+        ) &&
+        (
+          !('enLigne' in request.resource.data) ||
+          request.resource.data.enLigne is bool
+        ) &&
+        (
+          !('lastHeartbeat' in request.resource.data) ||
+          request.resource.data.lastHeartbeat is timestamp
+        ) &&
+        (
+          !('lastSeen' in request.resource.data) ||
+          request.resource.data.lastSeen is timestamp
+        ) &&
+        (
+          !('presenceSessionId' in request.resource.data) ||
+          (request.resource.data.presenceSessionId is string && request.resource.data.presenceSessionId.size() <= 120)
+        ) &&
+        (
+          !('presencePage' in request.resource.data) ||
+          (request.resource.data.presencePage is string && request.resource.data.presencePage.size() <= 120)
+        ) &&
+        !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'statut', 'suspensionJusqua', 'admin', 'isAdmin', 'roles']);
+    }
+
+    function validCenseurStatusUpdate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'suspensionJusqua']) &&
+        request.resource.data.statut in ['actif', 'suspendu', 'banni'] &&
+        (
+          request.resource.data.statut != 'suspendu' ||
+          request.resource.data.suspensionJusqua == null ||
+          request.resource.data.suspensionJusqua is timestamp
+        ) &&
+        (
+          request.resource.data.statut != 'actif' ||
+          request.resource.data.suspensionJusqua == null
+        );
+    }
+
+    function validRolePromotionUpdate(userId) {
+      return request.resource.data.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'dateRoleUpdate', 'roleUpdatedBy', 'roleUpdateSource']) &&
+        request.resource.data.diff(resource.data).changedKeys().hasAny(['role']) &&
+        resource.data.get('role', 'user') in ['user', 'moderateur', 'censeur'] &&
+        request.resource.data.get('role', 'user') in ['moderateur', 'censeur'] &&
+        (
+          (resource.data.get('role', 'user') == 'user' && request.resource.data.get('role', 'user') == 'moderateur') ||
+          (resource.data.get('role', 'user') == 'moderateur' && request.resource.data.get('role', 'user') == 'censeur')
+        ) &&
+        request.resource.data.roleUpdatedBy == request.auth.uid &&
+        request.resource.data.dateRoleUpdate is timestamp &&
+        (
+          !('roleUpdateSource' in request.resource.data) ||
+          (request.resource.data.roleUpdateSource is string && request.resource.data.roleUpdateSource.size() <= 80)
+        );
+    }
+
+    function validStoryCreate() {
+      return request.resource.data.auteurId == request.auth.uid &&
+        request.resource.data.titre is string &&
+        request.resource.data.titre.size() > 0 &&
+        request.resource.data.titre.size() <= 140 &&
+        request.resource.data.categorie is string &&
+        request.resource.data.categorie.size() > 0 &&
+        request.resource.data.categorie.size() <= 80 &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 200000 &&
+        request.resource.data.likes == 0 &&
+        request.resource.data.commentaires == 0 &&
+        request.resource.data.date is timestamp &&
+        // Toute nouvelle histoire passe par la moderation.
+        request.resource.data.statut == 'en_attente';
+    }
+
+    // L'auteur ne peut modifier le contenu que tant que l'histoire n'est pas publiee,
+    // et ne touche jamais aux compteurs ni aux champs de moderation.
+    function validStoryOwnerUpdate() {
+      return resource.data.get('statut', 'publie') in ['en_attente', 'rejete'] &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titre', 'categorie', 'contenu', 'extrait', 'image']) &&
+        request.resource.data.titre is string &&
+        request.resource.data.titre.size() > 0 &&
+        request.resource.data.titre.size() <= 140 &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 200000;
+    }
+
+    // Moderation : seuls statut, motifRejet, moderateurId, dateModeration sont modifiables.
+    function validModoStoryUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'motifRejet', 'moderateurId', 'dateModeration']) &&
+        request.resource.data.statut in ['publie', 'rejete'] &&
+        (
+          !('motifRejet' in request.resource.data) ||
+          request.resource.data.motifRejet == null ||
+          (request.resource.data.motifRejet is string && request.resource.data.motifRejet.size() <= 1000)
+        ) &&
+        request.resource.data.moderateurId == request.auth.uid &&
+        request.resource.data.dateModeration is timestamp;
+    }
+
+    // Moderation editoriale: correction de contenu AVANT publication + conservation original.
+    function validModoEditorialUpdate() {
+      return resource.data.statut == 'en_attente' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'titre',
+          'categorie',
+          'contenu',
+          'extrait',
+          'image',
+          'statut',
+          'motifRejet',
+          'moderateurId',
+          'dateModeration',
+          'dateEditionModeration',
+          'versionOriginale'
+        ]) &&
+        request.resource.data.titre is string &&
+        request.resource.data.titre.size() > 0 &&
+        request.resource.data.titre.size() <= 140 &&
+        request.resource.data.categorie is string &&
+        request.resource.data.categorie.size() > 0 &&
+        request.resource.data.categorie.size() <= 80 &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 200000 &&
+        request.resource.data.extrait is string &&
+        request.resource.data.extrait.size() > 0 &&
+        request.resource.data.extrait.size() <= 500 &&
+        request.resource.data.image is string &&
+        request.resource.data.image.size() > 0 &&
+        request.resource.data.statut in ['en_attente', 'publie'] &&
+        (
+          !('motifRejet' in request.resource.data) ||
+          request.resource.data.motifRejet == null ||
+          (request.resource.data.motifRejet is string && request.resource.data.motifRejet.size() <= 1000)
+        ) &&
+        request.resource.data.moderateurId == request.auth.uid &&
+        request.resource.data.dateModeration is timestamp &&
+        request.resource.data.dateEditionModeration is timestamp &&
+        (
+          !('versionOriginale' in request.resource.data) ||
+          request.resource.data.versionOriginale == null ||
+          request.resource.data.versionOriginale is map
+        );
+    }
+
+    function validNotificationCreate() {
+      return request.resource.data.utilisateurId == request.auth.uid &&
+        request.resource.data.message is string &&
+        request.resource.data.message.size() > 0 &&
+        request.resource.data.message.size() <= 280 &&
+        request.resource.data.type in [
+          'system', 'info', 'warning',
+          'commentaire', 'follow', 'like', 'publication',
+          'publication_approuvee', 'rejet', 'sanction'
+        ] &&
+        request.resource.data.lu == false &&
+        request.resource.data.date is timestamp &&
+        (
+          !('histoireId' in request.resource.data) ||
+          request.resource.data.histoireId == null ||
+          (request.resource.data.histoireId is string && request.resource.data.histoireId.size() <= 128)
+        );
+    }
+
+    function validSanctionCreate() {
+      return request.resource.data.utilisateurId is string &&
+        request.resource.data.utilisateurId.size() > 0 &&
+        request.resource.data.type in ['avertissement', 'suspension_temporaire', 'bannissement'] &&
+        request.resource.data.motif is string &&
+        request.resource.data.motif.size() > 0 &&
+        request.resource.data.motif.size() <= 500 &&
+        request.resource.data.dateDebut is timestamp &&
+        (
+          request.resource.data.dateFin == null ||
+          request.resource.data.dateFin is timestamp
+        ) &&
+        request.resource.data.censeurId == request.auth.uid &&
+        request.resource.data.actif == true;
+    }
+
+    function validCandidatureCreate() {
+      return request.resource.data.userId == request.auth.uid &&
+        request.resource.data.pseudo is string &&
+        request.resource.data.pseudo.size() > 0 &&
+        request.resource.data.pseudo.size() <= 40 &&
+        request.resource.data.email is string &&
+        request.resource.data.email.size() > 3 &&
+        request.resource.data.email.size() <= 160 &&
+        request.resource.data.motivation is string &&
+        request.resource.data.motivation.size() > 0 &&
+        request.resource.data.motivation.size() <= 2000 &&
+        request.resource.data.date is timestamp &&
+        request.resource.data.statut == 'en_attente';
+    }
+
+    function validCandidatureDecisionUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'statut',
+          'traitePar',
+          'dateTraitement',
+          'decisionNote',
+          'promotionRole',
+          'utilisateurPromuId'
+        ]) &&
+        request.resource.data.statut in ['approuvee', 'refusee'] &&
+        request.resource.data.traitePar == request.auth.uid &&
+        request.resource.data.dateTraitement is timestamp &&
+        (
+          !('decisionNote' in request.resource.data) ||
+          (request.resource.data.decisionNote is string && request.resource.data.decisionNote.size() <= 500)
+        ) &&
+        (
+          request.resource.data.statut != 'approuvee' ||
+          (
+            request.resource.data.promotionRole in ['moderateur', 'censeur'] &&
+            request.resource.data.utilisateurPromuId is string &&
+            request.resource.data.utilisateurPromuId.size() > 0
+          )
+        ) &&
+        (
+          request.resource.data.statut != 'refusee' ||
+          !('promotionRole' in request.resource.data) ||
+          request.resource.data.promotionRole == null
+        ) &&
+        (
+          request.resource.data.statut != 'refusee' ||
+          !('utilisateurPromuId' in request.resource.data) ||
+          request.resource.data.utilisateurPromuId == null
+        );
+    }
+
+    function validOpsLogCreate() {
+      return request.resource.data.actorId == request.auth.uid &&
+        request.resource.data.action in [
+          'story_approve',
+          'story_reject',
+          'story_edit',
+          'sanction_apply',
+          'sanction_lift',
+          'candidature_approuvee',
+          'candidature_refusee',
+          'role_promotion'
+        ] &&
+        request.resource.data.date is timestamp &&
+        (
+          !('targetUserId' in request.resource.data) ||
+          (request.resource.data.targetUserId is string && request.resource.data.targetUserId.size() <= 128)
+        ) &&
+        (
+          !('targetStoryId' in request.resource.data) ||
+          (request.resource.data.targetStoryId is string && request.resource.data.targetStoryId.size() <= 128)
+        ) &&
+        (
+          !('message' in request.resource.data) ||
+          (request.resource.data.message is string && request.resource.data.message.size() <= 400)
+        ) &&
+        (
+          !('metadata' in request.resource.data) ||
+          request.resource.data.metadata is map
+        );
+    }
+
+    match /utilisateurs/{userId} {
+      allow read: if signedIn();
+      allow create: if isOwner(userId) && validUserDataCreate(userId);
+      allow update: if signedIn() && (
+        (isOwner(userId) && validUserDataUpdate(userId)) ||
+        (isOpsAdmin() && (validCenseurStatusUpdate(userId) || validRolePromotionUpdate(userId)))
+      );
+      // Un compte suspendu/banni ne peut pas effacer son profil pour lever la sanction.
+      allow delete: if isOwner(userId) && resource.data.get('statut', 'actif') == 'actif';
+    }
+
+    match /histoires/{histoireId} {
+      // Histoires sans statut (existantes) = publiques ; statut "publie" = public ;
+      // modos voient tout ; auteur peut toujours lire ses propres histoires.
+      allow read: if !('statut' in resource.data) || resource.data.statut == 'publie' || isModo() ||
+        (signedIn() && resource.data.auteurId == request.auth.uid);
+      allow create: if signedIn() && isActif() && validStoryCreate();
+      allow update: if signedIn() && (
+        (resource.data.auteurId == request.auth.uid && isActif() && validStoryOwnerUpdate()) ||
+        (isActif() && storyCountersOnly(histoireId)) ||
+        (isModo() && (validModoStoryUpdate() || validModoEditorialUpdate()))
+      );
+      allow delete: if signedIn() && resource.data.auteurId == request.auth.uid;
+    }
+
+    match /commentaires/{commentaireId} {
+      allow read: if true;
+      allow create: if signedIn() && isActif() &&
+        request.resource.data.auteurId == request.auth.uid &&
+        request.resource.data.histoireId is string &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 2000 &&
+        request.resource.data.date is timestamp;
+      // L'auteur ne peut modifier que le texte (pas l'auteur ni l'histoire cible).
+      allow update: if signedIn() && isActif() &&
+        resource.data.auteurId == request.auth.uid &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['contenu']) &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 2000;
+      allow delete: if signedIn() && (resource.data.auteurId == request.auth.uid || isModo());
+    }
+
+    match /likes/{likeId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && isActif() &&
+        request.resource.data.userId == request.auth.uid &&
+        request.resource.data.histoireId is string &&
+        likeId == (request.resource.data.histoireId + "_" + request.auth.uid);
+      allow delete: if signedIn() &&
+        resource.data.userId == request.auth.uid &&
+        likeId == (resource.data.histoireId + "_" + request.auth.uid);
+      allow update: if false;
+    }
+
+    match /abonnements/{abonnementId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && isActif() &&
+        request.resource.data.abonneId == request.auth.uid &&
+        request.resource.data.auteurId is string &&
+        abonnementId == (request.auth.uid + "_" + request.resource.data.auteurId);
+      allow delete: if signedIn() &&
+        resource.data.abonneId == request.auth.uid &&
+        abonnementId == (request.auth.uid + "_" + resource.data.auteurId);
+      allow update: if false;
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if signedIn() && resource.data.utilisateurId == request.auth.uid;
+      // Les notifications vers d'autres users doivent passer par un backend de confiance (Cloud Functions).
+      allow create: if signedIn() && validNotificationCreate();
+      allow update: if signedIn() &&
+        resource.data.utilisateurId == request.auth.uid &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['lu']) &&
+        request.resource.data.lu is bool;
+      allow delete: if false;
+    }
+
+    match /conversations/{conversationId} {
+      // Pas de controle size() ici : une regle de lecture doit etre prouvable par la requete (array-contains).
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && isActif() && validConversationCreate(conversationId);
+      allow update: if signedIn() && isActif() &&
+        resource.data.participants.size() == 2 &&
+        request.auth.uid in resource.data.participants &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['dernierMessage', 'derniereActivite', 'expediteurDernierMessage']) &&
+        request.resource.data.expediteurDernierMessage == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /messages/{messageId} {
+      // Pas de controle size() ici : une regle de lecture doit etre prouvable par la requete (array-contains).
+      allow read: if signedIn() && request.auth.uid in resource.data.participants;
+      // L'expediteur doit appartenir a la conversation, et la liste des participants
+      // du message doit etre exactement celle de la conversation.
+      allow create: if signedIn() && isActif() &&
+        request.resource.data.expediteurId == request.auth.uid &&
+        request.resource.data.conversationId is string &&
+        exists(/databases/$(database)/documents/conversations/$(request.resource.data.conversationId)) &&
+        conversationOf(request.resource.data.conversationId).data.participants.size() == 2 &&
+        request.auth.uid in conversationOf(request.resource.data.conversationId).data.participants &&
+        request.resource.data.participants == conversationOf(request.resource.data.conversationId).data.participants &&
+        request.resource.data.contenu is string &&
+        request.resource.data.contenu.size() > 0 &&
+        request.resource.data.contenu.size() <= 5000;
+      // Le destinataire peut uniquement marquer un message comme lu.
+      allow update: if signedIn() &&
+        request.auth.uid in resource.data.participants &&
+        request.auth.uid != resource.data.expediteurId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lu']) &&
+        request.resource.data.lu is bool;
+      allow delete: if false;
+    }
+
+    match /sanctions/{sanctionId} {
+      allow read: if isCenseur() || (signedIn() && resource.data.utilisateurId == request.auth.uid);
+      allow create: if isCenseur() && validSanctionCreate();
+      allow update: if isCenseur() &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['actif']) &&
+        request.resource.data.actif is bool;
+      allow delete: if false;
+    }
+
+    match /candidatures_moderateur/{docId} {
+      allow create: if signedIn() && isActif() && validCandidatureCreate();
+      allow read: if isOpsAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow update: if isOpsAdmin() && validCandidatureDecisionUpdate();
+      allow delete: if false;
+    }
+
+    match /ops_logs/{logId} {
+      allow read: if isOpsAdmin();
+      allow create: if isModo() && validOpsLogCreate();
+      allow update, delete: if false;
+    }
+  }
+}

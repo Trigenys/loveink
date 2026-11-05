@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Ink - L'encre des cœurs</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<script type="module">
+import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+import { auth } from './js/core/firebase-config.js';
+
+// ===== REDIRECTION SI DEJA CONNECTE =====
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        console.log("Deja connecte, redirection vers feed...");
+        window.location.href = 'feed.html';
+    }
+});
+</script>
+
+<body>
+    <!-- Petite barre de navigation pour la page d'accueil -->
+    <nav class="navbar">
+        <div class="container">
+            <!-- NOUVEAU LOGO AJOUTÉ ICI -->
+            <a href="index.html" class="logo-custom">
+                <div class="logo-icon">
+                    <i class="fas fa-heart logo-heart"></i>
+                    <i class="fas fa-hand-paper logo-hand"></i>
+                    <i class="fas fa-pen-fancy logo-pen"></i>
+                </div>
+                <span class="logo-text">Love Ink</span>
+            </a>
+            <ul class="nav-links">
+                <li><a href="index.html">Accueil</a></li>
+                <li><a href="#apropos">À propos</a></li>
+                <li><a href="login.html">Connexion</a></li>
+                <li><a href="register.html" class="btn btn-primary" style="padding: 8px 20px;">S'inscrire</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Diaporama -->
+    <div class="hero-slideshow">
+        <div class="slide slide1 active">
+            <div class="slide-content">
+                <h2>L'encre de vos histoires</h2>
+                <p>Ici, chaque mot est une caresse, chaque phrase un battement de cœur. Love Ink est l'endroit où les âmes sœurs littéraires se rencontrent.</p>
+                <a href="register.html" class="btn btn-primary">Commencer l'aventure</a>
+            </div>
+        </div>
+        <div class="slide slide2">
+            <div class="slide-content">
+                <h2>Une communauté de cœurs</h2>
+                <p>Des milliers d'auteurs et de lecteurs partagent leurs plus belles histoires. Trouvez votre public, échangez, grandissez ensemble.</p>
+                <a href="register.html" class="btn btn-primary">Rejoindre la communauté</a>
+            </div>
+        </div>
+        <div class="slide slide3">
+            <div class="slide-content">
+                <h2>Devenez auteur</h2>
+                <p>Publiez vos histoires, recevez des retours, construisez votre univers. Votre plume mérite d'être lue.</p>
+                <a href="register.html" class="btn btn-primary">Écrire mon histoire</a>
+            </div>
+        </div>
+        <button class="slide-prev" onclick="changerSlide(-1)">❮</button>
+        <button class="slide-next" onclick="changerSlide(1)">❯</button>
+        <div class="slide-dots">
+            <span class="dot active-dot" onclick="allerAuSlide(0)"></span>
+            <span class="dot" onclick="allerAuSlide(1)"></span>
+            <span class="dot" onclick="allerAuSlide(2)"></span>
+        </div>
+    </div>
+
+    <!-- Section À propos -->
+    <section id="apropos" class="categories-section" style="background: white; padding: 80px 0;">
+        <div class="container">
+            <h2 class="section-title">Pourquoi Love Ink ?</h2>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; text-align: center;">
+                <div>
+                    <i class="fas fa-feather-alt" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
+                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Pour les auteurs</h3>
+                    <p style="color: #666;">Publiez vos histoires, construisez votre communauté, recevez des avis authentiques.</p>
+                </div>
+                <div>
+                    <i class="fas fa-heart" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
+                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Pour les lecteurs</h3>
+                    <p style="color: #666;">Des milliers d'histoires d'amour à découvrir, des auteurs à suivre, une communauté bienveillante.</p>
+                </div>
+                <div>
+                    <i class="fas fa-comments" style="font-size: 3rem; color: #b76e6e; margin-bottom: 20px;"></i>
+                    <h3 style="color: #5c3e35; margin-bottom: 15px;">Messagerie privée</h3>
+                    <p style="color: #666;">Échangez directement avec vos auteurs préférés ou discutez entre lecteurs.</p>
+                </div>
+            </div>
+            <div style="text-align: center; margin-top: 60px;">
+                <a href="register.html" class="btn btn-primary" style="padding: 15px 50px;">Rejoindre Love Ink</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div style="text-align: center; color: #b76e6e;">
+                <p>© 2024 Love Ink - L'encre des cœurs</p>
+                <p style="margin-top: 10px; font-size: 0.9rem;">Fait avec <i class="fas fa-heart" style="color: #b76e6e;"></i> pour les amoureux des mots</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        let slideIndex = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.dot');
+
+        function afficherSlide(index) {
+            if (index >= slides.length) slideIndex = 0;
+            if (index < 0) slideIndex = slides.length - 1;
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active-dot'));
+            slides[slideIndex].classList.add('active');
+            dots[slideIndex].classList.add('active-dot');
+        }
+
+        function changerSlide(direction) {
+            slideIndex += direction;
+            afficherSlide(slideIndex);
+        }
+
+        function allerAuSlide(index) {
+            slideIndex = index;
+            afficherSlide(slideIndex);
+        }
+
+        setInterval(() => {
+            slideIndex++;
+            afficherSlide(slideIndex);
+        }, 5000);
+    </script>
+
+    <style>
+        .slide-prev, .slide-next {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.3);
+            color: white;
+            border: none;
+            padding: 20px 15px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            border-radius: 0 5px 5px 0;
+            transition: background 0.3s;
+            z-index: 10;
+        }
+        .slide-next {
+            right: 0;
+            border-radius: 5px 0 0 5px;
+        }
+        .slide-prev:hover, .slide-next:hover {
+            background: rgba(255,255,255,0.5);
+        }
+        .slide-dots {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 15px;
+            z-index: 10;
+        }
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .active-dot, .dot:hover {
+            background: white;
+            transform: scale(1.2);
+        }
+    </style>
+</body>
+</html>

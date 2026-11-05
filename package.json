@@ -1,0 +1,28 @@
+{
+  "name": "loveink",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Love Ink - static web app with Firebase Hosting and Firestore",
+  "scripts": {
+    "firebase:login": "npx -y firebase-tools login",
+    "firebase:use": "npx -y firebase-tools use love-ink",
+    "deploy": "npx -y firebase-tools deploy --only firestore:rules,firestore:indexes,hosting",
+    "deploy:functions": "echo \"Cloud Functions requires Blaze plan (disabled in Spark mode).\"",
+    "deploy:hosting": "npx -y firebase-tools deploy --only hosting",
+    "deploy:firestore": "npx -y firebase-tools deploy --only firestore:rules,firestore:indexes",
+    "deploy:storage": "echo \"Firebase Storage disabled in Spark mode (no billing).\"",
+    "deploy:backend": "npx -y firebase-tools deploy --only firestore:rules,firestore:indexes",
+    "emulators": "npx -y firebase-tools emulators:start --only hosting,firestore,auth",
+    "test": "npm run test:e2e",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:install": "playwright install chromium",
+    "test:rules": "npx -y firebase-tools emulators:exec --only firestore --project love-ink-rules-test \"node --test tests/rules/firestore.rules.test.mjs\""
+  },
+  "devDependencies": {
+    "@firebase/rules-unit-testing": "^4.0.1",
+    "@playwright/test": "^1.56.1",
+    "firebase": "^11.10.0"
+  }
+}

@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parametres - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        try {
+            const t = localStorage.getItem('loveInk_theme');
+            if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+        } catch (_) {}
+    </script>
+    <style>
+        :root {
+            --rose-deep: #7a3e3e;
+            --rose-mid: #b07070;
+            --rose-soft: #d4a0a0;
+            --rose-pale: #f0e0dc;
+            --rose-blush: #faf4f2;
+            --ink: #2a1a1a;
+            --ink-muted: #7a5f5f;
+            --border: rgba(180,120,120,0.18);
+            --surface: #fff;
+        }
+
+        .settings-page {
+            max-width: 980px;
+            margin: 34px auto 70px;
+            padding: 0 16px;
+        }
+
+        .settings-header {
+            margin-bottom: 22px;
+        }
+
+        .settings-header h1 {
+            color: var(--rose-deep);
+            font-family: 'Baskerville', serif;
+            font-size: 2.2rem;
+            margin-bottom: 8px;
+        }
+
+        .settings-header p {
+            color: var(--ink-muted);
+            font-family: 'Century Gothic', sans-serif;
+            font-size: 0.95rem;
+        }
+
+        .settings-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        }
+
+        .settings-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            box-shadow: 0 6px 22px rgba(122, 62, 62, 0.08);
+            padding: 22px;
+        }
+
+        .settings-card.wide {
+            grid-column: 1 / -1;
+        }
+
+        .settings-card h2 {
+            color: var(--rose-deep);
+            font-size: 1.3rem;
+            font-family: 'Baskerville', serif;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .settings-note {
+            color: var(--ink-muted);
+            font-size: 0.86rem;
+            margin-top: 8px;
+            line-height: 1.5;
+        }
+
+        .settings-row {
+            display: flex;
+            gap: 16px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .avatar-preview {
+            width: 92px;
+            height: 92px;
+            border-radius: 50%;
+            background: var(--rose-pale);
+            border: 2px solid #e6d5cc;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .avatar-preview i {
+            color: var(--rose-mid);
+            font-size: 2.8rem;
+        }
+
+        .avatar-preview .avatar-initials {
+            width: 100%;
+            height: 100%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Century Gothic', sans-serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            border: 1px solid transparent;
+        }
+
+        .avatar-controls {
+            flex: 1;
+            min-width: 230px;
+        }
+
+        .avatar-controls input[type="file"] {
+            width: 100%;
+            font-family: 'Century Gothic', sans-serif;
+            font-size: 0.85rem;
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            margin: 12px 0;
+        }
+
+        .toggle-row .text h3 {
+            margin: 0;
+            color: var(--ink);
+            font-size: 0.98rem;
+            font-family: 'Century Gothic', sans-serif;
+        }
+
+        .toggle-row .text p {
+            margin: 4px 0 0;
+            color: var(--ink-muted);
+            font-size: 0.82rem;
+            line-height: 1.4;
+            font-family: 'Century Gothic', sans-serif;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 52px;
+            height: 30px;
+            flex-shrink: 0;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            background: #d9c7c0;
+            border-radius: 999px;
+            transition: .2s;
+        }
+
+        .slider::before {
+            content: "";
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            left: 4px;
+            top: 4px;
+            border-radius: 50%;
+            background: #fff;
+            transition: .2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        .switch input:checked + .slider {
+            background: var(--rose-deep);
+        }
+
+        .switch input:checked + .slider::before {
+            transform: translateX(22px);
+        }
+
+        .password-provider {
+            background: #f7f0ed;
+            border: 1px solid #ead7d0;
+            border-radius: 10px;
+            color: var(--ink-muted);
+            padding: 10px 12px;
+            font-size: 0.85rem;
+            margin-bottom: 14px;
+        }
+
+        .danger-zone {
+            border: 1px solid #e4b3b3;
+            background: #fff7f7;
+        }
+
+        .danger-zone h2 {
+            color: #a34d4d;
+        }
+
+        .danger-btn {
+            background: #a34d4d;
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 10px 18px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .danger-btn:hover {
+            background: #8f4040;
+        }
+
+        .save-bar {
+            margin-top: 18px;
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn-save {
+            background: var(--rose-deep);
+            color: #fff;
+            border: none;
+            border-radius: 999px;
+            padding: 11px 22px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save:hover {
+            background: #643131;
+        }
+
+        .btn-save:disabled,
+        .danger-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 640px) {
+            .settings-header h1 {
+                font-size: 1.8rem;
+            }
+            .settings-card {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'parametres', showUser: true, showPublish: true });
+    </script>
+
+    <main class="settings-page">
+        <header class="settings-header">
+            <h1>Parametres du compte</h1>
+            <p>Gerez votre profil, vos preferences et la securite de votre compte.</p>
+        </header>
+
+        <section class="settings-grid">
+            <article class="settings-card wide">
+                <h2><i class="fas fa-user-circle"></i> Profil</h2>
+                <div class="settings-row">
+                    <div class="avatar-preview" id="avatarPreviewWrap" aria-label="Avatar">
+                        <img id="avatarPreview" alt="Avatar utilisateur">
+                        <span class="avatar-initials" id="avatarInitials">LI</span>
+                    </div>
+                    <div class="avatar-controls">
+                        <label class="form-group">Photo de profil</label>
+                        <div class="settings-note" id="avatarHint">
+                            Upload avatar desactive en mode gratuit (Spark). Passez en Blaze uniquement si vous voulez activer Firebase Storage.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top:16px;">
+                    <label for="pseudo">Pseudo</label>
+                    <input type="text" id="pseudo" maxlength="40" required>
+                </div>
+
+                <div class="form-group" style="margin-top:14px;">
+                    <label for="bio">Bio</label>
+                    <textarea id="bio" rows="3" maxlength="600" placeholder="Parlez un peu de vous..."></textarea>
+                </div>
+            </article>
+
+            <article class="settings-card">
+                <h2><i class="fas fa-sliders-h"></i> Preferences</h2>
+
+                <div class="toggle-row">
+                    <div class="text">
+                        <h3>Notifications email</h3>
+                        <p>Recevoir les alertes importantes aussi par email.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="emailNotifToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="toggle-row">
+                    <div class="text">
+                        <h3>Mode nuit</h3>
+                        <p>Active une palette sombre sur l'application.</p>
+                    </div>
+                    <label class="switch">
+                        <input type="checkbox" id="darkModeToggle">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="save-bar">
+                    <button class="btn-save" id="saveProfileBtn"><i class="fas fa-save"></i> Enregistrer</button>
+                </div>
+            </article>
+
+            <article class="settings-card">
+                <h2><i class="fas fa-lock"></i> Mot de passe</h2>
+                <div class="password-provider" id="passwordProviderHint">Chargement...</div>
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Mot de passe actuel</label>
+                        <input type="password" id="currentPassword" autocomplete="current-password">
+                    </div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label for="newPassword">Nouveau mot de passe</label>
+                        <input type="password" id="newPassword" minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="form-group" style="margin-top:12px;">
+                        <label for="confirmNewPassword">Confirmer le nouveau mot de passe</label>
+                        <input type="password" id="confirmNewPassword" minlength="6" autocomplete="new-password">
+                    </div>
+                    <div class="save-bar">
+                        <button class="btn-save" id="changePasswordBtn" type="submit"><i class="fas fa-key"></i> Mettre a jour</button>
+                    </div>
+                </form>
+            </article>
+
+            <article class="settings-card danger-zone">
+                <h2><i class="fas fa-triangle-exclamation"></i> Zone sensible</h2>
+                <p class="settings-note" style="margin:0 0 12px;">
+                    La suppression de compte est definitive. Vos acces seront supprimes immediatement.
+                </p>
+                <div class="form-group" id="deletePasswordGroup">
+                    <label for="deletePassword">Mot de passe actuel (requis pour suppression)</label>
+                    <input type="password" id="deletePassword" autocomplete="current-password" placeholder="Votre mot de passe actuel">
+                </div>
+                <button class="danger-btn" id="deleteAccountBtn" type="button"><i class="fas fa-user-times"></i> Supprimer mon compte</button>
+            </article>
+        </section>
+    </main>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+        import {
+            EmailAuthProvider,
+            GoogleAuthProvider,
+            deleteUser,
+            reauthenticateWithPopup,
+            reauthenticateWithCredential,
+            updatePassword,
+            updateProfile
+        } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import {
+            collection,
+            deleteDoc,
+            doc,
+            getDoc,
+            getDocs,
+            query,
+            serverTimestamp,
+            setDoc,
+            where
+        } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { auth, db } from './js/core/firebase-config.js';
+        import { notify, notifyConfirm } from './js/components/ui-notify.js';
+        import { clearUserSession, logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
+        import { getStoredThemeMode, setThemeMode } from './js/core/theme.js';
+        import { applyInitialsAvatar } from './js/components/avatar-initials.js';
+        import { setNavAvatar, setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        const pseudoInput = document.getElementById('pseudo');
+        const bioInput = document.getElementById('bio');
+        const avatarHint = document.getElementById('avatarHint');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const avatarInitials = document.getElementById('avatarInitials');
+        const emailNotifToggle = document.getElementById('emailNotifToggle');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const saveProfileBtn = document.getElementById('saveProfileBtn');
+
+        const passwordForm = document.getElementById('passwordForm');
+        const currentPasswordInput = document.getElementById('currentPassword');
+        const newPasswordInput = document.getElementById('newPassword');
+        const confirmNewPasswordInput = document.getElementById('confirmNewPassword');
+        const passwordProviderHint = document.getElementById('passwordProviderHint');
+        const deletePasswordGroup = document.getElementById('deletePasswordGroup');
+        const deletePasswordInput = document.getElementById('deletePassword');
+        const deleteAccountBtn = document.getElementById('deleteAccountBtn');
+
+        let currentUser = null;
+        let currentProfile = {};
+
+        function hasPasswordProvider(user) {
+            return (user?.providerData || []).some((provider) => provider.providerId === 'password');
+        }
+
+        function setAvatarPreview(url, pseudo = '') {
+            const value = String(url || '').trim();
+            if (!value) {
+                avatarPreview.style.display = 'none';
+                applyInitialsAvatar(avatarInitials, pseudo || pseudoInput.value || currentProfile.pseudo || 'Utilisateur');
+                avatarInitials.style.display = 'inline-flex';
+                avatarPreview.removeAttribute('src');
+                return;
+            }
+            avatarPreview.src = value;
+            avatarPreview.onerror = () => {
+                avatarPreview.onerror = null;
+                setAvatarPreview('', pseudo);
+            };
+            avatarPreview.style.display = 'block';
+            avatarInitials.style.display = 'none';
+        }
+
+        function setPasswordSectionState(enabled) {
+            currentPasswordInput.disabled = !enabled;
+            newPasswordInput.disabled = !enabled;
+            confirmNewPasswordInput.disabled = !enabled;
+            document.getElementById('changePasswordBtn').disabled = !enabled;
+            deletePasswordGroup.style.display = enabled ? 'block' : 'none';
+        }
+
+        function updateThemePreview() {
+            const mode = darkModeToggle.checked ? 'dark' : 'light';
+            setThemeMode(mode, { persist: true });
+        }
+
+        async function loadProfile(uid) {
+            const snap = await getDoc(doc(db, 'utilisateurs', uid));
+            currentProfile = snap.exists() ? snap.data() : {};
+
+            const fallbackPseudo = auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Utilisateur';
+            const pseudo = String(currentProfile.pseudo || fallbackPseudo).trim();
+            const bio = String(currentProfile.bio || '').trim();
+
+            pseudoInput.value = pseudo;
+            bioInput.value = bio;
+
+            setAvatarPreview('', pseudo);
+            setNavAvatar('');
+
+            const prefs = currentProfile.preferences || {};
+            const emailNotif = typeof prefs.emailNotifications === 'boolean' ? prefs.emailNotifications : false;
+            const darkModeFromProfile = typeof prefs.darkMode === 'boolean' ? prefs.darkMode : null;
+            const darkMode = darkModeFromProfile === null ? getStoredThemeMode() === 'dark' : darkModeFromProfile;
+
+            emailNotifToggle.checked = emailNotif;
+            darkModeToggle.checked = darkMode;
+            updateThemePreview();
+
+            setNavPseudo(pseudo);
+            syncUserSession(auth.currentUser, {
+                pseudo,
+                bio,
+                avatar: '',
+                role: currentProfile.role || 'user',
+                type: currentProfile.type || 'lecteur'
+            });
+
+            const passwordProvider = hasPasswordProvider(auth.currentUser);
+            setPasswordSectionState(passwordProvider);
+            passwordProviderHint.textContent = passwordProvider
+                ? 'Compte email/mot de passe detecte. La re-authentification est requise avant modification.'
+                : 'Connexion federée detectee (Google). Le mot de passe est gere par votre fournisseur.';
+        }
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+            }
+        });
+
+        darkModeToggle.addEventListener('change', updateThemePreview);
+        pseudoInput.addEventListener('input', () => setAvatarPreview('', pseudoInput.value.trim()));
+
+        saveProfileBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+
+            const pseudo = pseudoInput.value.trim();
+            const bio = bioInput.value.trim();
+            if (!pseudo) {
+                await notify('warning', 'Le pseudo est obligatoire.', { title: 'Parametres' });
+                pseudoInput.focus();
+                return;
+            }
+
+            saveProfileBtn.disabled = true;
+            saveProfileBtn.textContent = 'Enregistrement...';
+
+            try {
+                const preferences = {
+                    emailNotifications: emailNotifToggle.checked,
+                    darkMode: darkModeToggle.checked
+                };
+
+                await setDoc(doc(db, 'utilisateurs', currentUser.uid), {
+                    uid: currentUser.uid,
+                    pseudo,
+                    bio,
+                    avatar: null,
+                    preferences,
+                    updatedAt: serverTimestamp()
+                }, { merge: true });
+
+                if (auth.currentUser && auth.currentUser.displayName !== pseudo) {
+                    await updateProfile(auth.currentUser, { displayName: pseudo });
+                }
+
+                currentProfile = {
+                    ...currentProfile,
+                    pseudo,
+                    bio,
+                    avatar: '',
+                    preferences
+                };
+                avatarHint.textContent = 'Avatar inchange (mode Spark). Profil enregistre.';
+
+                setNavPseudo(pseudo);
+                setNavAvatar('');
+                setAvatarPreview('', pseudo);
+                setThemeMode(preferences.darkMode ? 'dark' : 'light', { persist: true });
+                syncUserSession(auth.currentUser, {
+                    pseudo,
+                    bio,
+                    avatar: '',
+                    role: currentProfile.role || 'user',
+                    type: currentProfile.type || 'lecteur'
+                });
+
+                await notify('success', 'Parametres enregistres.', { title: 'Parametres' });
+            } catch (error) {
+                console.error('Erreur sauvegarde parametres:', error);
+                await notify('error', 'Impossible de sauvegarder les parametres.', { title: 'Parametres' });
+            } finally {
+                saveProfileBtn.disabled = false;
+                saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
+            }
+        });
+
+        passwordForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!currentUser) return;
+
+            if (!hasPasswordProvider(currentUser)) {
+                await notify('info', 'Le mot de passe est gere par votre fournisseur de connexion.', { title: 'Securite' });
+                return;
+            }
+
+            const currentPassword = currentPasswordInput.value;
+            const newPassword = newPasswordInput.value;
+            const confirmPassword = confirmNewPasswordInput.value;
+
+            if (!currentPassword || !newPassword || !confirmPassword) {
+                await notify('warning', 'Remplissez tous les champs mot de passe.', { title: 'Securite' });
+                return;
+            }
+
+            if (newPassword.length < 6) {
+                await notify('warning', 'Le nouveau mot de passe doit contenir au moins 6 caracteres.', { title: 'Securite' });
+                return;
+            }
+
+            if (newPassword !== confirmPassword) {
+                await notify('warning', 'La confirmation ne correspond pas.', { title: 'Securite' });
+                return;
+            }
+
+            try {
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await reauthenticateWithCredential(currentUser, credential);
+                await updatePassword(currentUser, newPassword);
+
+                currentPasswordInput.value = '';
+                newPasswordInput.value = '';
+                confirmNewPasswordInput.value = '';
+                await notify('success', 'Mot de passe mis a jour.', { title: 'Securite' });
+            } catch (error) {
+                console.error('Erreur changement mot de passe:', error);
+
+                let message = 'Impossible de mettre a jour le mot de passe.';
+                if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    message = 'Mot de passe actuel incorrect.';
+                } else if (error.code === 'auth/requires-recent-login') {
+                    message = 'Reconnectez-vous puis recommencez.';
+                } else if (error.code === 'auth/weak-password') {
+                    message = 'Mot de passe trop faible.';
+                }
+
+                await notify('error', message, { title: 'Securite' });
+            }
+        });
+
+        async function deleteDocsByField(collectionName, field, value) {
+            const snap = await getDocs(query(collection(db, collectionName), where(field, '==', value)));
+            await Promise.all(snap.docs.map((docSnap) => deleteDoc(docSnap.ref)));
+        }
+
+        async function cleanupAccountData(uid) {
+            const tasks = [
+                () => deleteDocsByField('likes', 'userId', uid),
+                () => deleteDocsByField('commentaires', 'auteurId', uid),
+                () => deleteDocsByField('abonnements', 'abonneId', uid),
+                () => deleteDocsByField('histoires', 'auteurId', uid),
+                () => deleteDocsByField('notifications', 'utilisateurId', uid)
+            ];
+
+            for (const run of tasks) {
+                try {
+                    await run();
+                } catch (error) {
+                    console.warn('Nettoyage partiel echoue:', error?.message || error);
+                }
+            }
+
+            try {
+                await deleteDoc(doc(db, 'utilisateurs', uid));
+            } catch (error) {
+                console.warn('Suppression profil Firestore echouee:', error?.message || error);
+            }
+        }
+
+        deleteAccountBtn.addEventListener('click', async () => {
+            if (!currentUser) return;
+
+            const confirmed = await notifyConfirm(
+                'Voulez-vous vraiment supprimer votre compte ? Cette action est irreversible.',
+                { title: 'Suppression compte', confirmText: 'Supprimer', cancelText: 'Annuler' }
+            );
+
+            if (!confirmed) return;
+
+            deleteAccountBtn.disabled = true;
+            deleteAccountBtn.textContent = 'Suppression...';
+
+            try {
+                if (hasPasswordProvider(currentUser)) {
+                    const password = deletePasswordInput.value;
+                    if (!password) {
+                        deletePasswordInput.focus();
+                        throw new Error('missing-password');
+                    }
+                    const credential = EmailAuthProvider.credential(currentUser.email, password);
+                    await reauthenticateWithCredential(currentUser, credential);
+                } else {
+                    const googleProvider = new GoogleAuthProvider();
+                    await reauthenticateWithPopup(currentUser, googleProvider);
+                }
+
+                await cleanupAccountData(currentUser.uid);
+                await deleteUser(currentUser);
+
+                clearUserSession();
+                await notify('success', 'Votre compte a ete supprime.', { title: 'Compte' });
+                window.location.href = 'index.html?compte=supprime';
+            } catch (error) {
+                console.error('Erreur suppression compte:', error);
+
+                let message = 'Impossible de supprimer le compte.';
+                if (error.message === 'missing-password') {
+                    message = 'Entrez votre mot de passe pour confirmer la suppression.';
+                } else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                    message = 'Mot de passe incorrect.';
+                } else if (error.code === 'auth/requires-recent-login') {
+                    message = 'Reconnectez-vous puis recommencez la suppression.';
+                } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                    message = 'La re-authentification Google a ete annulee.';
+                }
+
+                await notify('error', message, { title: 'Compte' });
+            } finally {
+                deleteAccountBtn.disabled = false;
+                deleteAccountBtn.innerHTML = '<i class="fas fa-user-times"></i> Supprimer mon compte';
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'index.html',
+            onReady: async (firebaseUser, { pseudo }) => {
+                currentUser = firebaseUser;
+                setNavPseudo(pseudo);
+                await loadProfile(firebaseUser.uid);
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Publier une histoire - Love Ink</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        .publish-container {
+            max-width: 800px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 5px 30px rgba(183, 110, 110, 0.15);
+            overflow: hidden;
+        }
+        
+        .publish-header {
+            background: #b76e6e;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .publish-header h1 {
+            font-family: 'Baskerville', serif;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .publish-form {
+            padding: 40px;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #5c3e35;
+            font-weight: 600;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f0e4e0;
+            border-radius: 10px;
+            font-family: 'Century Gothic', sans-serif;
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #b76e6e;
+        }
+        
+        .form-group textarea {
+            min-height: 300px;
+            resize: vertical;
+        }
+        
+        .btn-publish {
+            background: #b76e6e;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            width: 100%;
+        }
+        
+        .btn-publish:hover {
+            background: #9e5a5a;
+            transform: translateY(-2px);
+        }
+        
+        .char-counter {
+            text-align: right;
+            color: #999;
+            font-size: 0.85rem;
+            margin-top: 5px;
+        }
+
+        .moderation-banner {
+            display: none;
+            margin: 20px 40px 0;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid #ecd8a2;
+            background: #fff8e6;
+            color: #6d5225;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .moderation-actions {
+            display: none;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+        }
+
+        .moderation-actions .btn-publish {
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .btn-approve {
+            background: #4c9c72;
+        }
+
+        .btn-approve:hover {
+            background: #3f855f;
+        }
+    </style>
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'publier', showUser: true, showPublish: true });
+    </script>
+
+    <div class="container">
+        <div class="publish-container">
+            <div class="publish-header">
+                <h1 id="publishTitle">Publier votre histoire</h1>
+                <p id="publishSubtitle">Partagez votre cœur avec la communauté Love Ink</p>
+            </div>
+            <div class="moderation-banner" id="moderationBanner"></div>
+            
+            <form class="publish-form" id="publishForm">
+                <div class="form-group">
+                    <label for="titre">Titre de l'histoire *</label>
+                    <input type="text" id="titre" placeholder="Ex: L'été de mes 16 ans" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="categorie">Catégorie *</label>
+                    <select id="categorie" required>
+                        <option value="">Choisissez une catégorie</option>
+                        <option value="Premier amour">Premier amour</option>
+                        <option value="Amour heureux">Amour heureux</option>
+                        <option value="Amour magique">Amour magique</option>
+                        <option value="Histoires tristes">Histoires tristes</option>
+                        <option value="Lettres d'amour">Lettres d'amour</option>
+                        <option value="Poésie d'amour">Poésie d'amour</option>
+                        <option value="Aventure estivale">Aventure estivale</option>
+                        <option value="Rencontres">Rencontres</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="contenu">Votre histoire *</label>
+                    <textarea id="contenu" placeholder="Il était une fois..." required></textarea>
+                    <div class="char-counter" id="charCount">0 caractères</div>
+                </div>
+                
+                <button type="submit" class="btn-publish" id="publishSubmitBtn" data-action="publish">Publier mon histoire</button>
+
+                <div class="moderation-actions" id="moderationActions">
+                    <button type="submit" class="btn-publish" id="saveEditBtn" data-action="save">Enregistrer les corrections</button>
+                    <button type="submit" class="btn-publish btn-approve" id="approveEditBtn" data-action="approve">Enregistrer et approuver</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+        import { auth } from './js/core/firebase-config.js';
+        import { firebaseAPI } from './js/core/firebase-data.js';
+        import { notify } from './js/components/ui-notify.js';
+        import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        const contenu = document.getElementById('contenu');
+        const charCount = document.getElementById('charCount');
+        const publishForm = document.getElementById('publishForm');
+        const publishSubmitBtn = document.getElementById('publishSubmitBtn');
+        const moderationActions = document.getElementById('moderationActions');
+        const moderationBanner = document.getElementById('moderationBanner');
+        const publishTitle = document.getElementById('publishTitle');
+        const publishSubtitle = document.getElementById('publishSubtitle');
+
+        let currentUser = null;
+        let currentUserRole = 'user';
+        let moderationStoryId = '';
+        let moderationStory = null;
+
+        function getEditStoryIdFromUrl() {
+            return new URLSearchParams(window.location.search).get('edit') || '';
+        }
+
+        function setSubmittingState(action, pending) {
+            const submitButtons = publishForm.querySelectorAll('button[type="submit"]');
+            submitButtons.forEach((btn) => {
+                btn.disabled = pending;
+            });
+
+            if (!pending) {
+                publishSubmitBtn.textContent = 'Publier mon histoire';
+                document.getElementById('saveEditBtn').textContent = 'Enregistrer les corrections';
+                document.getElementById('approveEditBtn').textContent = 'Enregistrer et approuver';
+                return;
+            }
+
+            if (action === 'approve') {
+                document.getElementById('approveEditBtn').textContent = 'Validation en cours...';
+            } else if (action === 'save') {
+                document.getElementById('saveEditBtn').textContent = 'Sauvegarde...';
+            } else {
+                publishSubmitBtn.textContent = 'Envoi en cours...';
+            }
+        }
+
+        function enableModerationMode(story) {
+            moderationStory = story;
+            moderationStoryId = story.id;
+
+            publishTitle.textContent = "Edition de moderation";
+            publishSubtitle.textContent = "Corrigez une histoire en attente puis validez-la.";
+            publishSubmitBtn.style.display = 'none';
+            moderationActions.style.display = 'flex';
+
+            moderationBanner.style.display = 'block';
+            const hasOriginal = Boolean(story.versionOriginale && typeof story.versionOriginale === 'object');
+            moderationBanner.innerHTML = hasOriginal
+                ? 'Mode moderation actif. Version originale deja conservee. Vos modifications resteront tracables.'
+                : 'Mode moderation actif. La version originale sera sauvegardee automatiquement a la premiere correction.';
+        }
+
+        async function loadModerationStory() {
+            const editId = getEditStoryIdFromUrl();
+            if (!editId) return;
+
+            if (!['moderateur', 'censeur'].includes(currentUserRole)) {
+                await notify('error', "Acces refuse: edition reservee aux moderateurs/censeurs.", { title: 'Moderation' });
+                window.location.href = 'profil.html?tab=moderation';
+                return;
+            }
+
+            const story = await firebaseAPI.getHistoireById(editId);
+            if (!story) {
+                await notify('error', 'Histoire introuvable.', { title: 'Moderation' });
+                window.location.href = 'profil.html?tab=moderation';
+                return;
+            }
+
+            if (String(story.statut || '') !== 'en_attente') {
+                await notify('info', "Cette histoire n'est plus en attente, edition impossible.", { title: 'Moderation' });
+                window.location.href = 'profil.html?tab=moderation';
+                return;
+            }
+
+            document.getElementById('titre').value = story.titre || '';
+            document.getElementById('categorie').value = story.categorie || '';
+            contenu.value = story.contenu || '';
+            charCount.textContent = `${contenu.value.length} caractères`;
+            enableModerationMode(story);
+        }
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                try {
+                    await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+                } catch (error) {
+                    console.error('Erreur deconnexion:', error);
+                    await notify('error', 'Impossible de vous deconnecter pour le moment.', { title: 'Deconnexion' });
+                }
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'login.html',
+            onReady: async (user, { pseudo }) => {
+                currentUser = user;
+                setNavPseudo(pseudo);
+                const profile = await firebaseAPI.getUtilisateur(user.uid);
+                currentUserRole = String(profile?.role || 'user');
+                await loadModerationStory();
+            }
+        });
+        
+        contenu.addEventListener('input', () => {
+            charCount.textContent = contenu.value.length + ' caractères';
+        });
+
+        document.getElementById('publishForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const action = e.submitter?.dataset?.action || 'publish';
+            
+            const titre = document.getElementById('titre').value.trim();
+            const categorie = document.getElementById('categorie').value;
+            const contenuTexte = document.getElementById('contenu').value.trim();
+            
+            if (!titre || !categorie || !contenuTexte) {
+                await notify('warning', 'Veuillez remplir tous les champs', { title: 'Publication' });
+                return;
+            }
+            
+            if (!auth.currentUser || !currentUser) {
+                await notify('warning', 'Vous devez etre connecte', { title: 'Publication' });
+                window.location.href = 'login.html';
+                return;
+            }
+            try {
+                setSubmittingState(action, true);
+
+                if (moderationStoryId) {
+                    const approveNow = action === 'approve';
+                    const result = await firebaseAPI.editerHistoireModeration(
+                        moderationStoryId,
+                        currentUser.uid,
+                        { titre, categorie, contenu: contenuTexte },
+                        { approuver: approveNow }
+                    );
+
+                    if (!result?.ok) {
+                        throw new Error(result?.error || 'edit-failed');
+                    }
+
+                    if (approveNow) {
+                        await notify('success', 'Corrections enregistrees et histoire publiee.', { title: 'Moderation' });
+                    } else {
+                        await notify('success', 'Corrections enregistrees. L\'histoire reste en attente.', { title: 'Moderation' });
+                    }
+                    window.location.href = 'profil.html?tab=moderation';
+                    return;
+                }
+
+                const auteur = currentUser.displayName || currentUser.email.split('@')[0];
+                const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid);
+
+                if (!histoireId) throw new Error('ID null');
+
+                await notify('success', 'Histoire soumise ! Elle sera visible apres validation par un moderateur.', { title: 'Publication' });
+                window.location.href = 'profil.html?tab=histoires&status=en_attente';
+                
+            } catch (error) {
+                console.error("❌ Erreur:", error);
+                await notify('error', 'Erreur lors de la publication: ' + error.message, { title: 'Publication' });
+            }
+            setSubmittingState(action, false);
+        });
+    </script>
+</body>
+</html>

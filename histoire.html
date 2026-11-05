@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Ink - Lecture</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/styles-commentaires.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'histoire', showUser: true, showPublish: true });
+    </script>
+
+    <main class="story-page">
+        <div class="container">
+            <div class="story-container" id="storyContainer">
+                <div class="story-loading">
+                    <i class="fas fa-heart fa-3x fa-beat"></i>
+                    <p>Chargement de l'histoire...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="comments-section">
+        <div class="container">
+            <div class="comments-container" id="commentsContainer"></div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <p>© 2024 - Love Ink - L'encre des cœurs</p>
+        </div>
+    </footer>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+        import { auth } from './js/core/firebase-config.js';
+        import { firebaseAPI } from './js/core/firebase-data.js';
+        import { notify } from './js/components/ui-notify.js';
+        import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+        const storyContainer = document.getElementById('storyContainer');
+        const commentsContainer = document.getElementById('commentsContainer');
+        const storyId = new URLSearchParams(window.location.search).get('id');
+
+        let currentUser = null;
+        let currentUserRole = 'user';
+        let currentStory = null;
+        const isPreview = new URLSearchParams(window.location.search).has('preview');
+
+        function escapeHtml(value) {
+            if (!value) return '';
+            return value
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        function formatDate(dateValue) {
+            const date = new Date(dateValue);
+            if (Number.isNaN(date.getTime())) return 'Date inconnue';
+            return date.toLocaleDateString('fr-FR', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
+
+        function formatDateAgo(dateValue) {
+            const date = new Date(dateValue);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            const diffHour = Math.floor(diffMin / 60);
+            const diffDay = Math.floor(diffHour / 24);
+
+            if (diffSec < 60) return "a l'instant";
+            if (diffMin < 60) return `il y a ${diffMin} min`;
+            if (diffHour < 24) return `il y a ${diffHour} h`;
+            if (diffDay === 1) return 'hier';
+            if (diffDay < 7) return `il y a ${diffDay} jours`;
+
+            return formatDate(date);
+        }
+
+        function renderStoryContent(content) {
+            if (!content) {
+                return '<p>Contenu indisponible.</p>';
+            }
+
+            return String(content)
+                .split(/\n{2,}/)
+                .map((paragraph) => `<p>${escapeHtml(paragraph).replaceAll('\n', '<br>')}</p>`)
+                .join('');
+        }
+
+        function showStoryNotFound() {
+            storyContainer.innerHTML = `
+                <div style="text-align: center; padding: 60px;">
+                    <i class="fas fa-frown fa-4x" style="color: #b76e6e; margin-bottom: 20px;"></i>
+                    <h2>Histoire non trouvee</h2>
+                    <p>Desole, cette histoire n'existe pas ou n'est plus disponible.</p>
+                    <a href="feed.html" class="btn btn-primary" style="margin-top: 20px;">Retour a l'accueil</a>
+                </div>
+            `;
+            commentsContainer.innerHTML = '';
+        }
+
+        async function renderStory() {
+            if (!storyId) {
+                showStoryNotFound();
+                return;
+            }
+
+            currentStory = await firebaseAPI.getHistoireById(storyId);
+            if (!currentStory) {
+                showStoryNotFound();
+                return;
+            }
+
+            // Controle d'acces par statut
+            const statut = currentStory.statut;
+            const isPublie = !statut || statut === 'publie';
+            const isAuteur = currentUser && currentUser.uid === currentStory.auteurId;
+            const isModo = ['moderateur', 'censeur'].includes(currentUserRole);
+
+            if (!isPublie && !isAuteur && !(isModo && isPreview)) {
+                showStoryNotFound();
+                return;
+            }
+
+            // Banner de statut pour l'auteur ou le modo en preview
+            if (!isPublie) {
+                const BANNERS = {
+                    en_attente: { bg: '#fff8e8', border: '#e0a030', color: '#7a5000', icon: 'fa-clock', text: 'Cette histoire est en attente de validation par un modérateur.' },
+                    rejete: { bg: '#fff0ee', border: '#b76e6e', color: '#7a2020', icon: 'fa-times-circle', text: 'Cette histoire a été rejetée.' }
+                };
+                const b = BANNERS[statut] || BANNERS['en_attente'];
+                const motif = statut === 'rejete' && currentStory.motifRejet
+                    ? `<div style="margin-top:6px;font-size:13px"><strong>Motif :</strong> ${escapeHtml(currentStory.motifRejet)}</div>` : '';
+                const banner = document.createElement('div');
+                banner.style.cssText = `background:${b.bg};border-left:4px solid ${b.border};color:${b.color};padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:24px;font-family:'Century Gothic',sans-serif;font-size:14px;line-height:1.5;`;
+                banner.innerHTML = `<i class="fas ${b.icon}" style="margin-right:8px"></i>${b.text}${motif}`;
+                storyContainer.before(banner);
+            }
+
+            const userLiked = await firebaseAPI.aLiker(storyId, currentUser.uid);
+
+            storyContainer.innerHTML = `
+                <div class="story-header">
+                    <h1>${escapeHtml(currentStory.titre || 'Sans titre')}</h1>
+                    <div class="story-meta">
+                        <span><i class="fas fa-user"></i> ${escapeHtml(currentStory.auteur || 'Auteur inconnu')}</span>
+                        <span><i class="fas fa-calendar"></i> ${formatDate(currentStory.date)}</span>
+                        <span><i class="fas fa-heart"></i> ${escapeHtml(currentStory.categorie || 'Divers')}</span>
+                    </div>
+                    <div class="story-actions">
+                        <button class="btn ${userLiked ? 'btn-favorite' : 'btn-secondary'}" id="likeBtn">
+                            <i class="fas fa-heart"></i>
+                            <span id="likeCount">${Number(currentStory.likes || 0)}</span> J'aime
+                        </button>
+                    </div>
+                </div>
+                <div class="story-content">
+                    ${renderStoryContent(currentStory.contenu)}
+                </div>
+            `;
+        }
+
+        async function renderComments() {
+            if (!storyId || !currentStory) {
+                commentsContainer.innerHTML = '';
+                return;
+            }
+
+            const comments = await firebaseAPI.getCommentaires(storyId);
+
+            const items = comments.length
+                ? comments.map((comment) => `
+                    <div class="comment-item">
+                        <div class="comment-header">
+                            <div class="comment-author-info">
+                                <div class="comment-author-avatar">
+                                    <i class="fas fa-user-circle fa-2x"></i>
+                                </div>
+                                <div>
+                                    <span class="comment-author-name">${escapeHtml(comment.auteur || 'Utilisateur')}</span>
+                                    ${comment.auteurId === currentStory.auteurId ? '<span class="comment-author-badge">Auteur</span>' : ''}
+                                </div>
+                            </div>
+                            <div class="comment-date">${formatDateAgo(comment.date)}</div>
+                        </div>
+                        <div class="comment-content">${escapeHtml(comment.contenu || '')}</div>
+                    </div>
+                `).join('')
+                : `
+                    <div style="text-align: center; padding: 40px; color: #999;">
+                        <i class="fas fa-comment-dots fa-3x" style="margin-bottom: 15px; opacity: 0.5;"></i>
+                        <p>Soyez le premier a commenter cette histoire !</p>
+                    </div>
+                `;
+
+            commentsContainer.innerHTML = `
+                <div class="comments-header">
+                    <h3><i class="fas fa-comments"></i> Commentaires (${comments.length})</h3>
+                </div>
+                <div class="comment-input-area">
+                    <div class="comment-avatar">
+                        <i class="fas fa-user-circle fa-2x"></i>
+                    </div>
+                    <div class="comment-input-wrapper">
+                        <textarea id="newComment" placeholder="Ajouter un commentaire..." rows="3"></textarea>
+                        <div class="comment-actions">
+                            <button class="btn-cancel" id="cancelComment">Annuler</button>
+                            <button class="btn-comment" id="submitComment">Publier</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="comments-list">
+                    ${items}
+                </div>
+            `;
+        }
+
+        async function handleLike() {
+            const likeBtn = document.getElementById('likeBtn');
+            if (!likeBtn || !storyId || !currentUser) return;
+
+            likeBtn.disabled = true;
+            try {
+                await firebaseAPI.likerHistoire(storyId, currentUser.uid);
+                await renderStory();
+            } catch (error) {
+                console.error('Erreur like:', error);
+                await notify('error', "Impossible d'enregistrer votre j'aime.", { title: 'J aime' });
+            } finally {
+                likeBtn.disabled = false;
+            }
+        }
+
+        async function handleCommentSubmit() {
+            const input = document.getElementById('newComment');
+            if (!input || !storyId || !currentUser) return;
+
+            const contenu = input.value.trim();
+            if (!contenu) return;
+
+            const auteur = currentUser.displayName || currentUser.email?.split('@')[0] || 'Utilisateur';
+            const ok = await firebaseAPI.ajouterCommentaire(storyId, auteur, currentUser.uid, contenu);
+            if (!ok) {
+                await notify('error', "Impossible d'ajouter le commentaire.", { title: 'Commentaire' });
+                return;
+            }
+
+            input.value = '';
+            await renderStory();
+            await renderComments();
+        }
+
+        storyContainer.addEventListener('click', (event) => {
+            if (event.target.closest('#likeBtn')) {
+                handleLike();
+            }
+        });
+
+        commentsContainer.addEventListener('click', (event) => {
+            if (event.target.closest('#submitComment')) {
+                handleCommentSubmit();
+            }
+            if (event.target.closest('#cancelComment')) {
+                const input = document.getElementById('newComment');
+                if (input) input.value = '';
+            }
+        });
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                try {
+                    await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+                } catch (error) {
+                    console.error('Erreur deconnexion:', error);
+                    await notify('error', 'Impossible de vous deconnecter pour le moment.', { title: 'Deconnexion' });
+                }
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'index.html',
+            onReady: async (user, { pseudo, session }) => {
+                currentUser = user;
+                currentUserRole = session?.role ?? 'user';
+                setNavPseudo(pseudo);
+                await renderStory();
+                await renderComments();
+            }
+        });
+    </script>
+</body>
+</html>

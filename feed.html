@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Love Ink — L'encre des coeurs</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --rose-deep: #7a3e3e;
+            --rose-mid: #b07070;
+            --rose-soft: #d4a0a0;
+            --rose-pale: #f0e0dc;
+            --rose-blush: #faf4f2;
+            --cream: #fdf8f5;
+            --ink: #2a1a1a;
+            --ink-muted: #7a5f5f;
+            --ink-faint: #c4a8a8;
+            --border: rgba(180,120,120,0.15);
+            --font-serif: 'Cormorant Garamond', Georgia, serif;
+            --font-sans: 'DM Sans', sans-serif;
+            --transition: 0.28s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-sans);
+            background: var(--cream);
+            color: var(--ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(253,248,245,0.92);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 5vw;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 64px;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            flex-shrink: 0;
+        }
+
+        .nav-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--rose-deep);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-logo-icon i { color: white; font-size: 14px; }
+
+        .nav-logo-text {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            letter-spacing: 0.02em;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            list-style: none;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .nav-links a {
+            font-size: 13px;
+            font-weight: 400;
+            letter-spacing: 0.04em;
+            color: var(--ink-muted);
+            text-decoration: none;
+            text-transform: uppercase;
+            transition: color var(--transition);
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 1px;
+            background: var(--rose-mid);
+            transition: width var(--transition);
+        }
+
+        .nav-links a:hover { color: var(--rose-deep); }
+        .nav-links a:hover::after { width: 100%; }
+
+        .nav-links .nav-publish a {
+            background: var(--rose-deep);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 20px;
+            letter-spacing: 0.04em;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .nav-links .nav-publish a::after { display: none; }
+        .nav-links .nav-publish a:hover { background: #6a3030; }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .nav-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--rose-pale);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .nav-avatar i { color: var(--rose-mid); font-size: 16px; }
+
+        .online-dot {
+            position: absolute;
+            bottom: 1px;
+            right: 1px;
+            width: 9px;
+            height: 9px;
+            background: #4caf7d;
+            border-radius: 50%;
+            border: 2px solid var(--cream);
+        }
+
+        .nav-username {
+            font-size: 13px;
+            color: var(--ink-muted);
+            max-width: 120px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .nav-dropdown-arrow { font-size: 10px; color: var(--ink-faint); }
+
+        .nav-dropdown {
+            position: absolute;
+            top: calc(100% + 12px);
+            right: 0;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            min-width: 210px;
+            box-shadow: 0 12px 32px rgba(100,40,40,0.08);
+            padding: 8px 0;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-6px);
+            transition: opacity var(--transition), transform var(--transition);
+            z-index: 110;
+        }
+
+        .nav-dropdown.open {
+            opacity: 1;
+            pointer-events: all;
+            transform: translateY(0);
+        }
+
+        .nav-dropdown a {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            font-size: 13px;
+            color: var(--ink-muted);
+            text-decoration: none;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .nav-dropdown a:hover {
+            background: var(--rose-blush);
+            color: var(--rose-deep);
+        }
+
+        .search-bar {
+            background: white;
+            border-bottom: 1px solid var(--border);
+            padding: 14px 5vw;
+        }
+
+        .search-inner {
+            display: flex;
+            gap: 12px;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 11px 20px;
+            border: 1.5px solid var(--rose-pale);
+            border-radius: 30px;
+            font-family: var(--font-sans);
+            font-size: 14px;
+            color: var(--ink);
+            background: var(--rose-blush);
+            transition: border-color var(--transition), background var(--transition);
+            outline: none;
+        }
+
+        .search-input:focus {
+            border-color: var(--rose-mid);
+            background: white;
+        }
+
+        .search-input::placeholder { color: var(--ink-faint); }
+
+        .search-btn {
+            background: var(--rose-deep);
+            color: white;
+            border: none;
+            padding: 0 24px;
+            border-radius: 30px;
+            font-family: var(--font-sans);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+
+        .search-btn:hover { background: #6a3030; }
+
+        .section-title {
+            font-family: var(--font-serif);
+            font-size: clamp(28px, 4vw, 42px);
+            font-weight: 300;
+            color: var(--rose-deep);
+            text-align: center;
+            letter-spacing: 0.02em;
+            margin-bottom: 40px;
+        }
+
+        .section-title em { font-style: italic; }
+
+        .categories-section { padding: 60px 5vw 80px; }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 16px;
+        }
+
+        .cat-card {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px 16px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .cat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 28px rgba(122,62,62,0.1);
+            border-color: var(--rose-soft);
+        }
+
+        .cat-icon {
+            width: 48px;
+            height: 48px;
+            background: var(--rose-pale);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 12px;
+            transition: background var(--transition);
+        }
+
+        .cat-card:hover .cat-icon { background: var(--rose-soft); }
+        .cat-icon i { color: var(--rose-deep); font-size: 18px; }
+
+        .cat-name {
+            font-family: var(--font-serif);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            line-height: 1.3;
+            margin-bottom: 6px;
+        }
+
+        .cat-count {
+            font-size: 12px;
+            color: var(--ink-faint);
+            letter-spacing: 0.03em;
+        }
+
+        .stories-section {
+            background: var(--rose-blush);
+            padding: 60px 5vw 80px;
+        }
+
+        .stories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+            gap: 24px;
+        }
+
+        .story-card {
+            background: white;
+            border-radius: 18px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            transition: transform var(--transition), box-shadow var(--transition);
+            cursor: pointer;
+            text-decoration: none;
+            display: block;
+            color: inherit;
+        }
+
+        .story-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 16px 40px rgba(122,62,62,0.12);
+        }
+
+        .story-img {
+            height: 200px;
+            position: relative;
+            background: var(--rose-pale);
+            overflow: hidden;
+        }
+
+        .story-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .story-img-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .story-img-placeholder i {
+            font-size: 48px;
+            color: var(--rose-soft);
+        }
+
+        .story-badge {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: var(--rose-deep);
+            color: white;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.06em;
+            padding: 4px 12px;
+            border-radius: 20px;
+            max-width: calc(100% - 24px);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .story-body { padding: 20px 22px 22px; }
+
+        .story-title {
+            font-family: var(--font-serif);
+            font-size: 19px;
+            font-weight: 600;
+            line-height: 1.35;
+            color: var(--ink);
+            margin-bottom: 8px;
+        }
+
+        .story-author {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--rose-mid);
+            margin-bottom: 10px;
+            letter-spacing: 0.03em;
+        }
+
+        .story-excerpt {
+            font-size: 13px;
+            color: var(--ink-muted);
+            line-height: 1.6;
+            margin-bottom: 16px;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .story-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding-top: 14px;
+            border-top: 1px solid var(--border);
+        }
+
+        .story-stats {
+            display: flex;
+            gap: 14px;
+        }
+
+        .story-stats span {
+            font-size: 12px;
+            color: var(--ink-faint);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .story-stats i { color: var(--rose-soft); }
+
+        .story-read-btn {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--rose-deep);
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: gap var(--transition);
+            white-space: nowrap;
+        }
+
+        .story-card:hover .story-read-btn { gap: 8px; }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            grid-column: 1 / -1;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            color: var(--rose-pale);
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .empty-state p {
+            color: var(--ink-faint);
+            margin-bottom: 20px;
+        }
+
+        .empty-state a {
+            display: inline-block;
+            background: var(--rose-deep);
+            color: white;
+            padding: 10px 24px;
+            border-radius: 24px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: background var(--transition);
+        }
+
+        .empty-state a:hover { background: #6a3030; }
+
+        .authors-section { padding: 60px 5vw 80px; background: white; }
+
+        .authors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 20px;
+        }
+
+        .author-card {
+            background: var(--rose-blush);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 28px 20px;
+            text-align: center;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .author-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 24px rgba(122,62,62,0.09);
+        }
+
+        .author-avatar {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--rose-pale);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 14px;
+            border: 2px solid var(--rose-soft);
+        }
+
+        .author-avatar i { font-size: 30px; color: var(--rose-mid); }
+
+        .author-name {
+            font-family: var(--font-serif);
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--rose-deep);
+            margin-bottom: 4px;
+        }
+
+        .author-stories {
+            font-size: 12px;
+            color: var(--ink-faint);
+            margin-bottom: 14px;
+        }
+
+        .follow-btn {
+            background: transparent;
+            border: 1.5px solid var(--rose-mid);
+            color: var(--rose-mid);
+            padding: 7px 18px;
+            border-radius: 20px;
+            font-family: var(--font-sans);
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background var(--transition), color var(--transition);
+        }
+
+        .follow-btn:hover { background: var(--rose-mid); color: white; }
+
+        .follow-btn.following {
+            background: var(--rose-pale);
+            color: var(--rose-deep);
+            border-color: var(--rose-pale);
+        }
+
+        .animate { opacity: 0; }
+
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate.visible { animation: fadeUp 0.5s ease forwards; }
+
+        footer {
+            background: var(--rose-deep);
+            color: rgba(255,255,255,0.7);
+            padding: 40px 5vw;
+            text-align: center;
+        }
+
+        footer .footer-logo {
+            font-family: var(--font-serif);
+            font-size: 24px;
+            font-weight: 300;
+            color: white;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+            font-style: italic;
+        }
+
+        footer p {
+            font-size: 13px;
+            line-height: 1.8;
+        }
+
+        footer i { color: rgba(255,255,255,0.5); }
+
+        @media (max-width: 1080px) {
+            .nav {
+                flex-wrap: wrap;
+                justify-content: center;
+                padding: 12px 4vw;
+            }
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                gap: 16px;
+                padding-bottom: 6px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .search-inner {
+                flex-direction: column;
+            }
+            .search-btn {
+                min-height: 42px;
+            }
+            .nav-username,
+            .nav-dropdown-arrow {
+                display: none;
+            }
+            .section-title {
+                margin-bottom: 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'feed', active: 'feed', showUser: true });
+    </script>
+
+    <div class="search-bar">
+        <div class="search-inner">
+            <input id="searchInput" class="search-input" type="text" placeholder="Rechercher une histoire, un auteur, une categorie...">
+            <button id="searchBtn" class="search-btn">Rechercher</button>
+        </div>
+    </div>
+
+    <section class="categories-section" id="categories">
+        <h2 class="section-title">Explorez par <em>categorie</em></h2>
+        <div class="categories-grid" id="categoriesGrid"></div>
+    </section>
+
+    <section class="stories-section" id="storiesSection">
+        <h2 class="section-title">Dernieres <em>histoires</em></h2>
+        <div class="stories-grid" id="storiesGrid"></div>
+    </section>
+
+    <section class="authors-section">
+        <h2 class="section-title">Auteurs a <em>decouvrir</em></h2>
+        <div class="authors-grid">
+            <div class="author-card">
+                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="author-name">Claire B.</div>
+                <div class="author-stories">15 histoires</div>
+                <button class="follow-btn" data-author="Claire B.">Suivre</button>
+            </div>
+            <div class="author-card">
+                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="author-name">Marie D.</div>
+                <div class="author-stories">8 histoires</div>
+                <button class="follow-btn" data-author="Marie D.">Suivre</button>
+            </div>
+            <div class="author-card">
+                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="author-name">Sophie M.</div>
+                <div class="author-stories">12 histoires</div>
+                <button class="follow-btn" data-author="Sophie M.">Suivre</button>
+            </div>
+            <div class="author-card">
+                <div class="author-avatar"><i class="fas fa-user-circle"></i></div>
+                <div class="author-name">Pierre L.</div>
+                <div class="author-stories">4 histoires</div>
+                <button class="follow-btn" data-author="Pierre L.">Suivre</button>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="footer-logo">Love Ink</div>
+        <p>© 2026 Love Ink - L'encre des coeurs</p>
+        <p style="margin-top:8px;">Fait avec <i class="fas fa-heart"></i> pour les amoureux des mots</p>
+        <p style="margin-top:14px"><a href="candidature-modo.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:1px;"><i class="fas fa-shield-alt" style="margin-right:5px"></i>Devenir modérateur</a></p>
+    </footer>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+    import { auth } from './js/core/firebase-config.js';
+    import { firebaseAPI } from './js/core/firebase-data.js';
+    import { notify } from './js/components/ui-notify.js';
+    import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
+    import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+
+    const CATEGORIES = [
+        { nom: 'Premier amour', icon: 'fa-heart', count: 12 },
+        { nom: 'Amour des hommes illustres', icon: 'fa-crown', count: 5 },
+        { nom: 'Amour farfelu', icon: 'fa-hat-wizard', count: 7 },
+        { nom: 'Amour heureux', icon: 'fa-smile', count: 8 },
+        { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles', count: 6 },
+        { nom: 'Amour virtuel', icon: 'fa-globe', count: 4 },
+        { nom: 'Aventure estivale', icon: 'fa-sun', count: 9 },
+        { nom: 'Belles histoires', icon: 'fa-star', count: 15 },
+        { nom: "De l'amitie a l'amour", icon: 'fa-handshake', count: 5 },
+        { nom: 'Histoires de couples', icon: 'fa-people-arrows', count: 10 },
+        { nom: 'Histoires tristes', icon: 'fa-cloud-rain', count: 6 },
+        { nom: 'Interessant', icon: 'fa-lightbulb', count: 4 },
+        { nom: "Lettres d'amour", icon: 'fa-envelope', count: 8 },
+        { nom: 'Nos conseils', icon: 'fa-comment-dots', count: 3 },
+        { nom: "Poesie d'amour", icon: 'fa-feather', count: 7 },
+        { nom: 'Rapport occasionnel', icon: 'fa-calendar-check', count: 4 },
+        { nom: 'Rencontres', icon: 'fa-handshake-simple', count: 6 },
+        { nom: 'Divers', icon: 'fa-ellipsis', count: 2 }
+    ];
+
+    const categoriesGrid = document.getElementById('categoriesGrid');
+    const storiesGrid = document.getElementById('storiesGrid');
+    const searchInput = document.getElementById('searchInput');
+    const searchBtn = document.getElementById('searchBtn');
+
+    let allStories = [];
+
+    function escapeHtml(value) {
+        return String(value || '')
+            .replaceAll('&', '&amp;')
+            .replaceAll('<', '&lt;')
+            .replaceAll('>', '&gt;')
+            .replaceAll('"', '&quot;')
+            .replaceAll("'", '&#39;');
+    }
+
+    function isValidUrl(url) {
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+        } catch {
+            return false;
+        }
+    }
+
+    function toDate(dateValue) {
+        if (!dateValue) return new Date();
+        if (dateValue instanceof Date) return dateValue;
+        if (typeof dateValue?.toDate === 'function') return dateValue.toDate();
+        return new Date(dateValue);
+    }
+
+    function formatDate(dateValue) {
+        const date = toDate(dateValue);
+        if (Number.isNaN(date.getTime())) return 'Date inconnue';
+        return date.toLocaleDateString('fr-FR', { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function renderCategories() {
+        categoriesGrid.innerHTML = '';
+
+        CATEGORIES.forEach((cat, idx) => {
+            const card = document.createElement('a');
+            card.href = '#storiesSection';
+            card.className = 'cat-card animate';
+            card.style.animationDelay = `${idx * 0.04}s`;
+            card.innerHTML = `
+                <div class="cat-icon"><i class="fas ${cat.icon}"></i></div>
+                <div class="cat-name">${escapeHtml(cat.nom)}</div>
+                <div class="cat-count">${cat.count} histoire${cat.count > 1 ? 's' : ''}</div>
+            `;
+            card.addEventListener('click', () => {
+                searchInput.value = cat.nom;
+                applySearch();
+            });
+            categoriesGrid.appendChild(card);
+        });
+
+        // Les categories sont injectees dynamiquement: il faut rattacher l'animation apres rendu.
+        observeAnimations();
+    }
+
+    function createStoryCard(story, index) {
+        const href = `histoire.html?id=${encodeURIComponent(story.id || '')}`;
+        const hasImage = isValidUrl(story.image || '');
+        const card = document.createElement('a');
+        card.href = href;
+        card.className = 'story-card animate';
+        card.style.animationDelay = `${index * 0.08}s`;
+
+        const titre = escapeHtml(story.titre || 'Sans titre');
+        const categorie = escapeHtml(story.categorie || 'Divers');
+        const auteur = escapeHtml(story.auteur || 'Auteur inconnu');
+        const excerptRaw = story.extrait || story.contenu || '';
+        const excerpt = escapeHtml(String(excerptRaw)).slice(0, 240);
+        const likes = Number(story.likes || 0);
+        const commentaires = Number(story.commentaires || 0);
+
+        card.innerHTML = `
+            <div class="story-img">
+                ${hasImage
+                    ? `<img src="${escapeHtml(story.image)}" alt="Illustration de ${titre}">`
+                    : `<div class="story-img-placeholder"><i class="fas fa-heart"></i></div>`}
+                <span class="story-badge">${categorie}</span>
+            </div>
+            <div class="story-body">
+                <h3 class="story-title">${titre}</h3>
+                <div class="story-author"><i class="fas fa-pen-fancy"></i> ${auteur}</div>
+                <p class="story-excerpt">${excerpt}</p>
+                <div class="story-footer">
+                    <div class="story-stats">
+                        <span><i class="fas fa-heart"></i> ${likes}</span>
+                        <span><i class="fas fa-comment"></i> ${commentaires}</span>
+                        <span><i class="fas fa-calendar-alt"></i> ${formatDate(story.date)}</span>
+                    </div>
+                    <span class="story-read-btn">Lire <i class="fas fa-arrow-right" style="font-size:10px"></i></span>
+                </div>
+            </div>
+        `;
+
+        return card;
+    }
+
+    function renderStories(stories) {
+        storiesGrid.innerHTML = '';
+
+        if (!stories.length) {
+            storiesGrid.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-book-open"></i>
+                    <p>Aucune histoire trouvee pour cette recherche.</p>
+                    <a href="publier.html">Publier la premiere</a>
+                </div>
+            `;
+            return;
+        }
+
+        stories.forEach((story, idx) => {
+            storiesGrid.appendChild(createStoryCard(story, idx));
+        });
+
+        observeAnimations();
+    }
+
+    function applySearch() {
+        const query = searchInput.value.trim().toLowerCase();
+        if (!query) {
+            renderStories(allStories);
+            return;
+        }
+
+        const filtered = allStories.filter((story) => {
+            const blob = `${story.titre || ''} ${story.auteur || ''} ${story.extrait || ''} ${story.categorie || ''}`.toLowerCase();
+            return blob.includes(query);
+        });
+
+        renderStories(filtered);
+
+        if (!filtered.length) {
+            notify('info', `Aucun resultat pour "${query}"`, { title: 'Recherche' });
+        }
+    }
+
+    function observeAnimations() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.animate').forEach((el) => observer.observe(el));
+    }
+
+    function setupUIEvents() {
+        searchBtn.addEventListener('click', applySearch);
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                applySearch();
+            }
+        });
+
+        document.querySelectorAll('.follow-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const following = btn.classList.toggle('following');
+                btn.textContent = following ? 'Abonne ✓' : 'Suivre';
+            });
+        });
+    }
+
+    async function loadStories() {
+        try {
+            const result = await firebaseAPI.getHistoires(1, 12);
+            allStories = result?.histoires || [];
+            renderStories(allStories);
+        } catch (error) {
+            console.error('Erreur chargement histoires:', error);
+            allStories = [];
+            renderStories([]);
+            await notify('error', 'Impossible de charger le feed pour le moment.', { title: 'Feed' });
+        }
+    }
+
+    wireNavInteractions({
+        variant: 'feed',
+        onLogout: async () => {
+            try {
+                await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+            } catch (error) {
+                console.error('Erreur deconnexion:', error);
+                await notify('error', 'Impossible de vous deconnecter pour le moment.', { title: 'Deconnexion' });
+            }
+        }
+    });
+
+    requireAuth({
+        auth,
+        redirectTo: 'index.html',
+        onReady: async (_user, { pseudo }) => {
+            setNavPseudo(pseudo);
+            renderCategories();
+            await loadStories();
+        }
+    });
+
+    setupUIEvents();
+    observeAnimations();
+    </script>
+</body>
+</html>
