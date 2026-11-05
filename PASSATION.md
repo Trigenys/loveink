@@ -93,3 +93,8 @@
 - index.html / css/landing.css : couche .lp-ink (z 0) avec 8 titres de genres en serif italique (parallax au scroll via --d, rotation -4deg, moitie masques en mobile) et une plume (fa-feather-pointed) fixe qui « ecrit » toutes les 11 s une phrase en SVG (stroke-dashoffset) a une position aleatoire. Desactive si prefers-reduced-motion ou onglet cache.
 - Verifie en local par etat JS : plume active, parallax applique, nav sticky au-dessus du contenu, 0 erreur console, pas de scroll horizontal.
 - Deploiement : attend l'accord explicite.
+
+## 2026-11-05 17:42 — Deploiement landing
+- Hosting deploye (commit e560b70) sur https://love-ink.web.app : / et css/landing.css en 200 avec la plume, tests/ en 404.
+- A faire par Lee : juger le rendu reel du fond (opacite des mots, frequence de la plume 11 s) ; reglages dans css/landing.css bloc « Fond ».
+- Suites inchangees : domaine loveink.site ; audit 8-13 ; firebase-deploy.yml ; templates e-mail a franciser.
