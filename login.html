@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/auth-form.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
@@ -24,18 +25,35 @@
             <h1>Bon retour parmi nous</h1>
             <p>Connectez-vous pour retrouver vos histoires</p>
             
-            <form class="auth-form" id="loginForm">
+            <form class="auth-form" id="loginForm" novalidate>
                 <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="vous@email.com" required>
+                    <label for="email">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" autocomplete="email" inputmode="email" spellcheck="false" required autofocus>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="password">Mot de passe</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
+                    <div class="pw-field">
+                        <input type="password" id="password" name="password" autocomplete="current-password" required>
+                        <button type="button" class="pw-toggle" data-toggle-password="password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                    </div>
                 </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Se connecter</button>
+
+                <div class="auth-links">
+                    <button type="button" id="forgotBtn" aria-expanded="false" aria-controls="resetBox">Mot de passe oublié ?</button>
+                </div>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">Se connecter</button>
+            </form>
+
+            <form class="auth-form reset-box" id="resetBox" hidden novalidate>
+                <h2>Réinitialiser le mot de passe</h2>
+                <div class="form-group">
+                    <label for="resetEmail">Adresse e-mail du compte</label>
+                    <input type="email" id="resetEmail" name="email" autocomplete="email" inputmode="email" spellcheck="false" required>
+                    <p class="form-hint">Si un compte existe pour cette adresse, vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+                </div>
+                <button type="submit" class="btn btn-primary" id="resetBtn" style="width: 100%;">Envoyer le lien</button>
             </form>
             
             <div class="auth-footer">
@@ -46,40 +64,86 @@
 
     <script src="js/components/modale.js"></script>
     <script type="module">
-    import { signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { auth } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
+    import { authErrorMessage, clearErrors, fieldError, focusFirstInvalid, isValidEmail, setBusy, wirePasswordToggles } from './js/components/auth-form.js';
 
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+    const form = document.getElementById('loginForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const resetBox = document.getElementById('resetBox');
+    const resetBtn = document.getElementById('resetBtn');
+    const forgotBtn = document.getElementById('forgotBtn');
+    const f = (id) => document.getElementById(id);
+    let busy = false;
+
+    wirePasswordToggles(form);
+    [form, resetBox].forEach((fm) => fm.querySelectorAll('input').forEach((el) => el.addEventListener('input', () => fieldError(el, null))));
+
+    forgotBtn.addEventListener('click', () => {
+        const open = resetBox.hidden;
+        resetBox.hidden = !open;
+        forgotBtn.setAttribute('aria-expanded', String(open));
+        if (open) {
+            if (!f('resetEmail').value) f('resetEmail').value = f('email').value.trim();
+            f('resetEmail').focus();
+        }
+    });
+
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        
+        if (busy) return;
+        clearErrors(form);
+        const email = f('email').value.trim();
+        const password = f('password').value;
+        if (!isValidEmail(email)) fieldError(f('email'), 'Saisissez une adresse e-mail valide.');
+        if (!password) fieldError(f('password'), 'Saisissez votre mot de passe.');
+        if (focusFirstInvalid(form)) return;
+
+        busy = true;
+        setBusy(submitBtn, true, 'Connexion…');
         try {
-            console.log("Connexion...");
             await signInWithEmailAndPassword(auth, email, password);
-            console.log("Connecte");
             window.location.href = 'feed.html';
         } catch (error) {
-            console.error("Erreur:", error);
-
-            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
-            let message = "Erreur de connexion";
-            if (error.code === 'auth/user-not-found') message = "Email non trouve";
-            else if (error.code === 'auth/wrong-password') message = "Mot de passe incorrect";
-            else if (error.code === 'auth/network-request-failed') {
-                message = isOffline
-                    ? "Aucune connexion Internet detectee. Reconnectez-vous puis reessayez."
-                    : "Impossible de joindre Firebase Auth (identitytoolkit.googleapis.com). Verifiez DNS, VPN/Proxy, bloqueur de pub ou firewall puis reessayez.";
-            } else if (error.code === 'auth/unauthorized-domain') {
-                message = "Domaine non autorise dans Firebase Auth. Ajoutez love-ink.web.app dans les domaines autorises.";
+            const message = authErrorMessage(error, 'login');
+            if (message === "E-mail ou mot de passe incorrect.") {
+                fieldError(f('password'), message); f('password').focus();
             } else {
-                message = error?.message || message;
+                await notify('error', message, { title: 'Connexion' });
             }
-
-            await notify('error', message, { title: 'Connexion' });
+        } finally {
+            busy = false;
+            setBusy(submitBtn, false);
         }
+    });
+
+    resetBox.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (busy) return;
+        clearErrors(resetBox);
+        const email = f('resetEmail').value.trim();
+        if (!isValidEmail(email)) { fieldError(f('resetEmail'), 'Saisissez une adresse e-mail valide.'); f('resetEmail').focus(); return; }
+
+        busy = true;
+        setBusy(resetBtn, true, 'Envoi…');
+        try {
+            await sendPasswordResetEmail(auth, email);
+        } catch (error) {
+            // Un compte inexistant renvoie la meme confirmation : on ne revele pas quelles adresses sont inscrites.
+            if (!['auth/user-not-found', 'auth/invalid-email'].includes(error?.code)) {
+                await notify('error', authErrorMessage(error, 'login'), { title: 'Mot de passe oublié' });
+                busy = false; setBusy(resetBtn, false);
+                return;
+            }
+        }
+        busy = false;
+        setBusy(resetBtn, false);
+        await notify('success', `Si un compte existe pour ${email}, un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos courriers indésirables.`, { title: 'Mot de passe oublié' });
+        resetBox.hidden = true;
+        forgotBtn.setAttribute('aria-expanded', 'false');
+        f('email').value = email;
+        f('password').focus();
     });
     </script>
 </body>

@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/auth-form.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
@@ -24,42 +25,56 @@
             <h1>Rejoignez l'aventure</h1>
             <p>Créez votre compte d'auteur ou de lecteur</p>
             
-            <form class="auth-form" id="registerForm">
+            <form class="auth-form" id="registerForm" novalidate>
                 <div class="form-group">
-                    <label for="pseudo">Pseudo *</label>
-                    <input type="text" id="pseudo" placeholder="Votre nom d'auteur" required>
+                    <label for="pseudo">Pseudo</label>
+                    <input type="text" id="pseudo" name="username" autocomplete="username" maxlength="40" required autofocus>
+                    <p class="form-hint" id="pseudo-hint">Le nom que verront les lecteurs. 2 à 40 caractères.</p>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="email">Email *</label>
-                    <input type="email" id="email" placeholder="vous@email.com" required>
+                    <label for="email">Adresse e-mail</label>
+                    <input type="email" id="email" name="email" autocomplete="email" inputmode="email" spellcheck="false" required>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="password">Mot de passe *</label>
-                    <input type="password" id="password" placeholder="Minimum 6 caractères" required>
+                    <label for="password">Mot de passe</label>
+                    <div class="pw-field">
+                        <input type="password" id="password" name="new-password" autocomplete="new-password" minlength="8" required aria-describedby="password-hint">
+                        <button type="button" class="pw-toggle" data-toggle-password="password" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                    </div>
+                    <p class="form-hint" id="password-hint">8 caractères minimum. Une phrase facile à retenir fait un excellent mot de passe.</p>
+                    <div class="pw-meter" id="pwMeter" hidden aria-live="polite"><span class="pw-meter__bar" aria-hidden="true"></span><span class="pw-meter__label"></span></div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="confirmPassword">Confirmer le mot de passe *</label>
-                    <input type="password" id="confirmPassword" placeholder="Identique au précédent" required>
+                    <label for="confirmPassword">Confirmer le mot de passe</label>
+                    <div class="pw-field">
+                        <input type="password" id="confirmPassword" name="confirm-password" autocomplete="new-password" minlength="8" required>
+                        <button type="button" class="pw-toggle" data-toggle-password="confirmPassword" aria-label="Afficher le mot de passe" aria-pressed="false"><i class="fas fa-eye" aria-hidden="true"></i></button>
+                    </div>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="type">Je suis *</label>
-                    <select id="type" required>
+                    <label for="type">Je suis</label>
+                    <select id="type" name="type" required>
                         <option value="lecteur">Lecteur (je veux lire)</option>
                         <option value="auteur">Auteur (je veux publier)</option>
                         <option value="lesdeux">Les deux !</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group">
-                    <label for="bio">Bio (optionnel)</label>
-                    <textarea id="bio" rows="3" placeholder="Parlez-nous de vous..."></textarea>
+                    <label for="bio">Bio <span class="form-optional">(facultatif)</span></label>
+                    <textarea id="bio" name="bio" rows="3" maxlength="600"></textarea>
                 </div>
-                
-                <button type="submit" class="btn btn-primary" style="width: 100%;">Créer mon compte</button>
+
+                <label class="form-consent" for="consent">
+                    <input type="checkbox" id="consent" name="consent" required>
+                    <span>J'ai lu et j'accepte les <a href="conditions.html" target="_blank" rel="noopener">conditions d'utilisation</a> et la <a href="confidentialite.html" target="_blank" rel="noopener">politique de confidentialité</a>.</span>
+                </label>
+
+                <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">Créer mon compte</button>
             </form>
             
             <div class="auth-footer">
@@ -72,105 +87,93 @@
     <script type="module">
     import {
         createUserWithEmailAndPassword,
+        sendEmailVerification,
         updateProfile
     } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
     import { auth, db } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
     import { syncUserSession } from './js/core/auth-session.js';
+    import {
+        PASSWORD_MIN, authErrorMessage, clearErrors, fieldError, focusFirstInvalid,
+        isValidEmail, setBusy, wirePasswordToggles, wireStrengthMeter
+    } from './js/components/auth-form.js';
 
-    // ===== INSCRIPTION =====
-    document.getElementById('registerForm').addEventListener('submit', async function(e) {
+    const form = document.getElementById('registerForm');
+    const submitBtn = document.getElementById('submitBtn');
+    const f = (id) => document.getElementById(id);
+    const DEFAULT_BIO = 'Amoureux(se) des mots';
+    let submitting = false;
+
+    wirePasswordToggles(form);
+    wireStrengthMeter(f('password'), f('pwMeter'), () => [f('pseudo').value.trim(), f('email').value.split('@')[0]]);
+    form.querySelectorAll('input, select, textarea').forEach((el) => {
+        el.addEventListener('input', () => fieldError(el, null));
+    });
+
+    function validate() {
+        clearErrors(form);
+        const pseudo = f('pseudo').value.trim();
+        const email = f('email').value.trim();
+        const password = f('password').value;
+        const confirm = f('confirmPassword').value;
+        if (pseudo.length < 2 || pseudo.length > 40) fieldError(f('pseudo'), 'Choisissez un pseudo de 2 à 40 caractères.');
+        if (!isValidEmail(email)) fieldError(f('email'), 'Saisissez une adresse e-mail valide.');
+        if (password.length < PASSWORD_MIN) fieldError(f('password'), `Le mot de passe doit faire au moins ${PASSWORD_MIN} caractères.`);
+        if (confirm !== password) fieldError(f('confirmPassword'), 'Les deux mots de passe ne sont pas identiques.');
+        if (f('bio').value.trim().length > 600) fieldError(f('bio'), 'La bio est limitée à 600 caractères.');
+        if (!f('consent').checked) fieldError(f('consent'), "Vous devez accepter les conditions pour créer un compte.");
+        return !focusFirstInvalid(form);
+    }
+
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        
-        console.log("Creation du compte...");
-        
-        const pseudo = document.getElementById('pseudo').value.trim();
-        const email = document.getElementById('email').value.trim();
-        const password = document.getElementById('password').value;
-        const confirm = document.getElementById('confirmPassword').value;
-        const type = document.getElementById('type').value;
-        const bio = document.getElementById('bio').value.trim();
-        
-        // Validations
-        if (password !== confirm) {
-            await notify('warning', 'Les mots de passe ne correspondent pas', { title: 'Inscription' });
-            return;
-        }
-        
-        if (password.length < 6) {
-            await notify('warning', 'Le mot de passe doit faire au moins 6 caracteres', { title: 'Inscription' });
-            return;
-        }
-        
+        if (submitting || !validate()) return;
+        submitting = true;
+        setBusy(submitBtn, true, 'Création du compte…');
+
+        const pseudo = f('pseudo').value.trim();
+        const email = f('email').value.trim();
+        const password = f('password').value;
+        const type = f('type').value;
+        const bio = f('bio').value.trim() || DEFAULT_BIO;
+
         try {
-            console.log("Creation de l'utilisateur...");
-            
-            // Créer l'utilisateur
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
-            
-            console.log("Utilisateur cree:", user.uid);
-            
-            // Mettre à jour le profil
-            await updateProfile(user, {
-                displayName: pseudo
-            });
-            
-            console.log("Profil mis a jour");
-            
-            // Sauvegarder dans Firestore
+            const { user } = await createUserWithEmailAndPassword(auth, email, password);
+            await updateProfile(user, { displayName: pseudo }).catch(() => {});
+
+            const profile = { pseudo, type, bio, dateInscription: new Date().toISOString() };
             try {
-                const now = new Date().toISOString();
                 await setDoc(doc(db, 'utilisateurs', user.uid), {
-                    uid: user.uid,
-                    pseudo: pseudo,
-                    type: type,
-                    bio: bio || "Amoureux(se) des mots",
-                    dateInscription: serverTimestamp(),
-                    abonnes: 0,
-                    histoires: 0
+                    uid: user.uid, pseudo, type, bio,
+                    dateInscription: serverTimestamp(), abonnes: 0, histoires: 0
                 }, { merge: true });
-
-                syncUserSession(user, {
-                    pseudo,
-                    type,
-                    bio: bio || "Amoureux(se) des mots",
-                    dateInscription: now
-                });
-                console.log("Donnees sauvegardees");
-            } catch (e) {
-                console.log("Firestore indisponible, on continue");
-                syncUserSession(user, {
-                    pseudo,
-                    type,
-                    bio: bio || "Amoureux(se) des mots",
-                    dateInscription: new Date().toISOString()
-                });
+            } catch {
+                // Le profil Firestore sera recree a la prochaine connexion ; la session locale suffit pour continuer.
             }
-            
-            await notify('success', 'Bienvenue ' + pseudo + ' ! ❤️', { title: 'Inscription reussie' });
+            syncUserSession(user, profile);
+
+            let verifySent = false;
+            try { await sendEmailVerification(user); verifySent = true; } catch { /* non bloquant */ }
+
+            await notify('success',
+                verifySent
+                    ? `Bienvenue ${pseudo} ! Un e-mail de confirmation vient de vous être envoyé à ${email}. Pensez à vérifier vos courriers indésirables.`
+                    : `Bienvenue ${pseudo} !`,
+                { title: 'Compte créé' });
             window.location.href = 'feed.html';
-            
         } catch (error) {
-            console.error("Erreur:", error);
-
-            const isOffline = typeof navigator !== 'undefined' && navigator.onLine === false;
-            let message = "Erreur d'inscription";
-            if (error.code === 'auth/email-already-in-use') message = "Cet email est deja utilise";
-            else if (error.code === 'auth/invalid-email') message = "Email invalide";
-            else if (error.code === 'auth/weak-password') message = "Mot de passe trop faible";
-            else if (error.code === 'auth/network-request-failed') {
-                message = isOffline
-                    ? "Aucune connexion Internet detectee. Reconnectez-vous puis reessayez."
-                    : "Impossible de joindre Firebase Auth (identitytoolkit.googleapis.com). Verifiez DNS, VPN/Proxy, bloqueur de pub ou firewall puis reessayez.";
-            } else if (error.code === 'auth/unauthorized-domain') {
-                message = "Domaine non autorise dans Firebase Auth. Ajoutez love-ink.web.app dans les domaines autorises.";
+            const message = authErrorMessage(error, 'register');
+            if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/invalid-email') {
+                fieldError(f('email'), message); f('email').focus();
+            } else if (error?.code === 'auth/weak-password') {
+                fieldError(f('password'), message); f('password').focus();
             } else {
-                message = error?.message || message;
+                await notify('error', message, { title: 'Inscription' });
             }
-
-            await notify('error', message, { title: 'Inscription' });
+        } finally {
+            submitting = false;
+            setBusy(submitBtn, false);
         }
     });
     </script>

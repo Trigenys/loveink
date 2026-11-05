@@ -72,6 +72,7 @@ async function registerWithUi(page, user, options = {}) {
     await page.fill('#confirmPassword', user.password);
     await page.selectOption('#type', type);
     await page.fill('#bio', bio);
+    await page.check('#consent');
     await page.click('#registerForm button[type="submit"]');
     await waitForRedirectWithModalHandling(page, expectRedirectTo, 60000);
 

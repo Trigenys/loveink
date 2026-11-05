@@ -67,3 +67,13 @@
 - Deploye sur https://love-ink.web.app (accord explicite). Nouveaux fichiers en 200, feed.html et reader.js a jour ; tests/ et PASSATION.md en 404.
 - A tester par Lee une fois connectee, avec au moins une histoire publiee : bloc a la une, puis lire une histoire a moitie et revenir au feed.
 - Suites du benchmark : commentaires par paragraphe, son d'ambiance optionnel.
+
+## 2026-11-05 17:05 — Durcissement inscription / connexion
+- `js/components/auth-form.js` + `css/auth-form.css` (nouveaux, partages) : erreurs sous le champ (aria-invalid/aria-describedby/role=alert), bouton occupe (aria-busy, anti double-envoi), oeil afficher/masquer, jauge de force (longueur d'abord), messages Firebase generiques (pas d'enumeration d'adresses).
+- `register.html` : novalidate + validation JS ; autocomplete username/email/new-password ; pseudo 2-40, bio ≤ 600 (= firestore.rules), mot de passe ≥ 8 ; case CGU/confidentialite obligatoire ; `sendEmailVerification` apres creation (non bloquant) ; plus de console.log ni `error.message` brut.
+- `login.html` : « Mot de passe oublie ? » (bloc `#resetBox`, `sendPasswordResetEmail`, meme confirmation que le compte existe ou non) ; message unique « E-mail ou mot de passe incorrect ».
+- `conditions.html` + `confidentialite.html` (nouvelles) : textes generiques a relire par Lee ; adresse de contact contact@loveink.site a confirmer (ou remplacer).
+- Tests e2e : helper `registerWithUi` coche `#consent`.
+- Choix : `requireAuth` n'exige PAS emailVerified (ne pas bloquer les comptes existants) ; a durcir plus tard pour la publication si souhaite.
+- Verifie en local (127.0.0.1:5178, etat JS) : erreurs inline, focus premier champ invalide, jauge, oeil, bloc reset (prerempli, aria-expanded), aucune erreur console. Non verifie : envoi reel des e-mails Firebase (necessite un vrai compte) ; template d'e-mail Firebase en anglais par defaut (console Auth > Templates, a franciser par Lee).
+- Deploiement : en attente d'accord.
