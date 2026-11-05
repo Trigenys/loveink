@@ -156,3 +156,8 @@
 - `https://mail.loveink.site/healthz` OK (Caddy + Let's Encrypt, DNS A ajouté sur Spaceship), CORS 204 pour love-ink.web.app. Conteneur `~/loveink-mailer` (HOST_PORT=8790, 8787 pris par un autre service), secrets en place (clé Resend, JSON compte de service), MAIL_FROM `Love Ink <loveink@trigenys.com>`. Reset réel envoyé avec succès (log « mail envoyé »).
 - Commits poussés : 69daca3 (réécriture lien), 6cdcab5 (HOST_PORT). `MAILER_URL` prod déjà = mail.loveink.site.
 - Prochaine étape : déployer hosting (`npx -y firebase-tools deploy --only hosting`, accord explicite), puis test complet inscription + reset en prod ; plus tard vérifier loveink.site chez Resend pour un expéditeur @loveink.site.
+
+## 2026-11-05 23:33 — E-mails thématisés en production
+- Hosting déployé (auth-action, login, register, mailer-client). Vérifié en prod : reset depuis login → mailer VPS (« mail envoyé » dans les logs, pas de repli), redirection cleanUrls `/auth-action.html?…` → `/auth-action?…` conserve la query.
+- Non vérifié par moi : clic sur le lien reçu (page auth-action avec vrai oobCode) et inscription réelle (pas de création de compte en prod) → à tester par Lee/JennLaw.
+- Suites : vérifier loveink.site chez Resend (expéditeur @loveink.site au lieu de @trigenys.com) ; e-mails de repli Firebase gardent la page par défaut (plan gratuit) ; VPS : 8787 occupé par un python local, mailer sur 8790.
