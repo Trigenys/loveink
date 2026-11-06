@@ -215,3 +215,8 @@
 ## 2026-11-06 10:38 — Pages légales déployées en prod
 - Déploiement Firebase Hosting OK (commits jusqu'à b50a821). Vérifié par curl : chapitres, legal.js et CSS servis. Prod = dépôt.
 - Prochaines pistes : résumé « En bref » en tête des pages légales (contenu à valider avec Lee), OG sur histoire/login/register, unifier la plume de la landing sur ink-quill.
+
+## 2026-11-06 10:43 — Signature studio (non déployé)
+- Convention reprise de Xeption (`xeption237/components/Footer.tsx`) : « Made *by* Trigenys Group », « by » en **Pinyon Script** (Google Fonts), accent rose ici (doré chez Xeption).
+- `css/styles.css` : `@import` Pinyon Script en 1re ligne + `.li-made-by` ; `css/landing.css` : pleine largeur dans `.lp-footer`. Markup `<p class="li-made-by">Made <em>by</em> Trigenys Group</p>` dans 10 pages (feed/profil/histoire non vérifiés visuellement : connexion requise).
+- Commit `073e8b2`. **Prod non déployée** : attendre l'accord.
