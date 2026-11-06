@@ -9,11 +9,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="css/auth-form.css">
+    <link rel="stylesheet" href="css/auth-action.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
     <div class="auth-container">
-        <div class="auth-card">
+        <div class="auth-card aa-card">
             <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
                 <div class="logo-icon">
                     <i class="fas fa-heart logo-heart"></i>
@@ -22,10 +23,11 @@
                 </div>
                 <span class="logo-text">Love Ink</span>
             </a>
-            <h1>Rejoignez l'aventure</h1>
-            <p>Créez votre compte d'auteur ou de lecteur</p>
+            <span class="aa-kicker aa-in">Inscription</span>
+            <h1 class="aa-title aa-in">Rejoignez <em>l'aventure</em></h1>
+            <p class="aa-text aa-in">Créez votre compte d'auteur ou de lecteur en une minute.</p>
             
-            <form class="auth-form" id="registerForm" novalidate>
+            <form class="auth-form aa-in" id="registerForm" novalidate>
                 <div class="form-group">
                     <label for="pseudo">Pseudo</label>
                     <input type="text" id="pseudo" name="username" autocomplete="username" maxlength="40" required autofocus>
