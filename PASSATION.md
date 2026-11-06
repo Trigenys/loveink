@@ -189,3 +189,8 @@
 
 - Hosting déployé (jusqu au commit 9a9c14b) : auth-action, 404, login/register harmonisés, fond encre avec mots réduits. Vérifié : /login contient data-ink-quill, ink-quill.css servi.
 - Reste : ouvrir un vrai lien de reset en prod ; unifier la landing sur la brique ink-quill (optionnel).
+
+## 2026-11-06 10:21 — aperçu de lien (Open Graph), non déployé
+
+- index.html : balises og:* et twitter:* ; image images/og-love-ink.jpg (1200x630, 43 Ko, générée depuis hero-lettre.webp).
+- Prochaine étape : déployer le hosting après accord ; WhatsApp met en cache l aperçu, renvoyer le lien après déploiement.
