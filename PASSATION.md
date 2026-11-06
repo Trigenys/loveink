@@ -313,3 +313,10 @@
 - Déploiement hosting fait par l'utilisateur (release complete) ; https://loveink.site/ sert canonical loveink.site, 2 balises google-site-verification, robots → sitemap loveink.site.
 - Search Console : propriété https://loveink.site/ validée (balise HTML) ; sitemap.xml soumis, état initial « Impossible de récupérer » (idem web.app le 06/11 11:43 ; fichier 200) → recontrôler sous 48 h. Piège noté : dans le dialogue de validation, plusieurs boutons « Valider » (un par méthode) ; cliquer celui qui suit la balise meta, sinon c'est la méthode DNS qui est testée.
 - Reste : VPS mailer .env (APP_BASE_URL, ALLOWED_ORIGINS) par l'utilisateur ; www.loveink.site (Hosting + DNS Spaceship) ; ancienne propriété web.app à garder (ou « changement d'adresse » plus tard) ; aperçus mailer server/mailer/preview/* encore sur web.app.
+
+## 2026-11-06 13:53 — www.loveink.site ajouté dans Firebase Hosting (DNS à poser)
+
+- Domaine `www.loveink.site` ajouté dans Firebase Hosting (console), état « Nécessite une configuration ». Ajouté comme alias simple (la case « Rediriger vers un site Web existant » n'a pas été retenue par le dialogue) : le site sera servi tel quel sur www ; les balises canonical pointent déjà vers https://loveink.site, donc pas de contenu dupliqué pour Google. Si on veut une vraie redirection 301 www → apex : supprimer le domaine www dans la console et le ré-ajouter en cochant « Rediriger ».
+- DNS à poser chez Spaceship (zone loveink.site) : `CNAME  www  →  love-ink.web.app` (pas d'enregistrement A/TXT demandé pour www).
+- Ensuite : dans Hosting, ouvrir www.loveink.site → « Valider » (cache résolveur Firebase ~1 h, comme pour l'apex), puis ajouter `www.loveink.site` dans Authentication → Paramètres → Domaines autorisés si on veut pouvoir se connecter depuis www.
+- Toujours en attente côté VPS : `~/loveink-mailer/.env` → `APP_BASE_URL=https://loveink.site`, `ALLOWED_ORIGINS` avec loveink.site (+ web.app, + www.loveink.site si utilisé), redémarrer le mailer.
