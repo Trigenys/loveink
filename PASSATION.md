@@ -199,3 +199,9 @@
 
 - Hosting déployé (b9743e1) : og:* et twitter:* sur la landing, image /images/og-love-ink.jpg servie (200). Le CDN garde l ancienne page ~1 h (max-age 3600), l aperçu WhatsApp est aussi mis en cache côté Meta.
 - Suites possibles : OG sur login/register/histoire.html (titre d histoire dynamique), unifier la plume landing sur ink-quill.
+
+## 2026-11-06 10:33 — Pages légales dans l'ambiance (non déployé)
+- `conditions.html` / `confidentialite.html` : emblème (`fa-file-signature`, `fa-user-shield`), kicker, titre `aa-title` avec `<em>`, trait, fond encre `data-ink-quill` ; carte `aa-card legal-card`.
+- `css/auth-action.css` : bloc `.legal-card` (kicker/titre centrés, titre 2rem, sections décalées 0.3s).
+- Piège : `fa-shield-heart` n'existe pas en Font Awesome 6.0.0 (CDN du projet) → icône vide ; vérifier `getComputedStyle(i,'::before').content` avant d'employer une icône récente.
+- Vérifié en local desktop + mobile (fond, alignements, pas de débordement). Commit 4ad4f36 poussé. **Prod non déployée** : attendre l'accord.
