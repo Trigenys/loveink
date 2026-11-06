@@ -161,3 +161,11 @@
 - Hosting déployé (auth-action, login, register, mailer-client). Vérifié en prod : reset depuis login → mailer VPS (« mail envoyé » dans les logs, pas de repli), redirection cleanUrls `/auth-action.html?…` → `/auth-action?…` conserve la query.
 - Non vérifié par moi : clic sur le lien reçu (page auth-action avec vrai oobCode) et inscription réelle (pas de création de compte en prod) → à tester par Lee/JennLaw.
 - Suites : vérifier loveink.site chez Resend (expéditeur @loveink.site au lieu de @trigenys.com) ; e-mails de repli Firebase gardent la page par défaut (plan gratuit) ; VPS : 8787 occupé par un python local, mailer sur 8790.
+
+## 2026-11-06 09:39 — auth-action.html redessinée (commit 6c6bca6, poussé, NON déployé)
+
+- Nouveau `css/auth-action.css` + `auth-action.html` réécrit : emblème par état (plume, enveloppe,
+  clé, coche, lien rompu), kicker + titre Baskerville avec italique, trait animé, cascade `.aa-in`,
+  dark mode `html[data-theme=dark]`, `prefers-reduced-motion`. Ids et `js/pages/auth-action.js` inchangés.
+- Vérifié en local (127.0.0.1:5178) sur les 5 états (bascule `hidden` via JS) et en 375px.
+- Reste : `firebase deploy --only hosting` (accord explicite requis), puis ouvrir un vrai lien de reset.
