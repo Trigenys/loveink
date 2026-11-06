@@ -117,3 +117,13 @@ test('un moderateur peut supprimer un commentaire, pas un tiers', async () => {
 test('histoire publiee lisible sans compte', async () => {
   await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(), 'histoires', 'h1')));
 });
+
+test('histoires : sans connexion, lecture limitee aux histoires publiees', async () => {
+  await env.withSecurityRulesDisabled(async (ctx) => {
+    await setDoc(doc(ctx.firestore(), 'histoires', 'brouillon'), { ...story(A, 'en_attente'), auteurId: A });
+  });
+  const anon = env.unauthenticatedContext().firestore();
+  await assertFails(getDoc(doc(anon, 'histoires', 'brouillon')));
+  await assertFails(getDocs(collection(anon, 'histoires')));
+  await assertSucceeds(getDocs(query(collection(anon, 'histoires'), where('statut', '==', 'publie'))));
+});

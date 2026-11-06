@@ -440,9 +440,9 @@ service cloud.firestore {
     }
 
     match /histoires/{histoireId} {
-      // Histoires sans statut (existantes) = publiques ; statut "publie" = public ;
-      // modos voient tout ; auteur peut toujours lire ses propres histoires.
-      allow read: if !('statut' in resource.data) || resource.data.statut == 'publie' || isModo() ||
+      // statut "publie" = public ; modos voient tout ; auteur peut toujours lire ses propres histoires.
+      // (La clause « sans statut = publique » autorisait une liste anonyme non filtree : retiree.)
+      allow read: if resource.data.statut == 'publie' || isModo() ||
         (signedIn() && resource.data.auteurId == request.auth.uid);
       allow create: if signedIn() && isActif() && validStoryCreate();
       allow update: if signedIn() && (

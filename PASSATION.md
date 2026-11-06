@@ -259,3 +259,11 @@
 - `build:seo` relancé (0 écriture), `test:seo` 19/19, puis `firebase deploy --only hosting` → release complète sur https://love-ink.web.app.
 - Vérifié en prod : `/`, `/histoires/`, `/sitemap.xml` (3 URL), `/robots.txt` en 200 ; nouveau title de la landing servi ; `/feed` en noindex ; `scripts/` non publié (404).
 - Non déployé : règles Firestore (prod plus permissives que le dépôt) — attendre accord. Reste : brancher loveink.site, Search Console, relancer `build:seo` + déploiement quand des histoires seront publiées.
+
+## 2026-11-06 11:34 — Règles Firestore : fuite des brouillons corrigée et déployée (accord « Oui, les règles »)
+
+- Correction d'un constat précédent : les règles prod étaient identiques au dépôt (deploy : « already up to date »). La lecture anonyme des brouillons venait des règles elles-mêmes : la clause `!('statut' in resource.data)` rendait acceptée toute liste/requête non filtrée sans auth (reproduit sur l'émulateur ; un `get` unitaire était bien refusé).
+- Fix `firestore.rules` l.442-446 : clause retirée, lecture = `statut == 'publie'` || modo || auteur. Tous les documents existants ont un statut. Test ajouté dans `tests/rules/firestore.rules.test.mjs` (lecture anonyme : get brouillon refusé, liste non filtrée refusée, requête `publie` acceptée) ; 14/14 verts. `test:rules` exige Java : `C:\Program Files\Eclipse Adoptium\jre-21.0.13.9-hotspot\bin` à mettre dans le PATH.
+- Déployé `firestore:rules` 11:34, vérifié en prod via REST sans auth : liste et requête non filtrée → « Missing or insufficient permissions », requête `statut == publie` → OK (0 doc).
+- Leçon : « rules are not filters » ne protège pas d'une clause satisfiable par un document hypothétique ; tester systématiquement la liste anonyme non filtrée.
+- Prochaine étape : loveink.site, Search Console, `build:seo` + deploy hosting quand des histoires seront publiées.
