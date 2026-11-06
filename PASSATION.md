@@ -320,3 +320,9 @@
 - DNS à poser chez Spaceship (zone loveink.site) : `CNAME  www  →  love-ink.web.app` (pas d'enregistrement A/TXT demandé pour www).
 - Ensuite : dans Hosting, ouvrir www.loveink.site → « Valider » (cache résolveur Firebase ~1 h, comme pour l'apex), puis ajouter `www.loveink.site` dans Authentication → Paramètres → Domaines autorisés si on veut pouvoir se connecter depuis www.
 - Toujours en attente côté VPS : `~/loveink-mailer/.env` → `APP_BASE_URL=https://loveink.site`, `ALLOWED_ORIGINS` avec loveink.site (+ web.app, + www.loveink.site si utilisé), redémarrer le mailer.
+
+## 2026-11-06 13:56 — CNAME www posé, validation Firebase en attente
+
+- CNAME `www.loveink.site → love-ink.web.app` posé chez Spaceship, propagé (Google DNS et serveur autoritaire launch1.spaceship.net confirment).
+- Validation lancée dans Firebase Hosting : « Enregistrements pas encore détectés » (cache résolveur Firebase, même délai ~1 h que pour l'apex). À refaire : Hosting → www.loveink.site → « Valider » jusqu'à « Connecté » ; puis certificat auto.
+- Après « Connecté » : ajouter www.loveink.site dans Authentication → Domaines autorisés si la connexion depuis www doit marcher ; VPS `~/loveink-mailer/.env` (APP_BASE_URL, ALLOWED_ORIGINS) toujours à faire.
