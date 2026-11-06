@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap');
 /* styles.css - Love Ink - Design élégant */
 
 * {
@@ -785,3 +786,9 @@ html[data-theme="dark"] .conversation-item:hover {
 }
 
 }
+
+/* Signature studio (tous les pieds de page) : « by » en Pinyon Script. */
+.li-made-by { margin-top: 12px; font-size: 0.8rem; letter-spacing: 0.04em; color: inherit; opacity: 0.8; }
+.li-made-by em { font-family: 'Pinyon Script', cursive; font-style: normal; font-size: 1.9em; line-height: 0; color: #b76e6e; margin: 0 7px; position: relative; top: 3px; }
+footer:not([class]) .li-made-by em { color: #e2bcbc; }
+html[data-theme="dark"] .li-made-by em { color: #e2bcbc; }

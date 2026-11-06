@@ -272,6 +272,7 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
 /* Footer */
 .lp-footer { border-top: 1px solid var(--border); padding: 36px 0 44px; font-size: 0.85rem; color: var(--ink-muted); }
 .lp-footer__in { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; }
+.lp-footer .li-made-by { flex-basis: 100%; margin-top: 0; }
 .lp-footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
 .lp-footer a { text-decoration: none; color: var(--ink-muted); }
 .lp-footer a:hover { color: var(--rose-deep); }
