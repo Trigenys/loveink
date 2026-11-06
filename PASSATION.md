@@ -223,3 +223,11 @@
 
 ## 2026-11-06 10:44 — Signature studio déployée en prod
 - Déploiement Firebase Hosting OK (commits jusqu'à afc791d). Vérifié par curl : signature présente sur /, /login, /conditions, /feed ; Pinyon Script dans styles.css. Prod = dépôt.
+
+## 2026-11-06 10:52 — SEO + GEO + signature en lien Trigenys
+- Nouveaux fichiers racine : `robots.txt` (disallow pages privées : feed, profil, messagerie, notifications, parametres, publier, mes-histoires, auth-action ; `Sitemap:`), `sitemap.xml` (6 URL sans .html grâce à `cleanUrls`), `llms.txt` (présentation GEO).
+- Pages publiques (index, login, register, conditions, confidentialite, candidature-modo) : `<link rel="canonical">`, meta description + Open Graph/twitter (image `images/og-love-ink.jpg`). Pages applicatives : `<meta name="robots" content="noindex, nofollow">` (histoire.html reste indexable, titre dynamique `document.title` posé dans `renderStory()`).
+- Landing : JSON-LD (Organization → parent Trigenys Group, WebSite, WebApplication, FAQPage) + section FAQ `.lp-faq` (4 `<details>`, style dans `css/landing.css`).
+- Signature : `Trigenys Group` devient `<a href="https://trigenys.com" rel="noopener">` dans les 10 pages ; style `.li-made-by a` dans `css/styles.css`.
+- Vérifié en local (JSON-LD parsable, FAQ rendue, lien signature). Commit `52181af`. **Prod non déployée** : attendre l'accord.
+- Suite possible : OG dynamique par histoire (prérendu via Cloud Function, impossible en hosting statique) ; soumettre `sitemap.xml` dans Google Search Console (action utilisateur).
