@@ -333,3 +333,9 @@
 - Attention réseau local : depuis le poste de dev, le certificat de www est remplacé par celui d'un pare-feu Fortinet (SSL inspection) et la page renvoie 403 — c'est le réseau local, pas le site. Tester depuis un autre réseau (4G) ou un point externe avant de conclure à un problème.
 - www est servi comme alias (pas de redirection 301 vers l'apex) ; canonical → https://loveink.site. Option plus tard : supprimer/ré-ajouter www en cochant « Rediriger ».
 - Restant : Authentication → Domaines autorisés → ajouter www.loveink.site si la connexion depuis www doit marcher ; VPS `~/loveink-mailer/.env` (APP_BASE_URL, ALLOWED_ORIGINS) + redémarrage du mailer.
+
+## 2026-11-06 16:15 — www.loveink.site autorisé dans Firebase Auth
+
+- Authentication → Paramètres → Domaines autorisés : `www.loveink.site` ajouté (liste : localhost, love-ink.firebaseapp.com, love-ink.web.app, loveink.site, www.loveink.site).
+- État global : apex et www « Connectés » dans Hosting, HTTPS OK depuis l'extérieur ; prod sur https://loveink.site ; Search Console validée pour loveink.site (sitemap à recontrôler sous 48 h).
+- Seul reste côté utilisateur : VPS `~/loveink-mailer/.env` → APP_BASE_URL=https://loveink.site, ALLOWED_ORIGINS=https://loveink.site,https://www.loveink.site,https://love-ink.web.app ; redémarrer le mailer. Rien à déployer sur Hosting.
