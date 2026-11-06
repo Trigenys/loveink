@@ -211,3 +211,7 @@
 - `js/pages/legal.js` : IntersectionObserver ajoute `is-seen` ; reduced-motion = tout visible.
 - Vérifié local desktop + mobile (icônes présentes en FA 6.0.0, pas de débordement). Note : les captures du panneau navigateur ont parfois un frame de retard, re-capturer avant de conclure à un bug.
 - Commit `89caf86`. **Prod non déployée** : attendre l'accord.
+
+## 2026-11-06 10:38 — Pages légales déployées en prod
+- Déploiement Firebase Hosting OK (commits jusqu'à b50a821). Vérifié par curl : chapitres, legal.js et CSS servis. Prod = dépôt.
+- Prochaines pistes : résumé « En bref » en tête des pages légales (contenu à valider avec Lee), OG sur histoire/login/register, unifier la plume de la landing sur ink-quill.
