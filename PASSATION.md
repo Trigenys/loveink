@@ -326,3 +326,10 @@
 - CNAME `www.loveink.site → love-ink.web.app` posé chez Spaceship, propagé (Google DNS et serveur autoritaire launch1.spaceship.net confirment).
 - Validation lancée dans Firebase Hosting : « Enregistrements pas encore détectés » (cache résolveur Firebase, même délai ~1 h que pour l'apex). À refaire : Hosting → www.loveink.site → « Valider » jusqu'à « Connecté » ; puis certificat auto.
 - Après « Connecté » : ajouter www.loveink.site dans Authentication → Domaines autorisés si la connexion depuis www doit marcher ; VPS `~/loveink-mailer/.env` (APP_BASE_URL, ALLOWED_ORIGINS) toujours à faire.
+
+## 2026-11-06 14:59 — www.loveink.site connecté
+
+- Firebase Hosting : `www.loveink.site` passé « Connecté » (validation automatique, pas de relance nécessaire). Vérifié depuis 3 points externes (check-host.net) : https://www.loveink.site → 200 sur 199.36.158.100.
+- Attention réseau local : depuis le poste de dev, le certificat de www est remplacé par celui d'un pare-feu Fortinet (SSL inspection) et la page renvoie 403 — c'est le réseau local, pas le site. Tester depuis un autre réseau (4G) ou un point externe avant de conclure à un problème.
+- www est servi comme alias (pas de redirection 301 vers l'apex) ; canonical → https://loveink.site. Option plus tard : supprimer/ré-ajouter www en cochant « Rediriger ».
+- Restant : Authentication → Domaines autorisés → ajouter www.loveink.site si la connexion depuis www doit marcher ; VPS `~/loveink-mailer/.env` (APP_BASE_URL, ALLOWED_ORIGINS) + redémarrage du mailer.
