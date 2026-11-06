@@ -179,3 +179,8 @@
   register, auth-action, 404. Empilement : .li-ink z 1 au-dessus du dégradé .auth-container, .auth-card z 2.
 - La landing garde sa propre copie (lp-ink) : unification possible plus tard, non régressive.
 - Prochaine étape : `firebase deploy --only hosting` après accord, puis ouvrir un vrai lien de reset.
+
+## 2026-11-06 09:49 — mots du fond encre réduits
+
+- Commit poussé, non déployé : taille des mots en filigrane divisée par deux (clamp 1.4rem–3.6rem).
+- Prochaine étape : déploiement hosting après accord (fond plume + cette retouche).
