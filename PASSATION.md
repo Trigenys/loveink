@@ -253,3 +253,9 @@
 - Tests `tests/seo/seo.test.mjs` (`npm run test:seo`, node --test, 19 tests verts) : head des pages publiques (canonical, description 50-170, OG, title 10-70), noindex des privées, JSON-LD + FAQ cohérente, robots, sitemap ↔ fichiers, lien Trigenys. Ont attrapé une description de 182 caractères → raccourcie.
 - État : 0 histoire publiée en base (3 `en_attente`) → `histoires/index.html` affiche l'état vide ; relancer `build:seo` avant chaque déploiement une fois des histoires publiées (à automatiser plus tard : CI ou hook de modération).
 - À faire côté utilisateur : accord de déploiement hosting ; règles Firestore prod plus permissives que le dépôt (déployer `firestore:rules` sur accord) ; brancher loveink.site puis `--base https://loveink.site` + BASE des tests ; vérifier Search Console.
+
+## 2026-11-06 11:29 — Déploiement hosting prod (accord utilisateur « Oui, déploie »)
+
+- `build:seo` relancé (0 écriture), `test:seo` 19/19, puis `firebase deploy --only hosting` → release complète sur https://love-ink.web.app.
+- Vérifié en prod : `/`, `/histoires/`, `/sitemap.xml` (3 URL), `/robots.txt` en 200 ; nouveau title de la landing servi ; `/feed` en noindex ; `scripts/` non publié (404).
+- Non déployé : règles Firestore (prod plus permissives que le dépôt) — attendre accord. Reste : brancher loveink.site, Search Console, relancer `build:seo` + déploiement quand des histoires seront publiées.
