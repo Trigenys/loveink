@@ -1,0 +1,36 @@
+/* Fond « encre » réutilisable : mots en filigrane + plume qui écrit une phrase.
+   Markup : <div class="li-ink" data-ink-quill aria-hidden="true"></div> + js/core/ink-quill.js.
+   Le contenu de la page doit être positionné au-dessus (z-index > 0). */
+.li-ink { position: fixed; inset: 0; z-index: 1; overflow: hidden; pointer-events: none; }
+.li-ink__word {
+    position: absolute; left: var(--x); top: var(--y);
+    font-family: var(--font-serif, 'Libre Baskerville', Georgia, serif); font-style: italic; font-weight: 300;
+    font-size: clamp(2.4rem, var(--s), 8rem); line-height: 1; white-space: nowrap;
+    color: #b76e6e; opacity: 0.11; transform: rotate(-4deg); user-select: none;
+    animation: li-ink-float 14s ease-in-out infinite alternate; animation-delay: var(--f, 0s);
+}
+.li-ink__quill { position: absolute; left: var(--qx, 20vw); top: var(--qy, 40vh); width: min(520px, 70vw); height: 110px; opacity: 0; }
+.li-ink__quill.is-writing { animation: li-ink-show 7.5s ease both; }
+.li-ink__script text {
+    font-family: var(--font-serif, 'Libre Baskerville', Georgia, serif); font-style: italic; font-size: 64px;
+    fill: none; stroke: #7a3e3e; stroke-width: 1.1; stroke-linejoin: round;
+    stroke-dasharray: 1400; stroke-dashoffset: 1400; opacity: 0.5;
+}
+.li-ink__quill.is-writing text { animation: li-ink-write 4s cubic-bezier(0.4, 0, 0.6, 1) 0.3s forwards; }
+.li-ink__nib { position: absolute; left: 0; top: 8px; font-size: 34px; color: #7a3e3e; opacity: 0.7; transform: rotate(-35deg); transform-origin: 20% 90%; }
+.li-ink__nib.is-writing { animation: li-ink-nib 4s cubic-bezier(0.4, 0, 0.6, 1) 0.3s forwards, li-ink-wobble 0.35s ease-in-out 0.3s 11; }
+
+@keyframes li-ink-show { 0% { opacity: 0; } 8% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes li-ink-write { to { stroke-dashoffset: 0; } }
+@keyframes li-ink-nib { from { left: 0; } to { left: var(--qw, 60%); } }
+@keyframes li-ink-wobble { 0%, 100% { transform: translate(0, 0) rotate(-35deg); } 50% { transform: translate(1px, 3px) rotate(-31deg); } }
+@keyframes li-ink-float { from { translate: 0 0; } to { translate: 0 -18px; } }
+
+html[data-theme="dark"] .li-ink__word { color: #e2bcbc; opacity: 0.08; }
+html[data-theme="dark"] .li-ink__script text, html[data-theme="dark"] .li-ink__nib { stroke: #e2bcbc; color: #e2bcbc; }
+
+/* Le fond passe au-dessus du dégradé plein écran, la carte au-dessus du fond. */
+.auth-card { position: relative; z-index: 2; }
+
+@media (max-width: 640px) { .li-ink__quill { height: 80px; } .li-ink__nib { font-size: 26px; } }
+@media (prefers-reduced-motion: reduce) { .li-ink__quill { display: none; } .li-ink__word { animation: none; } }
