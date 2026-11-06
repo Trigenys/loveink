@@ -169,3 +169,13 @@
   dark mode `html[data-theme=dark]`, `prefers-reduced-motion`. Ids et `js/pages/auth-action.js` inchangés.
 - Vérifié en local (127.0.0.1:5178) sur les 5 états (bascule `hidden` via JS) et en 375px.
 - Reste : `firebase deploy --only hosting` (accord explicite requis), puis ouvrir un vrai lien de reset.
+
+## 2026-11-06 09:48 — 404, login/register harmonisés, fond plume (déployé partiel)
+
+- Déployé en prod (1cbcf4b) : auth-action redessinée, 404.html (servie par Firebase), en-têtes login/register
+  en style aa-* (cascade adoucie `aa-rise-soft` car la transition page tournée fige le 1er rendu).
+- Commité/poussé NON déployé : fond encre réutilisable `css/ink-quill.css` + `js/core/ink-quill.js`
+  (`<div class="li-ink" data-ink-quill>`, options data-words/data-phrases/data-interval) sur login,
+  register, auth-action, 404. Empilement : .li-ink z 1 au-dessus du dégradé .auth-container, .auth-card z 2.
+- La landing garde sa propre copie (lp-ink) : unification possible plus tard, non régressive.
+- Prochaine étape : `firebase deploy --only hosting` après accord, puis ouvrir un vrai lien de reset.
