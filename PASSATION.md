@@ -296,3 +296,8 @@
 - DNS corrects partout (autoritaires Spaceship, 8.8.8.8, 1.1.1.1) ; Firebase n'a pas encore rafraîchi son cache.
 - Attente d'une heure lancée en tâche de fond dans la session ; relance prévue ensuite (Hosting > loveink.site > Nécessite une configuration > Valider).
 - Si toujours bloqué après 24 h : vérifier qu'aucun enregistrement AAAA/CNAME parasite n'existe sur @ et réessayer en mode « Avancé ».
+
+## 2026-11-06 13:43 — loveink.site connecté à Firebase Hosting (HTTPS OK)
+- Console Firebase : loveink.site état « Connecté » ; `curl -I https://loveink.site` → 200, certificat auto valide.
+- www.loveink.site : pas encore de DNS ni de domaine Firebase → à ajouter (console : Ajouter un domaine personnalisé > www.loveink.site, cocher redirection vers loveink.site, poser les enregistrements A/TXT donnés chez Spaceship).
+- Prochaine étape : bascule du site sur https://loveink.site — BASE dans tests/seo/seo.test.mjs, canonicals/OG/JSON-LD des pages publiques, robots.txt (Sitemap), sitemap.xml, llms.txt, `build:seo --base https://loveink.site`, propriété « Domaine » Search Console (TXT DNS) + sitemap ; déploiement hosting par l'utilisateur (accord explicite) ; vérifier ensuite que love-ink.web.app reste accessible (Firebase ne redirige pas automatiquement : prévoir redirect via firebase.json impossible par hôte sur Spark → canonical suffit).
