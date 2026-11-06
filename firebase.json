@@ -24,6 +24,7 @@
       "tasks/**",
       "docs/**",
       "tests/**",
+      "scripts/**",
       "test-results/**",
       "playwright-report/**",
       "playwright.config.js",
