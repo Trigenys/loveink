@@ -231,3 +231,9 @@
 - Signature : `Trigenys Group` devient `<a href="https://trigenys.com" rel="noopener">` dans les 10 pages ; style `.li-made-by a` dans `css/styles.css`.
 - Vérifié en local (JSON-LD parsable, FAQ rendue, lien signature). Commit `52181af`. **Prod non déployée** : attendre l'accord.
 - Suite possible : OG dynamique par histoire (prérendu via Cloud Function, impossible en hosting statique) ; soumettre `sitemap.xml` dans Google Search Console (action utilisateur).
+
+## 2026-11-06 11:05 — Vérification des pratiques SEO/GEO contre les sources primaires
+- Google Search Central (« AI features ») : aucun fichier IA, aucun schema spécial requis ; critères = page indexable avec extrait, contenu en texte, structured data cohérente avec la page, Search Console vérifiée. FAQ rich results supprimés de Google depuis le 7 mai 2026 (schema FAQPage conservé : valide, cohérent avec la FAQ visible, sans effet Google).
+- `llms.txt` : aucun moteur majeur ne l'utilise (Google, OpenAI) ; conservé car inoffensif, pas un levier.
+- `robots.txt` : groupe explicite OAI-SearchBot / Claude-SearchBot / PerplexityBot (robots de recherche IA, distincts des robots d'entraînement GPTBot/ClaudeBot). Choix d'exclure l'entraînement = décision cliente, non prise.
+- Vrai levier restant : les histoires sont rendues côté client (Firestore) → invisibles au premier passage Googlebot et aux crawlers IA (pas de JS). Prérendu HTML par Cloud Function (titre, auteur, extrait, OG) = prochaine étape si Lee veut que les histoires soient trouvées.

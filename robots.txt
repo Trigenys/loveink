@@ -1,4 +1,21 @@
+# Moteurs classiques et moteurs de réponse (Google AI Mode, ChatGPT search, Claude, Perplexity) :
+# tout est autorisé sauf les espaces connectés. Les robots d'entraînement (GPTBot, ClaudeBot,
+# Google-Extended) suivent la règle générale ; pour les exclure, ajouter un groupe Disallow dédié.
 User-agent: *
+Allow: /
+Disallow: /feed
+Disallow: /profil
+Disallow: /messagerie
+Disallow: /notifications
+Disallow: /parametres
+Disallow: /publier
+Disallow: /mes-histoires
+Disallow: /auth-action
+
+# Robots de recherche IA (citation dans les réponses) : accès explicite au contenu public.
+User-agent: OAI-SearchBot
+User-agent: Claude-SearchBot
+User-agent: PerplexityBot
 Allow: /
 Disallow: /feed
 Disallow: /profil
