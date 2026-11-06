@@ -301,3 +301,10 @@
 - Console Firebase : loveink.site état « Connecté » ; `curl -I https://loveink.site` → 200, certificat auto valide.
 - www.loveink.site : pas encore de DNS ni de domaine Firebase → à ajouter (console : Ajouter un domaine personnalisé > www.loveink.site, cocher redirection vers loveink.site, poser les enregistrements A/TXT donnés chez Spaceship).
 - Prochaine étape : bascule du site sur https://loveink.site — BASE dans tests/seo/seo.test.mjs, canonicals/OG/JSON-LD des pages publiques, robots.txt (Sitemap), sitemap.xml, llms.txt, `build:seo --base https://loveink.site`, propriété « Domaine » Search Console (TXT DNS) + sitemap ; déploiement hosting par l'utilisateur (accord explicite) ; vérifier ensuite que love-ink.web.app reste accessible (Firebase ne redirige pas automatiquement : prévoir redirect via firebase.json impossible par hôte sur Spark → canonical suffit).
+
+## 2026-11-06 13:48 — Bascule du site sur loveink.site (code prêt, déploiement à faire)
+- Commits 0e62702 (bascule : canonicals/OG/JSON-LD, robots, sitemap, llms.txt, histoires/index.html, tests SEO BASE, défauts script SEO/Playwright/mailer) et d3052d0 (2e balise google-site-verification pour https://loveink.site/). Tests SEO 19/19, mailer 3/3.
+- Firebase Auth > Domaines autorisés : loveink.site ajouté (Custom).
+- Search Console : propriété préfixe https://loveink.site/ créée, NON validée (balise HTML, en attente de déploiement) ; sitemap à soumettre ensuite.
+- À FAIRE par l'utilisateur : `npx -y firebase-tools deploy --only hosting --project love-ink --non-interactive` ; puis sur le VPS, `~/loveink-mailer/.env` : APP_BASE_URL=https://loveink.site et ALLOWED_ORIGINS avec loveink.site (+ web.app), redémarrer le mailer (sinon les e-mails de vérification pointent sur web.app et le CORS bloque depuis loveink.site).
+- Après déploiement : Search Console > Valider (balise HTML), soumettre sitemap.xml ; ajouter www.loveink.site dans Hosting (redirection) + DNS chez Spaceship ; aperçus HTML du mailer (server/mailer/preview/*) encore sur web.app, à régénérer si besoin.
