@@ -245,3 +245,11 @@
 - Domaine : canonicals sur love-ink.web.app alors que loveink.site est acheté ; brancher le domaine propre avant d'accumuler des signaux sur le sous-domaine Firebase.
 - Pas de mesure (Search Console non vérifiée), pas de validation Rich Results / schema, pas de test de non-régression sur les balises head, pas d'audit Core Web Vitals (le `@import` Google Fonts ajouté dans styles.css est bloquant au rendu).
 - FAQ inventée (pas de questions réelles d'utilisateurs) ; llms.txt et FAQPage sans effet mesurable.
+
+## 2026-11-06 11:11 — Correctifs SEO (plan 5 étapes) — commit 55ba12c, poussé, NON déployé
+
+- Failles corrigées : title/description/og de `index.html` orientés requêtes ; `@import` Pinyon Script retiré de `css/styles.css` → `<link>` Google Fonts dans les 10 pages signées (feed/profil : ajouté au lien fonts existant) ; `sitemap.xml` réduit (/, /register, /histoires/) sans faux lastmod.
+- Nouveau : `scripts/build-seo-pages.mjs` (`npm run build:seo`) lit les histoires `statut == publie` via Firestore REST runQuery (aucun secret), génère `histoires/<id>.html`, `histoires/genre/<slug>.html`, `histoires/index.html` + `sitemap.xml` ; idempotent (second run = 0 écriture), supprime les pages dépubliées ; `--dry-run`, `--base`, `--project`. CSS `css/story-page.css`. `firebase.json` ignore `scripts/`.
+- Tests `tests/seo/seo.test.mjs` (`npm run test:seo`, node --test, 19 tests verts) : head des pages publiques (canonical, description 50-170, OG, title 10-70), noindex des privées, JSON-LD + FAQ cohérente, robots, sitemap ↔ fichiers, lien Trigenys. Ont attrapé une description de 182 caractères → raccourcie.
+- État : 0 histoire publiée en base (3 `en_attente`) → `histoires/index.html` affiche l'état vide ; relancer `build:seo` avant chaque déploiement une fois des histoires publiées (à automatiser plus tard : CI ou hook de modération).
+- À faire côté utilisateur : accord de déploiement hosting ; règles Firestore prod plus permissives que le dépôt (déployer `firestore:rules` sur accord) ; brancher loveink.site puis `--base https://loveink.site` + BASE des tests ; vérifier Search Console.
