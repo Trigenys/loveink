@@ -267,3 +267,8 @@
 - Déployé `firestore:rules` 11:34, vérifié en prod via REST sans auth : liste et requête non filtrée → « Missing or insufficient permissions », requête `statut == publie` → OK (0 doc).
 - Leçon : « rules are not filters » ne protège pas d'une clause satisfiable par un document hypothétique ; tester systématiquement la liste anonyme non filtrée.
 - Prochaine étape : loveink.site, Search Console, `build:seo` + deploy hosting quand des histoires seront publiées.
+
+## 2026-11-06 11:41 — Search Console : propriété en cours de validation
+
+- Propriété « Préfixe d'URL » https://love-ink.web.app/ créée dans Search Console (compte Google ouvert dans le navigateur intégré). Méthode : balise HTML, ajoutée dans `index.html` (commit 51a29af, poussé).
+- BLOQUÉ : le déploiement hosting a été refusé par le mode auto (classifieur « Production Deploy »). À faire par l'utilisateur : `npx -y firebase-tools deploy --only hosting --project love-ink --non-interactive`, puis cliquer VALIDER dans Search Console, puis Sitemaps → ajouter `sitemap.xml`.
