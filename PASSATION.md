@@ -339,3 +339,9 @@
 - Authentication → Paramètres → Domaines autorisés : `www.loveink.site` ajouté (liste : localhost, love-ink.firebaseapp.com, love-ink.web.app, loveink.site, www.loveink.site).
 - État global : apex et www « Connectés » dans Hosting, HTTPS OK depuis l'extérieur ; prod sur https://loveink.site ; Search Console validée pour loveink.site (sitemap à recontrôler sous 48 h).
 - Seul reste côté utilisateur : VPS `~/loveink-mailer/.env` → APP_BASE_URL=https://loveink.site, ALLOWED_ORIGINS=https://loveink.site,https://www.loveink.site,https://love-ink.web.app ; redémarrer le mailer. Rien à déployer sur Hosting.
+
+## 2026-11-06 16:18 — Mailer VPS basculé sur loveink.site
+
+- VPS `~/loveink-mailer/.env` : APP_BASE_URL=https://loveink.site, ALLOWED_ORIGINS=https://loveink.site,https://www.loveink.site,https://love-ink.web.app (sed en place, secrets intacts). Conteneur recréé (`sudo docker compose up -d --force-recreate`). Preflight CORS depuis https://loveink.site → 204 (testé depuis le VPS).
+- Non testé : preflight depuis www.loveink.site et origine étrangère (le poste de dev ne peut pas joindre mail.loveink.site : pare-feu Fortinet, 403). À lancer depuis le VPS si besoin.
+- Migration de domaine terminée : Hosting (apex + www connectés), Auth (domaines autorisés), Search Console (validée, sitemap à recontrôler sous 48 h), mailer. Aucun verrou restant. Reste optionnel : régénérer `server/mailer/preview/*` (encore web.app), redirection 301 www → apex si souhaitée.
