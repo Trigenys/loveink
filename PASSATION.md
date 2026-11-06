@@ -308,3 +308,8 @@
 - Search Console : propriété préfixe https://loveink.site/ créée, NON validée (balise HTML, en attente de déploiement) ; sitemap à soumettre ensuite.
 - À FAIRE par l'utilisateur : `npx -y firebase-tools deploy --only hosting --project love-ink --non-interactive` ; puis sur le VPS, `~/loveink-mailer/.env` : APP_BASE_URL=https://loveink.site et ALLOWED_ORIGINS avec loveink.site (+ web.app), redémarrer le mailer (sinon les e-mails de vérification pointent sur web.app et le CORS bloque depuis loveink.site).
 - Après déploiement : Search Console > Valider (balise HTML), soumettre sitemap.xml ; ajouter www.loveink.site dans Hosting (redirection) + DNS chez Spaceship ; aperçus HTML du mailer (server/mailer/preview/*) encore sur web.app, à régénérer si besoin.
+
+## 2026-11-06 13:51 — loveink.site en prod, Search Console validée
+- Déploiement hosting fait par l'utilisateur (release complete) ; https://loveink.site/ sert canonical loveink.site, 2 balises google-site-verification, robots → sitemap loveink.site.
+- Search Console : propriété https://loveink.site/ validée (balise HTML) ; sitemap.xml soumis, état initial « Impossible de récupérer » (idem web.app le 06/11 11:43 ; fichier 200) → recontrôler sous 48 h. Piège noté : dans le dialogue de validation, plusieurs boutons « Valider » (un par méthode) ; cliquer celui qui suit la balise meta, sinon c'est la méthode DNS qui est testée.
+- Reste : VPS mailer .env (APP_BASE_URL, ALLOWED_ORIGINS) par l'utilisateur ; www.loveink.site (Hosting + DNS Spaceship) ; ancienne propriété web.app à garder (ou « changement d'adresse » plus tard) ; aperçus mailer server/mailer/preview/* encore sur web.app.
