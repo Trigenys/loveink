@@ -205,3 +205,9 @@
 - `css/auth-action.css` : bloc `.legal-card` (kicker/titre centrés, titre 2rem, sections décalées 0.3s).
 - Piège : `fa-shield-heart` n'existe pas en Font Awesome 6.0.0 (CDN du projet) → icône vide ; vérifier `getComputedStyle(i,'::before').content` avant d'employer une icône récente.
 - Vérifié en local desktop + mobile (fond, alignements, pas de débordement). Commit 4ad4f36 poussé. **Prod non déployée** : attendre l'accord.
+
+## 2026-11-06 10:35 — Pages légales « moins ennuyeuses » (non déployé)
+- Chapitres : `section.lc-chapter` → badge rond icône + numéro (`.lc-num`), titre `.lc-h2` avec trait dessiné à l'apparition, lettrine, fil vertical entre chapitres, signature `.lc-sign` en bas.
+- `js/pages/legal.js` : IntersectionObserver ajoute `is-seen` ; reduced-motion = tout visible.
+- Vérifié local desktop + mobile (icônes présentes en FA 6.0.0, pas de débordement). Note : les captures du panneau navigateur ont parfois un frame de retard, re-capturer avant de conclure à un bug.
+- Commit `89caf86`. **Prod non déployée** : attendre l'accord.
