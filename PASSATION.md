@@ -220,3 +220,6 @@
 - Convention reprise de Xeption (`xeption237/components/Footer.tsx`) : « Made *by* Trigenys Group », « by » en **Pinyon Script** (Google Fonts), accent rose ici (doré chez Xeption).
 - `css/styles.css` : `@import` Pinyon Script en 1re ligne + `.li-made-by` ; `css/landing.css` : pleine largeur dans `.lp-footer`. Markup `<p class="li-made-by">Made <em>by</em> Trigenys Group</p>` dans 10 pages (feed/profil/histoire non vérifiés visuellement : connexion requise).
 - Commit `073e8b2`. **Prod non déployée** : attendre l'accord.
+
+## 2026-11-06 10:44 — Signature studio déployée en prod
+- Déploiement Firebase Hosting OK (commits jusqu'à afc791d). Vérifié par curl : signature présente sur /, /login, /conditions, /feed ; Pinyon Script dans styles.css. Prod = dépôt.
