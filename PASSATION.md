@@ -291,3 +291,8 @@
 - A 199.36.158.100 et TXT hosting-site=love-ink confirmés sur les NS autoritaires (launch1/launch2.spaceship.net) et sur 8.8.8.8 / 1.1.1.1.
 - Console Firebase : « Valider » cliqué 2 fois → « Enregistrements pas encore détectés » (cache résolveur Firebase, jusqu'à 24 h ; revérification automatique).
 - À faire : rouvrir Hosting > loveink.site > Valider dans ~1 h ; quand l'état passe à « Connecté », vérifier `curl -I https://loveink.site` (certificat auto), puis bascule BASE + Search Console (voir entrée précédente).
+
+## 2026-11-06 12:42 — Validation Firebase relancée (3e essai), toujours « pas encore détectés »
+- DNS corrects partout (autoritaires Spaceship, 8.8.8.8, 1.1.1.1) ; Firebase n'a pas encore rafraîchi son cache.
+- Attente d'une heure lancée en tâche de fond dans la session ; relance prévue ensuite (Hosting > loveink.site > Nécessite une configuration > Valider).
+- Si toujours bloqué après 24 h : vérifier qu'aucun enregistrement AAAA/CNAME parasite n'existe sur @ et réessayer en mode « Avancé ».
