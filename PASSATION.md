@@ -345,3 +345,7 @@
 - VPS `~/loveink-mailer/.env` : APP_BASE_URL=https://loveink.site, ALLOWED_ORIGINS=https://loveink.site,https://www.loveink.site,https://love-ink.web.app (sed en place, secrets intacts). Conteneur recréé (`sudo docker compose up -d --force-recreate`). Preflight CORS depuis https://loveink.site → 204 (testé depuis le VPS).
 - Non testé : preflight depuis www.loveink.site et origine étrangère (le poste de dev ne peut pas joindre mail.loveink.site : pare-feu Fortinet, 403). À lancer depuis le VPS si besoin.
 - Migration de domaine terminée : Hosting (apex + www connectés), Auth (domaines autorisés), Search Console (validée, sitemap à recontrôler sous 48 h), mailer. Aucun verrou restant. Reste optionnel : régénérer `server/mailer/preview/*` (encore web.app), redirection 301 www → apex si souhaitée.
+
+## 2026-11-06 16:19 — CORS mailer vérifié pour www
+
+- Preflight depuis le VPS : https://www.loveink.site → 204, https://evil.example → 403. Allowlist CORS du mailer confirmée pour apex, www et web.app. Migration de domaine entièrement vérifiée, aucun reste bloquant.
