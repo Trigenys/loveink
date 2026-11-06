@@ -1,0 +1,69 @@
+/* Page de retour des e-mails (auth-action.html) : emblème par état, apparition en cascade. */
+.auth-card.aa-card { padding: 44px 44px 36px; position: relative; overflow: hidden; }
+.aa-card::before {
+    content: ""; position: absolute; inset: 0 0 auto 0; height: 6px;
+    background: linear-gradient(90deg, #e2bcbc, #b76e6e 50%, #e2bcbc);
+}
+
+.aa-emblem {
+    width: 92px; height: 92px; margin: 6px auto 22px; position: relative;
+    display: grid; place-items: center; border-radius: 50%;
+    background: radial-gradient(circle at 30% 25%, #fff6f3, #f3d9d4);
+    color: #b76e6e; font-size: 2rem;
+    box-shadow: 0 12px 30px -12px rgba(183, 110, 110, 0.45), inset 0 0 0 1px rgba(183, 110, 110, 0.18);
+}
+.aa-emblem::after {
+    content: ""; position: absolute; inset: -9px; border-radius: 50%;
+    border: 1.5px dashed rgba(183, 110, 110, 0.35);
+    animation: aa-spin 24s linear infinite;
+}
+.aa-emblem--ok { background: radial-gradient(circle at 30% 25%, #fff, #e4cfc9); color: #7a3e3e; }
+.aa-emblem--ok i { animation: aa-pop 0.7s cubic-bezier(0.2, 1.4, 0.4, 1) both; }
+.aa-emblem--loading i { animation: aa-write 1.4s ease-in-out infinite; }
+.aa-emblem--error { background: radial-gradient(circle at 30% 25%, #fff, #efe3df); color: #9c7a74; }
+
+.aa-kicker {
+    display: block; margin: 0 0 6px; font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase;
+    color: #b76e6e; font-weight: 600;
+}
+.auth-card .aa-title { font-size: 2.1rem; line-height: 1.15; margin-bottom: 14px; }
+.aa-title em { font-style: italic; color: #7a3e3e; }
+.aa-stroke {
+    width: 64px; height: 3px; margin: 0 auto 18px; border-radius: 3px;
+    background: linear-gradient(90deg, #b76e6e, #e2bcbc); transform-origin: left;
+    animation: aa-draw 0.9s 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.auth-card .aa-text { max-width: 34ch; margin: 0 auto 26px; line-height: 1.6; }
+.auth-card .aa-text strong { color: #7a3e3e; }
+.aa-cta { width: 100%; display: inline-block; text-align: center; }
+.aa-cta i { margin-left: 8px; font-size: 0.85em; transition: transform 0.3s ease; }
+.aa-cta:hover i { transform: translateX(4px); }
+.aa-dots { display: inline-flex; gap: 6px; margin-left: 4px; vertical-align: middle; }
+.aa-dots span { width: 6px; height: 6px; border-radius: 50%; background: #b76e6e; animation: aa-blink 1.2s infinite; }
+.aa-dots span:nth-child(2) { animation-delay: 0.2s; }
+.aa-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+/* Cascade d'apparition : chaque état anime ses enfants quand il devient visible. */
+section:not([hidden]) > .aa-in { animation: aa-rise 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+section:not([hidden]) > .aa-in:nth-child(2) { animation-delay: 0.08s; }
+section:not([hidden]) > .aa-in:nth-child(3) { animation-delay: 0.16s; }
+section:not([hidden]) > .aa-in:nth-child(4) { animation-delay: 0.24s; }
+section:not([hidden]) > .aa-in:nth-child(5) { animation-delay: 0.32s; }
+section:not([hidden]) > .aa-in:nth-child(6) { animation-delay: 0.4s; }
+
+@keyframes aa-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes aa-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes aa-pop { from { transform: scale(0.4) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes aa-spin { to { transform: rotate(360deg); } }
+@keyframes aa-write { 0%, 100% { transform: translate(0, 0) rotate(0); } 50% { transform: translate(3px, -3px) rotate(-8deg); } }
+@keyframes aa-blink { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+html[data-theme="dark"] .aa-emblem, html[data-theme="dark"] .aa-emblem--ok, html[data-theme="dark"] .aa-emblem--error {
+    background: radial-gradient(circle at 30% 25%, #3c2e2e, #2e2323); color: #e2bcbc;
+}
+html[data-theme="dark"] .aa-kicker, html[data-theme="dark"] .aa-title em, html[data-theme="dark"] .auth-card .aa-text strong { color: #e2bcbc; }
+
+@media (max-width: 480px) { .auth-card.aa-card { padding: 36px 24px 28px; } .auth-card .aa-title { font-size: 1.8rem; } }
+@media (prefers-reduced-motion: reduce) {
+    .aa-in, .aa-stroke, .aa-emblem::after, .aa-emblem i, .aa-dots span { animation: none !important; }
+}

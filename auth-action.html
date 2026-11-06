@@ -10,11 +10,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="css/auth-form.css">
+    <link rel="stylesheet" href="css/auth-action.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
     <div class="auth-container">
-        <div class="auth-card">
+        <div class="auth-card aa-card">
             <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
                 <div class="logo-icon">
                     <i class="fas fa-heart logo-heart"></i>
@@ -26,22 +27,29 @@
 
             <!-- État : chargement / vérification -->
             <section id="stateLoading" aria-live="polite">
-                <h1>Un instant…</h1>
-                <p>Nous vérifions votre lien.</p>
+                <div class="aa-emblem aa-emblem--loading aa-in" aria-hidden="true"><i class="fas fa-pen-nib"></i></div>
+                <span class="aa-kicker aa-in">Un instant</span>
+                <h1 class="aa-title aa-in">On vérifie votre lien<span class="aa-dots" aria-hidden="true"><span></span><span></span><span></span></span></h1>
+                <p class="aa-text aa-in">L'encre sèche, ça ne prend qu'une seconde.</p>
             </section>
 
             <!-- État : adresse confirmée -->
             <section id="stateVerified" hidden>
-                <h1>Adresse confirmée</h1>
-                <p>Votre carnet est ouvert. Vos histoires, vos lectures et vos messages sont bien à vous.</p>
-                <a class="btn btn-primary" id="verifiedCta" href="feed.html" style="width: 100%; display: inline-block; text-align: center;">Entrer dans Love Ink</a>
+                <div class="aa-emblem aa-emblem--ok aa-in" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></div>
+                <span class="aa-kicker aa-in">Adresse confirmée</span>
+                <h1 class="aa-title aa-in">Votre carnet <em>vous attend</em>.</h1>
+                <div class="aa-stroke aa-in" aria-hidden="true"></div>
+                <p class="aa-text aa-in">C'est officiel : vos histoires, vos lectures et vos messages sont bien à vous. Il ne reste plus qu'à ouvrir la première page.</p>
+                <a class="btn btn-primary aa-cta aa-in" id="verifiedCta" href="feed.html">Entrer dans Love Ink<i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </section>
 
             <!-- État : nouveau mot de passe -->
             <section id="stateReset" hidden>
-                <h1>Nouveau mot de passe</h1>
-                <p>Pour le compte <strong id="resetAccount"></strong></p>
-                <form class="auth-form" id="resetForm" novalidate>
+                <div class="aa-emblem aa-in" aria-hidden="true"><i class="fas fa-key"></i></div>
+                <span class="aa-kicker aa-in">Nouveau chapitre</span>
+                <h1 class="aa-title aa-in">Choisissez votre <em>nouveau</em> mot de passe</h1>
+                <p class="aa-text aa-in">Pour le compte <strong id="resetAccount"></strong></p>
+                <form class="auth-form aa-in" id="resetForm" novalidate>
                     <div class="form-group">
                         <label for="password">Nouveau mot de passe</label>
                         <div class="pw-field">
@@ -63,16 +71,22 @@
 
             <!-- État : mot de passe changé -->
             <section id="stateResetDone" hidden>
-                <h1>Mot de passe enregistré</h1>
-                <p>On a tourné la page, sans perdre l'histoire. Vous pouvez vous connecter avec votre nouveau mot de passe.</p>
-                <a class="btn btn-primary" href="login.html" style="width: 100%; display: inline-block; text-align: center;">Se connecter</a>
+                <div class="aa-emblem aa-emblem--ok aa-in" aria-hidden="true"><i class="fas fa-check"></i></div>
+                <span class="aa-kicker aa-in">Mot de passe enregistré</span>
+                <h1 class="aa-title aa-in">On a tourné la page, <em>sans perdre l'histoire</em>.</h1>
+                <div class="aa-stroke aa-in" aria-hidden="true"></div>
+                <p class="aa-text aa-in">Vous pouvez vous connecter dès maintenant avec votre nouveau mot de passe.</p>
+                <a class="btn btn-primary aa-cta aa-in" href="login.html">Se connecter<i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </section>
 
             <!-- État : lien invalide ou expiré -->
             <section id="stateError" hidden>
-                <h1>Ce lien n'est plus valable</h1>
-                <p id="errorText">Il a peut-être expiré ou déjà été utilisé.</p>
-                <a class="btn btn-primary" id="errorCta" href="login.html" style="width: 100%; display: inline-block; text-align: center;">Retour à la connexion</a>
+                <div class="aa-emblem aa-emblem--error aa-in" aria-hidden="true"><i class="fas fa-unlink"></i></div>
+                <span class="aa-kicker aa-in">Petit contretemps</span>
+                <h1 class="aa-title aa-in">Ce lien a déjà <em>vécu sa vie</em>.</h1>
+                <div class="aa-stroke aa-in" aria-hidden="true"></div>
+                <p class="aa-text aa-in" id="errorText">Il a peut-être expiré ou déjà été utilisé. Rien de grave : on vous en envoie un neuf.</p>
+                <a class="btn btn-primary aa-cta aa-in" id="errorCta" href="login.html">Retour à la connexion<i class="fas fa-arrow-right" aria-hidden="true"></i></a>
             </section>
 
             <div class="auth-footer">
