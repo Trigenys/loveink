@@ -278,3 +278,11 @@
 - Hosting déployé par l'utilisateur (balise servie en prod). Propriété https://love-ink.web.app/ validée (méthode balise HTML — ne pas retirer la balise d'`index.html`). Compte Google utilisé : celui ouvert dans le navigateur intégré (lawrynnjennifer).
 - `sitemap.xml` soumis ; état initial « Impossible de récupérer le sitemap » (classique sur une propriété neuve, Google relit sous quelques jours). Sitemap vérifié en 200 / application/xml. À recontrôler dans Search Console > Sitemaps ; si toujours en erreur après 48 h, resoumettre.
 - Prochaine étape : brancher loveink.site (ajouter alors une propriété Domaine + `--base`), relancer `build:seo` + deploy quand des histoires seront publiées.
+
+## 2026-11-06 11:48 — Domaine loveink.site ajouté dans Firebase Hosting (DNS à poser)
+- Console Firebase > Hosting > site love-ink : domaine personnalisé `loveink.site` ajouté, état « Nécessite une configuration » (mode Configuration rapide).
+- Enregistrements à créer chez le registrar du domaine (zone loveink.site) :
+  - A    @ (loveink.site)   → 199.36.158.100
+  - TXT  @ (loveink.site)   → hosting-site=love-ink
+- Ensuite : console Firebase > domaine loveink.site > « Valider » ; propagation DNS + certificat SSL automatique (quelques minutes à 24 h).
+- Après activation : ajouter aussi `www.loveink.site` (redirection vers loveink.site), basculer BASE dans index/llms.txt/robots/sitemap/tests SEO et `build:seo --base https://loveink.site`, propriété « Domaine » Search Console, redéploiement (par l'utilisateur).
