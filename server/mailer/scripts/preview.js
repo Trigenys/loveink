@@ -8,10 +8,10 @@ const out = path.join(__dirname, '..', 'preview');
 fs.mkdirSync(out, { recursive: true });
 const ctx = {
     brandName: 'Love Ink',
-    appBaseUrl: 'https://love-ink.web.app',
+    appBaseUrl: 'https://loveink.site',
     logoUrl: '',
     pseudo: 'Lee',
-    link: 'https://love-ink.web.app/auth-action.html?mode=verifyEmail&oobCode=EXEMPLE'
+    link: 'https://loveink.site/auth-action.html?mode=verifyEmail&oobCode=EXEMPLE'
 };
 for (const [name, build] of Object.entries(templates)) {
     const m = build(ctx);

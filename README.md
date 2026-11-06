@@ -67,7 +67,7 @@ A lancer avant tout `deploy:firestore` : chaque faille corrigee a un test d'atta
 
 ## Tests automatiques E2E (Playwright)
 
-Par defaut, les tests tournent contre `https://love-ink.web.app`.
+Par defaut, les tests tournent contre `https://loveink.site`.
 
 ```bash
 npm test

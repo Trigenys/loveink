@@ -3,14 +3,14 @@
 // donc indexables par les moteurs et les crawlers IA), une page par genre, un index, et le sitemap.
 // Source : Firestore REST (lecture publique des histoires `statut == "publie"`, aucune clé secrète).
 // Idempotent : n'écrit un fichier que si son contenu change ; supprime les pages d'histoires retirées.
-// Usage : node scripts/build-seo-pages.mjs [--base https://love-ink.web.app] [--project love-ink] [--dry-run]
+// Usage : node scripts/build-seo-pages.mjs [--base https://loveink.site] [--project love-ink] [--dry-run]
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const args = Object.fromEntries(process.argv.slice(2).map((a, i, all) => a.startsWith('--') ? [a.slice(2), all[i + 1]?.startsWith('--') || all[i + 1] === undefined ? true : all[i + 1]] : []).filter(Boolean));
-const BASE = String(args.base || process.env.SITE_BASE_URL || 'https://love-ink.web.app').replace(/\/$/, '');
+const BASE = String(args.base || process.env.SITE_BASE_URL || 'https://loveink.site').replace(/\/$/, '');
 const PROJECT = String(args.project || process.env.FIREBASE_PROJECT || 'love-ink');
 const DRY = args['dry-run'] === true;
 const OUT = join(ROOT, 'histoires');

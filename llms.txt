@@ -12,12 +12,12 @@
 - Fonctionne dans le navigateur, sur téléphone et ordinateur.
 
 ## Pages
-- [Accueil](https://love-ink.web.app/) : présentation, fonctionnement, questions fréquentes
-- [Inscription](https://love-ink.web.app/register)
-- [Connexion](https://love-ink.web.app/login)
-- [Devenir modérateur](https://love-ink.web.app/candidature-modo)
-- [Conditions d'utilisation](https://love-ink.web.app/conditions)
-- [Politique de confidentialité](https://love-ink.web.app/confidentialite)
+- [Accueil](https://loveink.site/) : présentation, fonctionnement, questions fréquentes
+- [Inscription](https://loveink.site/register)
+- [Connexion](https://loveink.site/login)
+- [Devenir modérateur](https://loveink.site/candidature-modo)
+- [Conditions d'utilisation](https://loveink.site/conditions)
+- [Politique de confidentialité](https://loveink.site/confidentialite)
 
 ## Éditeur
 - Trigenys Group : https://trigenys.com

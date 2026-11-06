@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const read = (f) => readFileSync(join(ROOT, f), 'utf8');
-const BASE = 'https://love-ink.web.app';
+const BASE = 'https://loveink.site';
 
 const PUBLIC = { 'index.html': '/', 'login.html': '/login', 'register.html': '/register', 'conditions.html': '/conditions', 'confidentialite.html': '/confidentialite', 'candidature-modo.html': '/candidature-modo' };
 const PRIVATE = ['feed.html', 'profil.html', 'messagerie.html', 'notifications.html', 'parametres.html', 'publier.html', 'mes-histoires.html', 'auth-action.html', '404.html'];

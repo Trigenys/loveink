@@ -26,4 +26,4 @@ Disallow: /publier
 Disallow: /mes-histoires
 Disallow: /auth-action
 
-Sitemap: https://love-ink.web.app/sitemap.xml
+Sitemap: https://loveink.site/sitemap.xml

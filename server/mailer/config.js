@@ -10,7 +10,7 @@ const list = (name, fallback = []) => (process.env[name] ? process.env[name].spl
 module.exports = {
     port: Number(process.env.PORT || 8787),
     brandName: process.env.BRAND_NAME || 'Love Ink',
-    appBaseUrl: required('APP_BASE_URL').replace(/\/$/, ''),           // ex. https://love-ink.web.app
+    appBaseUrl: required('APP_BASE_URL').replace(/\/$/, ''),           // ex. https://loveink.site
     actionPath: process.env.ACTION_PATH || '/auth-action.html',         // page de retour thématisée dans l'app
     mailFrom: required('MAIL_FROM'),                                     // ex. "Love Ink <no-reply@loveink.site>"
     replyTo: process.env.MAIL_REPLY_TO || '',
