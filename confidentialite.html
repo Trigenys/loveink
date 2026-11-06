@@ -9,11 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="css/auth-form.css">
+    <link rel="stylesheet" href="css/auth-action.css">
+    <link rel="stylesheet" href="css/ink-quill.css">
     <script src="js/core/immersive.js" defer></script>
+    <script src="js/core/ink-quill.js" defer></script>
 </head>
 <body>
+    <div class="li-ink" data-ink-quill aria-hidden="true"></div>
     <div class="auth-container">
-        <main class="auth-card legal-card">
+        <main class="auth-card aa-card legal-card">
             <a href="index.html" class="logo-custom" style="justify-content: center; margin-bottom: 20px;">
                 <div class="logo-icon">
                     <i class="fas fa-heart logo-heart"></i>
@@ -22,8 +26,11 @@
                 </div>
                 <span class="logo-text">Love Ink</span>
             </a>
-            <h1>Politique de confidentialité</h1>
-            <p class="legal-updated">Dernière mise à jour : 5 novembre 2026</p>
+            <div class="aa-emblem aa-in" aria-hidden="true"><i class="fas fa-user-shield"></i></div>
+            <span class="aa-kicker aa-in">Vos données, votre histoire</span>
+            <h1 class="aa-title aa-in">Politique de <em>confidentialité</em></h1>
+            <div class="aa-stroke aa-in" aria-hidden="true"></div>
+            <p class="legal-updated aa-in">Dernière mise à jour : 5 novembre 2026</p>
 
             <section>
                 <h2>1. Données collectées</h2>

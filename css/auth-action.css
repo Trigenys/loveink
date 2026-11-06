@@ -75,3 +75,9 @@ html[data-theme="dark"] .aa-kicker, html[data-theme="dark"] .aa-title em, html[d
 .aa-card > .aa-in:nth-of-type(2), .aa-card > h1.aa-in { animation-delay: 0.08s; }
 .aa-card > p.aa-in { animation-delay: 0.16s; }
 .aa-card > form.aa-in { animation-delay: 0.24s; }
+
+/* Pages légales : en-tête centré au-dessus d'un texte aligné à gauche. */
+.legal-card .aa-kicker, .legal-card .aa-title { text-align: center; }
+.legal-card .aa-title { font-size: 2rem; }
+.legal-card .aa-stroke { margin-bottom: 14px; }
+.legal-card > section.aa-in { animation-delay: 0.3s; }
