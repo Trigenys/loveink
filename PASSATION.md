@@ -349,3 +349,9 @@
 ## 2026-11-06 16:19 — CORS mailer vérifié pour www
 
 - Preflight depuis le VPS : https://www.loveink.site → 204, https://evil.example → 403. Allowlist CORS du mailer confirmée pour apex, www et web.app. Migration de domaine entièrement vérifiée, aucun reste bloquant.
+
+## 2026-11-06 16:25 — Mission SEO/GEO « industry grade » lancée
+
+- État : migration domaine finie. Nouvelle mission : porter SEO + GEO à un niveau industry grade. Audit/plan confié à l'agent architecte (firebase.json headers/cache/301, JSON-LD par page histoire/genre, sitemap complet + lastmod, RSS/Atom, llms-full.txt, IndexNow/Bing, perf fonts/FontAwesome/images, automatisation régénération + déploiement via GitHub Action, maillage interne, pages genre avec intro).
+- Mesure perf : Lighthouse local refusé par le classifieur auto mode (`npx lighthouse --no-sandbox`), API PageSpeed en quota 429 ; mesure via https://pagespeed.web.dev dans le navigateur intégré en cours.
+- Verrous : aucun. Prochaine étape : appliquer le plan de l'architecte par chantiers vérifiables (tests node --test tests/seo, build:seo), puis déploiement par l'utilisateur.
