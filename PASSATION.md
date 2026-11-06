@@ -184,3 +184,8 @@
 
 - Commit poussé, non déployé : taille des mots en filigrane divisée par deux (clamp 1.4rem–3.6rem).
 - Prochaine étape : déploiement hosting après accord (fond plume + cette retouche).
+
+## 2026-11-06 10:06 — fond plume déployé en production
+
+- Hosting déployé (jusqu au commit 9a9c14b) : auth-action, 404, login/register harmonisés, fond encre avec mots réduits. Vérifié : /login contient data-ink-quill, ink-quill.css servi.
+- Reste : ouvrir un vrai lien de reset en prod ; unifier la landing sur la brique ink-quill (optionnel).
