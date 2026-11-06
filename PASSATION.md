@@ -237,3 +237,11 @@
 - `llms.txt` : aucun moteur majeur ne l'utilise (Google, OpenAI) ; conservé car inoffensif, pas un levier.
 - `robots.txt` : groupe explicite OAI-SearchBot / Claude-SearchBot / PerplexityBot (robots de recherche IA, distincts des robots d'entraînement GPTBot/ClaudeBot). Choix d'exclure l'entraînement = décision cliente, non prise.
 - Vrai levier restant : les histoires sont rendues côté client (Firestore) → invisibles au premier passage Googlebot et aux crawlers IA (pas de JS). Prérendu HTML par Cloud Function (titre, auteur, extrait, OG) = prochaine étape si Lee veut que les histoires soient trouvées.
+
+## 2026-11-06 11:20 — Autocritique SEO/GEO (failles identifiées, non corrigées)
+- histoire.html exige la connexion (`requireAuth` → redirection index.html) : les histoires sont inaccessibles à tout crawler. Le `document.title` dynamique et l'indexabilité de histoire.html sont sans effet. Le seul contenu indexable du site est la landing.
+- Sitemap : 4 URL sur 6 (login, conditions, confidentialité, candidature) n'ont aucune intention de recherche ; `lastmod` = date du jour partout (fausse fraîcheur).
+- Aucune recherche de mots-clés ; title/H1 poétiques (« L'encre des cœurs ») sans requête cible (« histoires d'amour à lire gratuitement », « romance en ligne »…). Pas de pages par genre ni par auteur = pas de surface SEO.
+- Domaine : canonicals sur love-ink.web.app alors que loveink.site est acheté ; brancher le domaine propre avant d'accumuler des signaux sur le sous-domaine Firebase.
+- Pas de mesure (Search Console non vérifiée), pas de validation Rich Results / schema, pas de test de non-régression sur les balises head, pas d'audit Core Web Vitals (le `@import` Google Fonts ajouté dans styles.css est bloquant au rendu).
+- FAQ inventée (pas de questions réelles d'utilisateurs) ; llms.txt et FAQPage sans effet mesurable.
