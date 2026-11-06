@@ -272,3 +272,9 @@
 
 - Propriété « Préfixe d'URL » https://love-ink.web.app/ créée dans Search Console (compte Google ouvert dans le navigateur intégré). Méthode : balise HTML, ajoutée dans `index.html` (commit 51a29af, poussé).
 - BLOQUÉ : le déploiement hosting a été refusé par le mode auto (classifieur « Production Deploy »). À faire par l'utilisateur : `npx -y firebase-tools deploy --only hosting --project love-ink --non-interactive`, puis cliquer VALIDER dans Search Console, puis Sitemaps → ajouter `sitemap.xml`.
+
+## 2026-11-06 11:43 — Search Console : propriété validée, sitemap soumis
+
+- Hosting déployé par l'utilisateur (balise servie en prod). Propriété https://love-ink.web.app/ validée (méthode balise HTML — ne pas retirer la balise d'`index.html`). Compte Google utilisé : celui ouvert dans le navigateur intégré (lawrynnjennifer).
+- `sitemap.xml` soumis ; état initial « Impossible de récupérer le sitemap » (classique sur une propriété neuve, Google relit sous quelques jours). Sitemap vérifié en 200 / application/xml. À recontrôler dans Search Console > Sitemaps ; si toujours en erreur après 48 h, resoumettre.
+- Prochaine étape : brancher loveink.site (ajouter alors une propriété Domaine + `--base`), relancer `build:seo` + deploy quand des histoires seront publiées.
