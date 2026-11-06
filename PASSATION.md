@@ -194,3 +194,8 @@
 
 - index.html : balises og:* et twitter:* ; image images/og-love-ink.jpg (1200x630, 43 Ko, générée depuis hero-lettre.webp).
 - Prochaine étape : déployer le hosting après accord ; WhatsApp met en cache l aperçu, renvoyer le lien après déploiement.
+
+## 2026-11-06 10:23 — Open Graph déployé en production
+
+- Hosting déployé (b9743e1) : og:* et twitter:* sur la landing, image /images/og-love-ink.jpg servie (200). Le CDN garde l ancienne page ~1 h (max-age 3600), l aperçu WhatsApp est aussi mis en cache côté Meta.
+- Suites possibles : OG sur login/register/histoire.html (titre d histoire dynamique), unifier la plume landing sur ink-quill.
