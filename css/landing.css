@@ -22,7 +22,7 @@ body.lp { margin: 0; font-family: var(--font-sans); color: var(--ink); backgroun
 .lp h2 em, .lp h1 em { font-style: italic; font-weight: 300; }
 .lp p { margin: 0; }
 .lp-wrap { width: min(1180px, 100% - 40px); margin-inline: auto; }
-.lp-eyebrow { font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rose-mid); font-weight: 500; }
+.lp-eyebrow { font-size: 0.74rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--rose-deep); font-weight: 500; }
 .lp-lead { font-size: clamp(1.05rem, 1.5vw, 1.2rem); color: var(--ink-muted); max-width: 54ch; }
 
 /* ---------- Fond : mots parallax + plume ---------- */
@@ -272,7 +272,16 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
 /* Footer */
 .lp-footer { border-top: 1px solid var(--border); padding: 36px 0 44px; font-size: 0.85rem; color: var(--ink-muted); }
 .lp-footer__in { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; justify-content: space-between; }
-.lp-footer .li-made-by { flex-basis: 100%; margin-top: 0; }
+.lp-footer .li-made-by { flex-basis: 100%; margin-top: 0; opacity: 1; color: var(--ink-muted); }
+.lp-footer .li-made-by em { color: var(--rose-deep); }
+.lp-latest { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
+.lp-latest a { display: grid; gap: 4px; padding: 18px 20px; background: var(--paper); border: 1px solid var(--border); border-radius: 16px; text-decoration: none; transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.lp-latest a:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -22px rgba(122, 62, 62, 0.5); }
+.lp-latest strong { font-family: var(--font-serif); font-weight: 500; font-size: 1.35rem; color: var(--rose-deep); }
+.lp-latest span { font-size: 0.85rem; color: var(--ink-muted); }
+.lp-latest__genres, .lp-latest__all { margin-top: 22px; color: var(--ink-muted); }
+.lp-latest__genres a { color: var(--rose-deep); }
+.lp-latest-section .lp-lead { margin-top: 18px; }
 .lp-footer nav { display: flex; flex-wrap: wrap; gap: 20px; }
 .lp-footer a { text-decoration: none; color: var(--ink-muted); }
 .lp-footer a:hover { color: var(--rose-deep); }

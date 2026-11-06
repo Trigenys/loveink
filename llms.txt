@@ -19,5 +19,14 @@
 - [Conditions d'utilisation](https://loveink.site/conditions)
 - [Politique de confidentialité](https://loveink.site/confidentialite)
 
+<!-- llms:histoires:start -->
+## Histoires publiées
+- [Bibliothèque](https://loveink.site/histoires/) : toutes les histoires, lisibles sans compte
+- [Flux Atom](https://loveink.site/histoires/flux.xml)
+<!-- llms:histoires:end -->
+
+## Version détaillée
+- https://loveink.site/llms-full.txt : présentation et extraits des histoires publiées
+
 ## Éditeur
 - Trigenys Group : https://trigenys.com

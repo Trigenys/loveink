@@ -1,0 +1,35 @@
+{
+  "_doc": "Textes des pages de genre (/histoires/genre/<slug>). Clé = valeur exacte du champ `categorie` des histoires (liste dans publier.html). `intro` : paragraphes séparés par une ligne vide. `description` : meta, 50-160 caractères. `faq` facultative : [{ \"q\": \"...\", \"a\": \"...\" }]. Textes provisoires à faire valider par la cliente.",
+  "Premier amour": {
+    "description": "Histoires de premier amour à lire gratuitement en français : premiers regards, premiers messages, premiers aveux, écrits par la communauté Love Ink.",
+    "intro": "Le premier amour a ce goût particulier : on ne sait pas encore que l'on écrit une histoire, on la vit. Les textes réunis ici racontent les premiers regards, les premiers messages relus cent fois, les premiers aveux.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Amour heureux": {
+    "description": "Histoires d'amour heureux à lire gratuitement en français : couples qui durent, tendresse du quotidien, bonheur simple, écrites par la communauté Love Ink.",
+    "intro": "Tout ne finit pas mal. Ces histoires racontent les amours qui tiennent : le quotidien à deux, les petites attentions, la tendresse qui ne fait pas de bruit mais qui reste.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Amour magique": {
+    "description": "Histoires d'amour magique en français : rencontres impossibles, destins liés, un soupçon de fantastique. Lecture gratuite sur Love Ink.",
+    "intro": "Un hasard trop grand pour être un hasard, un signe, un lieu qui n'existe sur aucune carte : ici l'amour s'autorise un peu de magie. Contes, destins croisés et rencontres impossibles.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Histoires tristes": {
+    "description": "Histoires d'amour tristes à lire en français : ruptures, absences, amours qui finissent. Textes relus avant publication, lecture gratuite sur Love Ink.",
+    "intro": "Certaines histoires ne finissent pas bien, et c'est pour cela qu'on les écrit. Ruptures, absences, lettres jamais envoyées : les textes de ce genre disent ce qui reste quand l'amour s'en va.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Lettres d'amour": {
+    "description": "Lettres d'amour à lire gratuitement en français : déclarations, lettres d'adieu, mots jamais envoyés, écrites par la communauté Love Ink.",
+    "intro": "Une lettre dit ce que l'on n'ose pas dire en face. Déclarations, lettres d'adieu, mots gardés dans un tiroir : ce genre réunit les textes écrits à la deuxième personne, pour quelqu'un.\n\nChaque lettre est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Poésie d'amour": {
+    "description": "Poèmes d'amour en français à lire gratuitement : vers libres, sonnets, textes courts, écrits par la communauté Love Ink et relus avant publication.",
+    "intro": "Quelques vers suffisent parfois. Ce genre rassemble les poèmes d'amour de la communauté : vers libres, sonnets, textes courts à lire d'un souffle.\n\nChaque poème est relu avant publication et se lit gratuitement, sans compte."
+  },
+  "Aventure estivale": {
+    "description": "Histoires d'amour d'été à lire gratuitement en français : vacances, rencontres de passage, amours qui durent une saison, écrites par la communauté Love Ink.",
+    "intro": "Un été, une plage, une rencontre qui n'était pas prévue. Les aventures estivales durent une saison, ou toute une vie : ces histoires racontent les deux.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  },
+  "Rencontres": {
+    "description": "Histoires de rencontres amoureuses à lire gratuitement en français : coups de foudre, hasards, premiers rendez-vous, écrites par la communauté Love Ink.",
+    "intro": "Tout commence par une rencontre : un café, un quai de gare, un message envoyé par erreur. Les histoires de ce genre s'arrêtent sur ce moment où deux vies se croisent.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+  }
+}

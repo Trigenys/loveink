@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="fr">
+  <title>Love Ink – dernières histoires d'amour</title>
+  <subtitle>Histoires d'amour en français, relues avant publication.</subtitle>
+  <link href="https://loveink.site/histoires/flux.xml" rel="self"/>
+  <link href="https://loveink.site/histoires/"/>
+  <id>https://loveink.site/histoires/</id>
+  <updated>1970-01-01T00:00:00.000Z</updated>
+
+</feed>

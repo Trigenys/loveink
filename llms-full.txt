@@ -1,0 +1,33 @@
+# Love Ink
+
+> Love Ink (« L'encre des cœurs ») est une plateforme web francophone, gratuite et sans publicité, pour lire, écrire et partager des histoires d'amour. Chaque texte est relu par un modérateur avant publication. Éditée par Trigenys Group.
+
+## Ce que l'on y fait
+- Lire des histoires d'amour en français (premier amour, coup de foudre, seconde chance, amour à distance, lettres d'été, histoires tristes, amour magique), avec un mode lecture immersif : typographie réglable, ambiances, mode focus, reprise automatique.
+- Écrire et publier ses propres histoires, à son rythme, après relecture bienveillante.
+- Réagir, commenter et échanger avec les auteurs et les lecteurs.
+
+## Accès
+- Lecture et écriture nécessitent un compte gratuit (pseudo + adresse e-mail).
+- Fonctionne dans le navigateur, sur téléphone et ordinateur.
+
+## Pages
+- [Accueil](https://loveink.site/) : présentation, fonctionnement, questions fréquentes
+- [Inscription](https://loveink.site/register)
+- [Connexion](https://loveink.site/login)
+- [Devenir modérateur](https://loveink.site/candidature-modo)
+- [Conditions d'utilisation](https://loveink.site/conditions)
+- [Politique de confidentialité](https://loveink.site/confidentialite)
+
+
+## Version détaillée
+- https://loveink.site/llms-full.txt : présentation et extraits des histoires publiées
+
+## Éditeur
+- Trigenys Group : https://trigenys.com
+
+## Histoires publiées (extraits)
+
+Le texte intégral de chaque histoire est sur sa page (https://loveink.site/histoires/). Les droits restent aux autrices et auteurs.
+
+Aucune histoire publiée pour le moment.

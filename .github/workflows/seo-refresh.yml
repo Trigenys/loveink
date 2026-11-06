@@ -1,0 +1,83 @@
+# Régénère les pages SEO (histoires, genres, sitemap, flux Atom, llms) depuis Firestore, les teste,
+# les commite sur la branche par défaut, déploie Hosting et notifie IndexNow des URL nouvelles ou modifiées.
+# Idempotent : sans histoire nouvelle/modifiée, aucun commit, aucun déploiement, aucune notification.
+# Secret requis : FIREBASE_SERVICE_ACCOUNT_LOVE_INK (JSON d'un compte de service avec le rôle Firebase Hosting Admin).
+name: SEO refresh
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+    inputs:
+      allow_shrink:
+        description: "Autoriser une baisse massive du nombre d'histoires (dépublication volontaire)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: hosting-deploy
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    env:
+      FIREBASE_PROJECT: love-ink
+      SITE_BASE_URL: https://loveink.site
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Secret de déploiement présent
+        run: |
+          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}" ]; then
+            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK absent : créer un compte de service (rôle Firebase Hosting Admin) et coller son JSON dans les secrets du dépôt."
+            exit 1
+          fi
+
+      - name: Conserver le sitemap courant
+        run: cp sitemap.xml "$RUNNER_TEMP/sitemap.before.xml"
+
+      - name: Régénérer les pages
+        run: node scripts/build-seo-pages.mjs ${{ inputs.allow_shrink && '--allow-shrink' || '' }}
+
+      - name: Tests SEO
+        run: node --test tests/seo/*.test.mjs
+
+      - name: Détecter les changements
+        id: diff
+        run: |
+          git add -A
+          if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Commit et push
+        if: steps.diff.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "seo: régénération des pages histoires, sitemap et flux [skip ci]"
+          git push origin HEAD:${{ github.event.repository.default_branch }}
+
+      - name: Déployer Hosting
+        if: steps.diff.outputs.changed == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}
+          projectId: love-ink
+          channelId: live
+
+      - name: Notifier IndexNow
+        if: steps.diff.outputs.changed == 'true'
+        run: node scripts/indexnow.mjs --previous "$RUNNER_TEMP/sitemap.before.xml"

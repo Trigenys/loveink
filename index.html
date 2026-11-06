@@ -23,19 +23,20 @@
     <meta name="google-site-verification" content="AbouxgfJqB0FY7jj0Lcov13zWR-wvMFOwTFMFxtOcuc">
     <link rel="canonical" href="https://loveink.site/">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="alternate" type="application/atom+xml" title="Love Ink – dernières histoires" href="https://loveink.site/histoires/flux.xml">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="css/landing.css">
+    <!-- Polices et icônes chargées sans bloquer le rendu (fallback système puis swap). -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&family=Pinyon+Script&display=swap" media="print" onload="this.media='all'">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;700&family=Pinyon+Script&display=swap"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></noscript>
     <script src="js/core/immersive.js" defer></script>
     <script type="module">
     import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-    import { auth } from './js/core/firebase-config.js';
+    import { auth } from './js/core/firebase-app.js';
     // Deja connecte : on va directement au feed.
     onAuthStateChanged(auth, (user) => { if (user) window.location.href = 'feed.html'; });
     </script>
@@ -44,6 +45,7 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
+    "@id": "https://loveink.site/#organization",
     "name": "Love Ink",
     "url": "https://loveink.site/",
     "logo": "https://loveink.site/images/og-love-ink.jpg",
@@ -57,6 +59,7 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
+    "@id": "https://loveink.site/#website",
     "name": "Love Ink",
     "alternateName": "Love Ink - L'encre des cœurs",
     "url": "https://loveink.site/",
@@ -151,6 +154,7 @@
             <ul class="lp-nav__links" id="lpLinks">
                 <li><a href="#lecture">Lire</a></li>
                 <li><a href="#auteurs">Écrire</a></li>
+                <li><a href="histoires/">Histoires</a></li>
                 <li><a href="login.html">Connexion</a></li>
                 <li><a href="register.html" class="lp-btn lp-btn--primary">Créer un compte</a></li>
             </ul>
@@ -176,10 +180,10 @@
                 <div class="lp-hero__visual lp-reveal is-in" data-delay="2">
                 <div class="lp-book" id="lpBook" role="region" aria-roledescription="carrousel" aria-label="Ambiances Love Ink">
                     <div class="lp-book__stack">
-                        <img class="lp-book__leaf is-active" src="images/landing/hero-lettre.webp" width="868" height="1086" alt="Une lettre manuscrite, une plume bordeaux et une tasse de thé près d'une fenêtre" fetchpriority="high">
-                        <img class="lp-book__leaf" src="images/landing/hero-carnet.webp" width="868" height="1086" alt="Une main écrit dans un carnet fleuri, à la plume">
-                        <img class="lp-book__leaf" src="images/landing/hero-lecture.webp" width="868" height="1086" alt="Un coin lecture baigné d'une lumière rosée">
-                        <img class="lp-book__leaf" src="images/landing/hero-plume.webp" width="868" height="1086" alt="Une plume trempée dans l'encre au-dessus d'une page blanche">
+                        <img class="lp-book__leaf is-active" src="images/landing/hero-lettre.webp" srcset="images/landing/hero-lettre-480.webp 480w, images/landing/hero-lettre.webp 868w" sizes="(max-width: 600px) calc(100vw - 76px), 484px" width="868" height="1086" alt="Une lettre manuscrite, une plume bordeaux et une tasse de thé près d'une fenêtre" fetchpriority="high">
+                        <img class="lp-book__leaf" src="images/landing/hero-carnet.webp" srcset="images/landing/hero-carnet-480.webp 480w, images/landing/hero-carnet.webp 868w" sizes="(max-width: 600px) calc(100vw - 76px), 484px" width="868" height="1086" alt="Une main écrit dans un carnet fleuri, à la plume" loading="lazy">
+                        <img class="lp-book__leaf" src="images/landing/hero-lecture.webp" srcset="images/landing/hero-lecture-480.webp 480w, images/landing/hero-lecture.webp 868w" sizes="(max-width: 600px) calc(100vw - 76px), 484px" width="868" height="1086" alt="Un coin lecture baigné d'une lumière rosée" loading="lazy">
+                        <img class="lp-book__leaf" src="images/landing/hero-plume.webp" srcset="images/landing/hero-plume-480.webp 480w, images/landing/hero-plume.webp 868w" sizes="(max-width: 600px) calc(100vw - 76px), 484px" width="868" height="1086" alt="Une plume trempée dans l'encre au-dessus d'une page blanche" loading="lazy">
                         <div class="lp-book__shade" aria-hidden="true"></div>
                     </div>
                     <div class="lp-book__dots" role="tablist" aria-label="Choisir une image">
@@ -410,6 +414,18 @@
                         <button type="button" role="tab" aria-selected="false" tabindex="-1" aria-label="Citation 4 sur 4"></button>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <!-- Dernières histoires (bloc régénéré par scripts/build-seo-pages.mjs) -->
+        <section class="lp-section lp-latest-section" aria-labelledby="latestTitle">
+            <div class="lp-wrap">
+                <p class="lp-eyebrow">Bibliothèque</p>
+                <h2 id="latestTitle">Les dernières <em>histoires publiées.</em></h2>
+                <!-- seo:latest:start -->
+                <p class="lp-lead">Les premières histoires arrivent. <a href="histoires/">Voir la bibliothèque</a> ou <a href="register.html">écrire la vôtre</a>.</p>
+                <!-- seo:latest:end -->
+                <p class="lp-latest__all"><a href="histoires/" class="lp-btn lp-btn--ghost">Toutes les histoires <i class="fas fa-arrow-right" aria-hidden="true"></i></a></p>
             </div>
         </section>
 

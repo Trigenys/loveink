@@ -1,0 +1,31 @@
+[
+  {
+    "id": "abc123XYZ",
+    "titre": "Les lettres d'août",
+    "auteur": "Camille R.",
+    "categorie": "Premier amour",
+    "statut": "publie",
+    "date": "2026-10-20T10:00:00.000Z",
+    "dateModification": "2026-10-22T08:30:00.000Z",
+    "extrait": "Il avait laissé une lettre sous la pierre plate du jardin, comme chaque été.",
+    "contenu": "Il avait laissé une lettre sous la pierre plate du jardin, comme chaque été. Je l'ai lue trois fois avant de comprendre qu'elle ne parlait pas de la mer.\n\nLe lendemain, j'ai répondu. Vingt lignes, pas une de plus, et un dessin de plume dans la marge.\n\nNous avons continué jusqu'en septembre."
+  },
+  {
+    "id": "def456",
+    "titre": "Café, 7 h 12",
+    "auteur": "Noé",
+    "categorie": "Rencontres",
+    "statut": "publie",
+    "date": "2026-11-01T07:12:00.000Z",
+    "contenu": "Elle a demandé un café sans sucre et le serveur s'est trompé. Elle l'a bu quand même, en souriant à la fenêtre.\n\nJe suis revenu le lendemain à la même heure."
+  },
+  {
+    "id": "ghi789",
+    "titre": "Ce que le fleuve garde",
+    "auteur": "Anonyme",
+    "categorie": "Histoires tristes",
+    "statut": "publie",
+    "date": "2026-09-15T18:00:00.000Z",
+    "contenu": "On s'est dit au revoir sur le pont, sans savoir que c'était la dernière fois."
+  }
+]

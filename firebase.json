@@ -25,6 +25,7 @@
       "docs/**",
       "tests/**",
       "scripts/**",
+      "data/**",
       "test-results/**",
       "playwright-report/**",
       "playwright.config.js",
@@ -33,27 +34,40 @@
       "js/pages/script.js"
     ],
     "cleanUrls": true,
+    "redirects": [
+      { "source": "/histoires/genre", "destination": "/histoires/", "type": 301 },
+      { "source": "/histoires/genre/", "destination": "/histoires/", "type": 301 }
+    ],
     "headers": [
       {
         "source": "**",
         "headers": [
-          {
-            "key": "X-Content-Type-Options",
-            "value": "nosniff"
-          },
-          {
-            "key": "X-Frame-Options",
-            "value": "DENY"
-          },
-          {
-            "key": "Referrer-Policy",
-            "value": "strict-origin-when-cross-origin"
-          },
-          {
-            "key": "Permissions-Policy",
-            "value": "camera=(), microphone=(), geolocation=()"
-          }
+          { "key": "X-Content-Type-Options", "value": "nosniff" },
+          { "key": "X-Frame-Options", "value": "DENY" },
+          { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+          { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+          { "key": "Content-Security-Policy-Report-Only", "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: blob: https:; connect-src 'self' https://firestore.googleapis.com https://*.firestore.googleapis.com wss://*.firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://www.googleapis.com https://mail.loveink.site https://fonts.googleapis.com https://fonts.gstatic.com; frame-src 'self' https://love-ink.firebaseapp.com https://accounts.google.com; object-src 'none'; base-uri 'self'; form-action 'self'" }
         ]
+      },
+      {
+        "source": "/images/**",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400" }]
+      },
+      {
+        "source": "**/*.@(css|js)",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, must-revalidate" }]
+      },
+      {
+        "source": "**/*.@(html|xml|txt)",
+        "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
+      },
+      {
+        "source": "**/*.@(woff|woff2)",
+        "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+      },
+      {
+        "source": "/@(feed|profil|messagerie|notifications|parametres|publier|mes-histoires|auth-action|histoire)",
+        "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
       }
     ]
   }

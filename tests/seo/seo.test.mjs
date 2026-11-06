@@ -12,7 +12,7 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const BASE = 'https://loveink.site';
 
 const PUBLIC = { 'index.html': '/', 'login.html': '/login', 'register.html': '/register', 'conditions.html': '/conditions', 'confidentialite.html': '/confidentialite', 'candidature-modo.html': '/candidature-modo' };
-const PRIVATE = ['feed.html', 'profil.html', 'messagerie.html', 'notifications.html', 'parametres.html', 'publier.html', 'mes-histoires.html', 'auth-action.html', '404.html'];
+const PRIVATE = ['feed.html', 'profil.html', 'messagerie.html', 'notifications.html', 'parametres.html', 'publier.html', 'mes-histoires.html', 'auth-action.html', '404.html', 'histoire.html'];
 
 const head = (html) => html.slice(0, html.indexOf('</head>'));
 const attr = (html, re) => (html.match(re) || [])[1];
@@ -42,6 +42,14 @@ test('index.html : JSON-LD valide, types attendus, FAQ visible cohérente', () =
     for (const t of ['Organization', 'WebSite', 'WebApplication', 'FAQPage']) assert.ok(types.includes(t), `${t} manquant`);
     const faq = blocks.flat().find((b) => b['@type'] === 'FAQPage');
     for (const q of faq.mainEntity) assert.ok(html.includes(`<summary>${q.name}</summary>`), `question absente du HTML : ${q.name}`);
+});
+
+test('index.html : maillage vers la bibliothèque, flux Atom déclaré, @id Organization/WebSite', () => {
+    const html = read('index.html');
+    assert.ok(/href="histoires\/"/.test(html), 'lien vers histoires/ absent');
+    assert.ok(html.includes('type="application/atom+xml"'));
+    assert.ok(html.includes('<!-- seo:latest:start -->') && html.includes('<!-- seo:latest:end -->'));
+    assert.ok(html.includes(`"@id": "${BASE}/#organization"`) && html.includes(`"@id": "${BASE}/#website"`));
 });
 
 test('robots.txt : pages privées exclues, sitemap déclaré', () => {
