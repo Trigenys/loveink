@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /feed
+Disallow: /profil
+Disallow: /messagerie
+Disallow: /notifications
+Disallow: /parametres
+Disallow: /publier
+Disallow: /mes-histoires
+Disallow: /auth-action
+
+Sitemap: https://love-ink.web.app/sitemap.xml

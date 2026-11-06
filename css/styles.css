@@ -792,3 +792,5 @@ html[data-theme="dark"] .conversation-item:hover {
 .li-made-by em { font-family: 'Pinyon Script', cursive; font-style: normal; font-size: 1.9em; line-height: 0; color: #b76e6e; margin: 0 7px; position: relative; top: 3px; }
 footer:not([class]) .li-made-by em { color: #e2bcbc; }
 html[data-theme="dark"] .li-made-by em { color: #e2bcbc; }
+.li-made-by a { color: inherit; text-decoration: none; border-bottom: 1px solid currentColor; }
+.li-made-by a:hover { color: #b76e6e; }

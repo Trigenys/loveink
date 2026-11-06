@@ -19,6 +19,7 @@
     <meta name="twitter:title" content="Love Ink - L'encre des cœurs">
     <meta name="twitter:description" content="Lire, écrire et partager des histoires d'amour en français.">
     <meta name="twitter:image" content="https://love-ink.web.app/images/og-love-ink.jpg">
+    <link rel="canonical" href="https://love-ink.web.app/">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -33,6 +34,85 @@
     import { auth } from './js/core/firebase-config.js';
     // Deja connecte : on va directement au feed.
     onAuthStateChanged(auth, (user) => { if (user) window.location.href = 'feed.html'; });
+    </script>
+    <script type="application/ld+json">
+[
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "Love Ink",
+    "url": "https://love-ink.web.app/",
+    "logo": "https://love-ink.web.app/images/og-love-ink.jpg",
+    "description": "Plateforme francophone de lecture et d'écriture d'histoires d'amour.",
+    "parentOrganization": {
+      "@type": "Organization",
+      "name": "Trigenys Group",
+      "url": "https://trigenys.com"
+    }
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Love Ink",
+    "alternateName": "Love Ink - L'encre des cœurs",
+    "url": "https://love-ink.web.app/",
+    "inLanguage": "fr"
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Love Ink",
+    "url": "https://love-ink.web.app/",
+    "applicationCategory": "EntertainmentApplication",
+    "operatingSystem": "Web",
+    "inLanguage": "fr",
+    "isAccessibleForFree": true,
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "description": "Lire, écrire et partager des histoires d'amour en français. Lecture gratuite, mode lecture immersif, relecture bienveillante avant publication."
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Love Ink est-il gratuit ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Oui. La lecture est gratuite et sans publicité. Il suffit d'un pseudo et d'une adresse e-mail pour créer un compte."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Quel genre d'histoires trouve-t-on sur Love Ink ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Des histoires d'amour en français : premier amour, coup de foudre, seconde chance, amour à distance, lettres d'été, histoires tristes ou magiques."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Comment publier une histoire ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Créez un compte, ouvrez l'espace Publier, écrivez à votre rythme. Chaque texte est relu par un modérateur avant d'être mis en ligne."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Peut-on lire sur téléphone ?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Oui. Love Ink fonctionne dans le navigateur, sur téléphone comme sur ordinateur, avec reprise automatique de la lecture là où vous vous étiez arrêté."
+        }
+      }
+    ]
+  }
+]
     </script>
 </head>
 
@@ -329,6 +409,18 @@
             </div>
         </section>
 
+        <!-- FAQ -->
+        <section class="lp-section lp-faq" aria-labelledby="faqTitle">
+            <div class="lp-wrap">
+                <p class="lp-eyebrow">Questions fréquentes</p>
+                <h2 id="faqTitle">Avant de <em>tourner la page.</em></h2>
+                <details class="lp-faq__item"><summary>Love Ink est-il gratuit ?</summary><p>Oui. La lecture est gratuite et sans publicité. Il suffit d'un pseudo et d'une adresse e-mail pour créer un compte.</p></details>
+                <details class="lp-faq__item"><summary>Quel genre d'histoires trouve-t-on sur Love Ink ?</summary><p>Des histoires d'amour en français : premier amour, coup de foudre, seconde chance, amour à distance, lettres d'été, histoires tristes ou magiques.</p></details>
+                <details class="lp-faq__item"><summary>Comment publier une histoire ?</summary><p>Créez un compte, ouvrez l'espace Publier, écrivez à votre rythme. Chaque texte est relu par un modérateur avant d'être mis en ligne.</p></details>
+                <details class="lp-faq__item"><summary>Peut-on lire sur téléphone ?</summary><p>Oui. Love Ink fonctionne dans le navigateur, sur téléphone comme sur ordinateur, avec reprise automatique de la lecture là où vous vous étiez arrêté.</p></details>
+            </div>
+        </section>
+
         <!-- CTA final -->
         <section class="lp-section" style="padding-top: 0;">
             <div class="lp-wrap">
@@ -354,7 +446,7 @@
                 <a href="login.html">Connexion</a>
                 <a href="register.html">Inscription</a>
             </nav>
-            <p class="li-made-by">Made <em>by</em> Trigenys Group</p>
+            <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
         </div>
     </footer>
 

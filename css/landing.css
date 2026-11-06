@@ -327,3 +327,14 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
     .lp-page__bar > span { width: 42%; }
     .lp-page__sheet, .lp-tile, .lp-flow__card, .lp-btn, .lp-mood, .lp-shelf img { transition: none; }
 }
+
+/* FAQ */
+.lp-faq .lp-wrap { max-width: 760px; }
+.lp-faq h2 { margin-bottom: 22px; }
+.lp-faq__item { border-top: 1px solid var(--border); padding: 14px 0; }
+.lp-faq__item:last-of-type { border-bottom: 1px solid var(--border); }
+.lp-faq__item summary { cursor: pointer; font-family: var(--font-serif, Georgia, serif); font-size: 1.2rem; list-style: none; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.lp-faq__item summary::-webkit-details-marker { display: none; }
+.lp-faq__item summary::after { content: "+"; color: var(--rose-deep); font-size: 1.4rem; transition: transform 0.3s; }
+.lp-faq__item[open] summary::after { transform: rotate(45deg); }
+.lp-faq__item p { margin-top: 10px; color: var(--ink-muted); line-height: 1.65; max-width: 62ch; }
