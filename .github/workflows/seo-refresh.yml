@@ -1,7 +1,10 @@
 # Régénère les pages SEO (histoires, genres, sitemap, flux Atom, llms) depuis Firestore, les teste,
-# les commite sur la branche par défaut, déploie Hosting et notifie IndexNow des URL nouvelles ou modifiées.
+# les commite sur la branche par défaut, déploie Hosting (OIDC + Workload Identity Federation, aucune clé)
+# sur exactement ce commit, puis notifie IndexNow des URL nouvelles ou modifiées de ce même commit.
 # Idempotent : sans histoire nouvelle/modifiée, aucun commit, aucun déploiement, aucune notification.
-# Secret requis : FIREBASE_SERVICE_ACCOUNT_LOVE_INK (JSON d'un compte de service avec le rôle Firebase Hosting Admin).
+# Variables requises : GCP_WORKLOAD_IDENTITY_PROVIDER, GCP_DEPLOY_SERVICE_ACCOUNT (non secrètes) ; sans elles,
+# la régénération et le commit ont lieu mais le déploiement et IndexNow sont ignorés.
+# Épinglage : le SHA ci-dessous est celui de la PR AppFactory #147 ; à re-épingler sur le SHA mergé.
 name: SEO refresh
 
 on:
@@ -15,7 +18,7 @@ on:
         default: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: hosting-deploy
@@ -25,26 +28,24 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    permissions:
+      contents: write
+    outputs:
+      changed: ${{ steps.diff.outputs.changed }}
+      sha: ${{ steps.push.outputs.sha }}
     env:
       FIREBASE_PROJECT: love-ink
       SITE_BASE_URL: https://loveink.site
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           ref: ${{ github.event.repository.default_branch }}
 
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 20
-
-      - name: Secret de déploiement présent
-        run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}" ]; then
-            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK absent : créer un compte de service (rôle Firebase Hosting Admin) et coller son JSON dans les secrets du dépôt."
-            exit 1
-          fi
+          node-version: 24.18.0
 
       - name: Conserver le sitemap courant
         run: cp sitemap.xml "$RUNNER_TEMP/sitemap.before.xml"
@@ -62,22 +63,64 @@ jobs:
           if git diff --cached --quiet; then echo "changed=false" >> "$GITHUB_OUTPUT"; else echo "changed=true" >> "$GITHUB_OUTPUT"; fi
 
       - name: Commit et push
+        id: push
         if: steps.diff.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git commit -m "seo: régénération des pages histoires, sitemap et flux [skip ci]"
           git push origin HEAD:${{ github.event.repository.default_branch }}
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
-      - name: Déployer Hosting
+      - name: Conserver l'ancien sitemap pour IndexNow
         if: steps.diff.outputs.changed == 'true'
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}
-          projectId: love-ink
-          channelId: live
+          name: sitemap-before
+          path: ${{ runner.temp }}/sitemap.before.xml
+          retention-days: 1
+
+  deploy:
+    needs: refresh
+    if: ${{ needs.refresh.outputs.changed == 'true' && vars.GCP_WORKLOAD_IDENTITY_PROVIDER != '' }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@27421c60e1eca0107ef376408471412c44767770
+    with:
+      appfactory_ref: 27421c60e1eca0107ef376408471412c44767770
+      mode: production
+      firebase_project_id: love-ink
+      workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      targets: hosting
+      checkout_ref: ${{ needs.refresh.outputs.sha }}
+      build_command: ""
+      github_environment: production
+
+  indexnow:
+    needs: [refresh, deploy]
+    if: ${{ needs.deploy.result == 'success' && needs.deploy.outputs.deployed_sha == needs.refresh.outputs.sha }}
+    runs-on: ubuntu-latest
+    env:
+      SITE_BASE_URL: https://loveink.site
+    steps:
+      - name: Checkout du commit déployé
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          ref: ${{ needs.deploy.outputs.deployed_sha }}
+          persist-credentials: false
+
+      - name: Setup Node
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24.18.0
+
+      - name: Récupérer l'ancien sitemap
+        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
+        with:
+          name: sitemap-before
+          path: ${{ runner.temp }}
 
       - name: Notifier IndexNow
-        if: steps.diff.outputs.changed == 'true'
         run: node scripts/indexnow.mjs --previous "$RUNNER_TEMP/sitemap.before.xml"

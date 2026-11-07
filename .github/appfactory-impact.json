@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "fallback": "all",
+  "ignorePaths": [
+    "README.md",
+    "PASSATION*.md",
+    "docs/**",
+    ".claude/**",
+    ".qodo/**",
+    "tasks/**",
+    ".github/project-config.json",
+    ".github/workflows/project-automation.yml"
+  ],
+  "surfaces": {
+    "site": {
+      "paths": [
+        "*.html",
+        "*.xml",
+        "*.txt",
+        "*.webmanifest",
+        "css/**",
+        "js/**",
+        "images/**",
+        "histoires/**",
+        "data/**",
+        "scripts/**",
+        "tests/seo/**",
+        "firebase.json",
+        ".firebaserc",
+        "package.json",
+        ".github/appfactory-impact.json",
+        ".github/workflows/firebase-deploy.yml",
+        ".github/workflows/seo-refresh.yml"
+      ],
+      "gates": [
+        "seo-tests",
+        "hosting"
+      ]
+    },
+    "firestore": {
+      "paths": [
+        "firestore.rules",
+        "firestore.indexes.json",
+        "tests/rules/**"
+      ],
+      "gates": [
+        "firestore"
+      ]
+    }
+  }
+}
