@@ -406,3 +406,9 @@
 - Appliqué : activation de `iamcredentials.googleapis.com` et `sts.googleapis.com` (idempotent).
 - Bloqué : `workload-identity-pools create` → IAM_PERMISSION_DENIED. Le compte connecté n'a que `roles/editor` sur le projet ; il faut le compte Owner (ou les rôles Workload Identity Pool Admin + Service Account Admin + Project IAM Admin) pour la suite du runbook (pool, provider, SA, 3 rôles projet, binding workloadIdentityUser sur `Trigenys/loveink`).
 - Session SEO lancée par l'utilisateur : `local_db63e3e4-…` (écarts P0/P1 en worktree, PR sans merge).
+
+## 2026-11-07 10:42 — PR SEO/GEO ouverte
+
+- PR 2 (`feat/seo-geo-gaps`, non mergée) : pages auteurs, 3 guides `/ressources/`, genres éditorialisés, JSON-LD enrichi, `/register` hors sitemap ; 57/57 tests SEO annoncés par la session. Issues P2 #3–#6, suivi #7 (pseudo auteur = partie locale de l'e-mail).
+- Les checks de la PR 2 ne lancent que sync-project : les tests SEO tourneront en CI après merge de la PR 1 (workflow firebase-deploy).
+- Bootstrap GCP toujours bloqué (compte Editor seulement).
