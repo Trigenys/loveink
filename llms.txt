@@ -23,6 +23,22 @@
 ## Histoires publiées
 - [Bibliothèque](https://loveink.site/histoires/) : toutes les histoires, lisibles sans compte
 - [Flux Atom](https://loveink.site/histoires/flux.xml)
+
+### Genres
+- [Premier amour](https://loveink.site/histoires/genre/premier-amour) : premières histoires à venir
+- [Amour heureux](https://loveink.site/histoires/genre/amour-heureux) : premières histoires à venir
+- [Amour magique](https://loveink.site/histoires/genre/amour-magique) : premières histoires à venir
+- [Histoires tristes](https://loveink.site/histoires/genre/histoires-tristes) : premières histoires à venir
+- [Lettres d'amour](https://loveink.site/histoires/genre/lettres-d-amour) : premières histoires à venir
+- [Poésie d'amour](https://loveink.site/histoires/genre/poesie-d-amour) : premières histoires à venir
+- [Aventure estivale](https://loveink.site/histoires/genre/aventure-estivale) : premières histoires à venir
+- [Rencontres](https://loveink.site/histoires/genre/rencontres) : premières histoires à venir
+
+### Guides d'écriture
+- [Tous les guides](https://loveink.site/ressources/)
+- [Comment écrire une lettre d'amour](https://loveink.site/ressources/comment-ecrire-une-lettre-d-amour) : Comment écrire une lettre d'amour sincère : méthode en 7 étapes, erreurs à éviter, idées de première phrase et conseils pour la finir. Guide gratuit Love Ink.
+- [Exemples de lettres d'amour](https://loveink.site/ressources/exemples-de-lettres-d-amour) : Exemples de lettres d'amour originales en français : déclaration, anniversaire, distance, excuses, adieu. Modèles courts à adapter avec vos propres mots.
+- [Idées d'histoires d'amour](https://loveink.site/ressources/idees-histoires-d-amour) : 30 idées d'histoires d'amour pour écrire en français : rencontres, premier amour, magie, été, ruptures. Points de départ et conseils pour démarrer votre récit.
 <!-- llms:histoires:end -->
 
 ## Version détaillée

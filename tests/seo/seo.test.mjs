@@ -75,3 +75,22 @@ test('signature : lien Trigenys sur toutes les pages signées', () => {
         assert.ok(read(f).includes('<a href="https://trigenys.com" rel="noopener">Trigenys Group</a>'), `${f} sans lien Trigenys`);
     }
 });
+
+test('sitemap.xml : ni /register ni /login (pages de conversion, pas de contenu à indexer)', () => {
+    const locs = [...read('sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+    for (const p of ['/register', '/login']) assert.ok(!locs.includes(`${BASE}${p}`), `${p} présent dans le sitemap`);
+    for (const p of ['/ressources/', '/ressources/comment-ecrire-une-lettre-d-amour', '/ressources/exemples-de-lettres-d-amour', '/ressources/idees-histoires-d-amour']) assert.ok(locs.includes(`${BASE}${p}`), `${p} absent du sitemap`);
+});
+
+test('pages générées commitées : canonical = URL du sitemap, description et title aux bonnes longueurs', () => {
+    const locs = [...read('sitemap.xml').matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]).filter((u) => u !== `${BASE}/`);
+    for (const url of locs) {
+        const path = url.slice(BASE.length);
+        const h = head(read(path.endsWith('/') ? `${path.slice(1)}index.html` : `${path.slice(1)}.html`));
+        assert.equal(attr(h, /<link rel="canonical" href="([^"]+)">/), url);
+        const desc = attr(h, /<meta name="description" content="([^"]+)">/)?.replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+        assert.ok(desc && desc.length >= 50 && desc.length <= 170, `${path} : description de ${desc?.length ?? 0} caractères`);
+        const title = attr(h, /<title>([^<]+)<\/title>/)?.replace(/&#39;/g, "'").replace(/&amp;/g, '&');
+        assert.ok(title && title.length >= 10 && title.length <= 70, `${path} : title de ${title?.length ?? 0} caractères (${title})`);
+    }
+});
