@@ -384,3 +384,9 @@
 - Épinglé sur `27421c60e1eca0107ef376408471412c44767770` = commit de la PR AppFactory #147 (https://github.com/EagleFox31/appfactory-project-automation/pull/147, non mergée) : **re-épingler** les quatre `@27421c6…` + `appfactory_ref` sur le SHA mergé.
 - Verrous : aucun déploiement, aucun bootstrap GCP, aucun secret créé/supprimé. Tant que les variables `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_DEPLOY_SERVICE_ACCOUNT` sont absentes, tout reste en `plan` (le chemin par clé JSON est retiré) → merger après bootstrap + variables, ou accepter la coupure. Mission SEO/GEO (`1fcd2f2`) toujours non déployée.
 - Prochaines étapes (propriétaire) : runbook `docs/gcp-wif-one-time-bootstrap.md` (verify puis apply) sur `love-ink` pour `Trigenys/loveink` ; variables ci-dessus ; environnement `production` (branche `main`) ; merge #147 puis re-pin ; merge PR 1 ; après un run production réussi, supprimer `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` et révoquer la clé.
+
+## 2026-11-07 03:59 — Phase 2 : CI bloquée par la facturation GitHub
+
+- Re-déclenchement (commit vide) : toujours 0 job sur `firebase-deploy.yml` et `project-automation.yml` ; annotation GitHub : paiements de l'organisation Trigenys échoués / limite de dépense. Aucune erreur de workflow identifiée (inputs vérifiés contre les workflows réutilisables à `27421c6`).
+- `gcloud` absent de la machine : bootstrap GCP impossible ici de toute façon (action humaine).
+- Bloqué sur l'utilisateur : (1) rétablir la facturation GitHub puis relancer les checks de la PR 1 ; (2) bootstrap GCP + variables ; (3) merge AppFactory #147 puis re-pin.
