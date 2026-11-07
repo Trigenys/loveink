@@ -390,3 +390,11 @@
 - Re-déclenchement (commit vide) : toujours 0 job sur `firebase-deploy.yml` et `project-automation.yml` ; annotation GitHub : paiements de l'organisation Trigenys échoués / limite de dépense. Aucune erreur de workflow identifiée (inputs vérifiés contre les workflows réutilisables à `27421c6`).
 - `gcloud` absent de la machine : bootstrap GCP impossible ici de toute façon (action humaine).
 - Bloqué sur l'utilisateur : (1) rétablir la facturation GitHub puis relancer les checks de la PR 1 ; (2) bootstrap GCP + variables ; (3) merge AppFactory #147 puis re-pin.
+
+## 2026-11-07 10:20 — Phase 2 : CI verte (plan)
+
+- Dépôt `Trigenys/loveink` passé **public** à la demande de l'utilisateur (Actions bloqué en privé, plan gratuit) ; scan préalable : aucun secret dans fichiers ni historique (clé Firebase web publique par conception).
+- Erreur de compilation du workflow réutilisable (`runner.temp` dans `env` de job) corrigée dans AppFactory `b236135` (PR #147, LESSON-2026-019, test structurel) ; Love Ink re-épinglé sur `b236135` (`5bdff0a`).
+- Run 42332913072 : impact, seo-tests, hosting (plan) OK, firestore ignoré, étapes d'identité ignorées comme prévu.
+- Reste (propriétaire) : bootstrap GCP + variables + environnement `production` ; merge #147 puis re-pin sur SHA mergé ; merge PR 1 ; suppression du secret JSON après run production réussi.
+- Demande SEO/GEO reçue de la session expert-seo-geo : P0 déjà largement couvert par `scripts/build-seo-pages.mjs` (pages histoires/genres statiques, sitemap lastmod, JSON-LD Article) mais non déployé ; écarts : `/register` dans le sitemap, pas de pages auteurs, pas de `parentOrganization`, P1 (intros genres, pages ressources) absent.
