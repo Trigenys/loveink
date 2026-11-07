@@ -478,7 +478,8 @@
             const snap = await getDoc(doc(db, 'utilisateurs', uid));
             currentProfile = snap.exists() ? snap.data() : {};
 
-            const fallbackPseudo = auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Utilisateur';
+            // Jamais de pseudo dérivé de l'e-mail : sans pseudo ni nom affiché, le champ (obligatoire) reste vide.
+            const fallbackPseudo = auth.currentUser?.displayName || '';
             const pseudo = String(currentProfile.pseudo || fallbackPseudo).trim();
             const bio = String(currentProfile.bio || '').trim();
 

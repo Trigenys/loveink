@@ -362,3 +362,16 @@
 - Preuve : `node --test tests/seo/*.test.mjs` → 44/44 ; build réel : 0 histoire publiée en prod (Firestore `statut == "publie"` vide, confirmé en REST), donc bibliothèque vide pour l'instant.
 - À faire par l'utilisateur : (1) créer le secret GitHub `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` (JSON d'un compte de service, rôle Firebase Hosting Admin ; + Rules Admin / Datastore Index Admin si on veut déployer Firestore via CI) — sans lui les deux workflows échouent explicitement ; (2) déployer Hosting (`firebase deploy --only hosting --project love-ink`) ; (3) 301 www→apex en console Hosting ; (4) importer le site dans Bing Webmaster Tools ; (5) re-mesurer PSI mobile (baseline 75) ; (6) observer la CSP Report-Only en prod (login Google, publication, messagerie) avant tout passage en bloquant.
 - Verrous : aucun. Secrets jamais lus ni commités.
+
+## 2026-11-07 15:54 — Issue #7 : nom d'auteur public jamais dérivé de l'e-mail
+
+- Branche `fix/publier-auteur-pseudo` (depuis `main`), PR vers `main`, non fusionnée, aucun déploiement.
+- `publier.html` : nom d'auteur = pseudo du profil Firestore uniquement (`js/core/public-author.js`) ; sans pseudo
+  valide (vide, avec `@`, ou égal à l'identifiant de l'e-mail) → publication bloquée, bandeau + lien `parametres.html`.
+- `parametres.html` : pré-remplissage du pseudo sans repli sur l'e-mail (champ obligatoire laissé vide).
+- Test : `tests/seo/author-name.test.mjs` ; `node --test tests/seo/*.test.mjs` → 51/51.
+- Piège local Windows : avec `core.autocrlf=true`, `robots.txt` en CRLF fait échouer 2 tests de `hosting.test.mjs`
+  (déjà le cas sur `main`, la CI Linux est en LF). Recharger : `rm robots.txt && git -c core.autocrlf=false checkout -- robots.txt`.
+- Reste (issue #7) : recenser les histoires existantes dont `auteur` provient de l'ancien repli ; `getUserPseudo()`
+  (`js/core/auth-session.js`) et `profil.html` gardent un repli e-mail pour l'affichage privé (nav, profil).
+- Conflit attendu en fin de `lessons-learned.md` avec la PR #2 (deux ajouts en fin de fichier) : garder les deux.

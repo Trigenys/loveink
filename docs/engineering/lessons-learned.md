@@ -43,3 +43,21 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Règle** : toute CSP est d'abord en `Content-Security-Policy-Report-Only`, observée en prod (console du
   navigateur) sur login, publication, messagerie, puis seulement basculée en bloquante.
 - **Prévention** : `tests/seo/hosting.test.mjs` refuse une CSP bloquante tant que cette validation n'est pas documentée ici.
+
+## 2026-11-07 — Nom d'auteur public dérivé de l'e-mail à la saisie (issue #7)
+
+- **Contexte** : suite de l'entrée « Pages auteurs : risque de publier un e-mail ou un uid » (PR #2).
+  `publier.html` remplissait `auteur` avec `displayName || email.split('@')[0]`.
+- **Cause racine** : un repli « pratique » à la saisie transformait une donnée privée (identifiant d'e-mail) en
+  nom public ; le générateur SEO ne peut pas reconnaître une partie locale d'e-mail (pas de `@`), donc la
+  défense en aval était insuffisante. Même repli dans le pré-remplissage du pseudo de `parametres.html`.
+- **Classification** : vie privée / donnée personnelle, near miss (corrigé avant fusion des pages auteurs).
+- **Résolution** : `js/core/public-author.js` → `resolvePublicAuthorName(profile, user)` : seul le pseudo du
+  profil Firestore devient public ; vide, contenant `@` ou égal à l'identifiant de l'e-mail → publication
+  bloquée avec un message et un lien vers `parametres.html`. Pré-remplissage de `parametres.html` sans e-mail.
+- **Prévention** : `tests/seo/author-name.test.mjs` (exécuté par la CI `tests/seo/*.test.mjs`) échoue si
+  `publier.html` ou `parametres.html` découpent l'e-mail, ou si la résolution renvoie un nom issu de l'e-mail.
+- **Leçon** : une donnée rendue publique se valide à la source (saisie), pas seulement à la sortie ; aucun nom
+  public n'est jamais dérivé d'un identifiant privé, même en repli.
+- **Reste à faire** : histoires déjà enregistrées avec ce repli (recensement + invitation des auteurs à choisir
+  un pseudo), suivi dans l'issue #7.
