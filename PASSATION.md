@@ -398,3 +398,11 @@
 - Run 42332913072 : impact, seo-tests, hosting (plan) OK, firestore ignoré, étapes d'identité ignorées comme prévu.
 - Reste (propriétaire) : bootstrap GCP + variables + environnement `production` ; merge #147 puis re-pin sur SHA mergé ; merge PR 1 ; suppression du secret JSON après run production réussi.
 - Demande SEO/GEO reçue de la session expert-seo-geo : P0 déjà largement couvert par `scripts/build-seo-pages.mjs` (pages histoires/genres statiques, sitemap lastmod, JSON-LD Article) mais non déployé ; écarts : `/register` dans le sitemap, pas de pages auteurs, pas de `parentOrganization`, P1 (intros genres, pages ressources) absent.
+
+## 2026-11-07 10:33 — Bootstrap GCP : bloqué par les droits
+
+- Cloud Shell (navigateur, compte connecté du propriétaire) sur `love-ink`, numéro de projet 942272722437. Saisie du terminal : seules les frappes `key` touche par touche passent (`type` est ignoré).
+- Vérification en lecture seule : pas de pool WIF, pas de compte `github-deploy`.
+- Appliqué : activation de `iamcredentials.googleapis.com` et `sts.googleapis.com` (idempotent).
+- Bloqué : `workload-identity-pools create` → IAM_PERMISSION_DENIED. Le compte connecté n'a que `roles/editor` sur le projet ; il faut le compte Owner (ou les rôles Workload Identity Pool Admin + Service Account Admin + Project IAM Admin) pour la suite du runbook (pool, provider, SA, 3 rôles projet, binding workloadIdentityUser sur `Trigenys/loveink`).
+- Session SEO lancée par l'utilisateur : `local_db63e3e4-…` (écarts P0/P1 en worktree, PR sans merge).
