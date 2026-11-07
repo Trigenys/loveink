@@ -44,6 +44,22 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
   navigateur) sur login, publication, messagerie, puis seulement basculée en bloquante.
 - **Prévention** : `tests/seo/hosting.test.mjs` refuse une CSP bloquante tant que cette validation n'est pas documentée ici.
 
+## 2026-11-07 — Pages auteurs : risque de publier un e-mail ou un uid
+
+- **Contexte** : ajout de pages publiques `/histoires/auteur/<slug>` et d'un `Person` JSON-LD par histoire.
+- **Cause (near miss)** : le champ `auteur` d'une histoire est saisi côté client ; un repli sur l'e-mail
+  (ou sa partie locale) et l'`auteurId` (uid Firebase) sont présents dans le document Firestore.
+  Les exposer dans une URL, un slug ou du JSON-LD les rendrait indexables et cachés par les moteurs.
+- **Classification** : vie privée / donnée personnelle, détecté avant publication.
+- **Résolution** : `publicName()` masque toute valeur contenant `@` (« Auteur inconnu », sans page ni
+  `Person`) ; l'`auteurId` sert uniquement à regrouper en mémoire, jamais écrit ; slug dérivé du pseudonyme.
+- **Prévention** : `tests/seo/pages.test.mjs` (« vie privée ») échoue si `uid-` ou un e-mail apparaît dans
+  une sortie générée. Règle générale : toute donnée utilisateur rendue publique passe par une liste
+  blanche de champs, testée sur un jeu contenant des valeurs sensibles.
+- **Reste ouvert** : `publier.html` remplit `auteur` avec `email.split('@')[0]` quand le compte n'a pas de
+  `displayName` ; cette partie locale n'est pas détectable par le générateur. Correctif côté saisie suivi
+  en issue (pseudonyme obligatoire avant publication).
+
 ## 2026-11-07 — Nom d'auteur public dérivé de l'e-mail à la saisie (issue #7)
 
 - **Contexte** : suite de l'entrée « Pages auteurs : risque de publier un e-mail ou un uid » (PR #2).

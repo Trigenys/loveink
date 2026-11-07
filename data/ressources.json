@@ -1,0 +1,232 @@
+{
+  "_doc": "Guides d'écriture publiés sous /ressources/<slug> (pages statiques générées par scripts/build-seo-pages.mjs). Contenu original Love Ink, à faire valider par la cliente. Champs : slug, title (10-70 car.), description (50-160 car.), h1, lead, published, updated (AAAA-MM-JJ), genres (catégories liées, valeurs exactes de publier.html), storiesFrom (genre dont on affiche les dernières histoires, facultatif), storiesTitle, sections [{ h2, p[], ul[], ol[], examples[{ title, text }] }], faq [{ q, a }]. Mise en forme autorisée dans p/ul/ol/lead/faq : [texte](/chemin-interne) et **gras** ; tout le reste est échappé.",
+  "pages": [
+    {
+      "slug": "comment-ecrire-une-lettre-d-amour",
+      "title": "Comment écrire une lettre d'amour : méthode en 7 étapes | Love Ink",
+      "description": "Comment écrire une lettre d'amour sincère : méthode en 7 étapes, erreurs à éviter, idées de première phrase et conseils pour la finir. Guide gratuit Love Ink.",
+      "h1": "Comment écrire une lettre d'amour",
+      "lead": "Une lettre d'amour n'a pas besoin d'être parfaite pour toucher. Elle doit être **vraie**, **précise** et **adressée** à une seule personne. Voici une méthode simple, étape par étape, pour passer de la page blanche à une lettre que vous aurez envie d'envoyer.",
+      "published": "2026-11-07",
+      "updated": "2026-11-07",
+      "genres": ["Lettres d'amour", "Amour heureux", "Premier amour"],
+      "storiesFrom": "Lettres d'amour",
+      "storiesTitle": "Lettres d'amour de la communauté",
+      "sections": [
+        {
+          "h2": "Avant d'écrire : savoir à qui et pourquoi",
+          "p": [
+            "Posez-vous deux questions. À qui écrivez-vous, exactement ? Et que voulez-vous que cette personne ressente en refermant la lettre ? Une déclaration, un merci, des excuses, un anniversaire de couple ou un adieu n'appellent pas le même ton.",
+            "Notez sur un brouillon trois souvenirs partagés, trois choses que vous aimez chez l'autre et une phrase que vous n'avez jamais osé dire. Ce sera votre matière première."
+          ]
+        },
+        {
+          "h2": "La méthode en 7 étapes",
+          "ol": [
+            "**Choisissez le support.** Papier, carte, message long : le papier reste le plus marquant, mais une lettre numérique sincère vaut mieux qu'une belle carte vide.",
+            "**Commencez par une scène, pas par une généralité.** « Je repense à ce mardi où tu as raté ton train » accroche davantage que « Je t'aime depuis longtemps ».",
+            "**Dites « tu ».** La lettre parle à quelqu'un. Adressez-vous directement à la personne, sans détour.",
+            "**Soyez précis.** Remplacez « tu es formidable » par ce qui le prouve : un geste, une habitude, une phrase qu'elle a dite.",
+            "**Nommez ce que vous ressentez.** Pas besoin de grands mots : « je suis bien avec toi », « tu me manques », « j'ai eu peur de te perdre » suffisent quand ils sont vrais.",
+            "**Regardez vers l'avant.** Une envie, une promesse, un projet, une question : la fin de la lettre ouvre une suite.",
+            "**Relisez à voix haute, puis attendez une nuit.** Ce qui sonne faux s'entend. Coupez ce qui ressemble à une citation ou à une formule toute faite."
+          ]
+        },
+        {
+          "h2": "Trouver la première phrase",
+          "p": ["La première phrase est souvent la plus difficile. Quelques points de départ qui fonctionnent :"],
+          "ul": [
+            "Un souvenir daté : « Il y a un an jour pour jour, tu… »",
+            "Un aveu simple : « Je n'ai jamais su te le dire en face, alors je l'écris. »",
+            "Un détail du présent : « Ton pull est encore sur la chaise, et je souris en le voyant. »",
+            "Une question : « Est-ce que tu te souviens de la première chose que je t'ai dite ? »"
+          ]
+        },
+        {
+          "h2": "Les erreurs à éviter",
+          "ul": [
+            "**Recopier un modèle mot pour mot** : la personne le sentira. Inspirez-vous, puis réécrivez avec vos souvenirs.",
+            "**Accumuler les superlatifs** : « la plus belle, la plus merveilleuse, la plus incroyable » finit par ne plus rien dire.",
+            "**Faire de la lettre un reproche** : si vous avez des griefs, une conversation vaut mieux qu'une lettre d'amour.",
+            "**Écrire trop long** : une page sincère touche plus que cinq pages qui tournent en rond.",
+            "**Oublier la signature** : terminez par une formule qui vous ressemble, pas par un « bisous » machinal."
+          ]
+        },
+        {
+          "h2": "Adapter le ton à l'occasion",
+          "ul": [
+            "**Déclaration** : restez léger et laissez une porte ouverte, sans mettre la personne sous pression.",
+            "**Anniversaire de couple** : racontez ce qui a changé depuis le début, et ce qui n'a pas changé.",
+            "**Distance** : décrivez votre quotidien sans l'autre et ce que vous ferez en vous retrouvant.",
+            "**Excuses** : reconnaissez précisément ce qui s'est passé, sans vous justifier, puis dites ce que vous allez faire.",
+            "**Adieu** : remerciez pour ce qui a été beau, sans chercher à convaincre."
+          ]
+        },
+        {
+          "h2": "Partager votre lettre",
+          "p": [
+            "Vous pouvez offrir votre lettre à son destinataire, la garder pour vous, ou la publier sur Love Ink dans le genre [Lettres d'amour](/histoires/genre/lettres-d-amour) en retirant tout ce qui permettrait d'identifier quelqu'un. Chaque texte est relu avec bienveillance avant publication.",
+            "Besoin d'inspiration concrète ? Consultez nos [exemples de lettres d'amour](/ressources/exemples-de-lettres-d-amour), écrits pour être adaptés."
+          ]
+        }
+      ],
+      "faq": [
+        { "q": "Quelle longueur pour une lettre d'amour ?", "a": "Une page manuscrite, soit 200 à 400 mots, suffit dans la plupart des cas. L'important est que chaque phrase soit vraie et précise." },
+        { "q": "Faut-il écrire une lettre d'amour à la main ?", "a": "Ce n'est pas obligatoire, mais l'écriture manuscrite rend la lettre plus personnelle. Vous pouvez rédiger un brouillon sur écran puis la recopier." },
+        { "q": "Comment terminer une lettre d'amour ?", "a": "Par un regard vers l'avenir (une envie, une promesse, une question) puis une formule qui vous ressemble, suivie de votre prénom ou du surnom que l'autre vous donne." },
+        { "q": "Peut-on publier sa lettre sur Love Ink ?", "a": "Oui, dans le genre [Lettres d'amour](/histoires/genre/lettres-d-amour). Retirez les noms et détails identifiants : chaque texte est relu avant publication." }
+      ]
+    },
+    {
+      "slug": "exemples-de-lettres-d-amour",
+      "title": "Exemples de lettres d'amour originales à adapter | Love Ink",
+      "description": "Exemples de lettres d'amour originales en français : déclaration, anniversaire, distance, excuses, adieu. Modèles courts à adapter avec vos propres mots.",
+      "h1": "Exemples de lettres d'amour",
+      "lead": "Cinq lettres d'amour originales, écrites pour Love Ink, à lire et à **adapter**. Elles ne sont pas faites pour être recopiées : gardez la structure, remplacez les souvenirs par les vôtres.",
+      "published": "2026-11-07",
+      "updated": "2026-11-07",
+      "genres": ["Lettres d'amour", "Amour heureux", "Histoires tristes"],
+      "storiesFrom": "Lettres d'amour",
+      "storiesTitle": "D'autres lettres, écrites par la communauté",
+      "sections": [
+        {
+          "h2": "Comment utiliser ces exemples",
+          "p": ["Chaque lettre suit la même structure : une scène précise, ce que l'on ressent, un regard vers la suite. Pour l'adapter :"],
+          "ol": [
+            "Remplacez le souvenir d'ouverture par un moment que vous avez vraiment vécu ensemble.",
+            "Changez les détails (lieux, objets, habitudes) pour qu'ils appartiennent à votre histoire.",
+            "Relisez à voix haute et supprimez toute phrase que vous ne diriez pas vous-même."
+          ]
+        },
+        {
+          "h2": "Lettre de déclaration",
+          "examples": [
+            { "title": "Pour dire « je t'aime » pour la première fois", "text": "Je ne sais pas à quel moment exactement, mais je crois que c'était le jour de la pluie, quand tu as partagé ton parapluie trop petit et que nous sommes arrivés trempés tous les deux.\n\nDepuis, je guette tes messages, je garde pour toi les choses drôles que je vois dans la journée, je répète dans ma tête ce que je vais te raconter. J'ai mis du temps à comprendre ce que cela voulait dire. Maintenant je sais.\n\nJe t'aime. Tu n'as rien à répondre tout de suite. Je voulais seulement que tu le saches, écrit noir sur blanc, pour que ce soit vrai.\n\nÀ très vite, sous un parapluie plus grand." }
+          ]
+        },
+        {
+          "h2": "Lettre d'anniversaire de couple",
+          "examples": [
+            { "title": "Pour les cinq ans", "text": "Cinq ans. Je me souviens de notre premier dîner, où j'ai renversé mon verre et où tu as ri si fort que la serveuse a ri aussi.\n\nDepuis, nous avons déménagé deux fois, adopté une plante que tu oublies d'arroser, appris à nous disputer sans claquer les portes. Tu connais ma façon de dire « ça va » quand ça ne va pas. Je connais ton silence quand tu es fatigué.\n\nJe n'ai pas besoin d'un grand voyage pour fêter ça. J'ai besoin de toi, le dimanche matin, avec le café trop fort.\n\nJoyeux anniversaire à nous. Je signe pour les cinq suivants." }
+          ]
+        },
+        {
+          "h2": "Lettre pour un amour à distance",
+          "examples": [
+            { "title": "Quand des kilomètres vous séparent", "text": "Ici, il est 23 h et chez toi déjà le matin. Je t'écris pendant que tu dors encore, et c'est étrange de penser que mon soir est ton réveil.\n\nAujourd'hui, j'ai pris le bus que nous prenions ensemble. J'ai gardé la place côté fenêtre, par habitude. Tu me manques dans les petites choses : ta façon de lire le menu à voix haute, ta main dans ma poche quand il fait froid.\n\nPlus que quarante-deux jours. J'ai déjà réservé la table près de la vitre, celle que tu aimes.\n\nJe compte, je t'attends, je t'aime." }
+          ]
+        },
+        {
+          "h2": "Lettre d'excuses",
+          "examples": [
+            { "title": "Après une dispute", "text": "Hier soir, j'ai haussé le ton et j'ai dit des choses que je ne pense pas. Je ne vais pas chercher d'excuse à la fatigue ou au travail : c'était injuste, et je le sais.\n\nTu m'as demandé de t'écouter, et j'ai préféré avoir raison. Je suis désolé de t'avoir fait sentir seul dans cette conversation.\n\nJe voudrais qu'on reprenne ce soir, calmement, et cette fois je commencerai par me taire. Tu comptes plus que la dispute.\n\nJe t'embrasse, si tu veux bien." }
+          ]
+        },
+        {
+          "h2": "Lettre d'adieu",
+          "examples": [
+            { "title": "Pour se quitter avec douceur", "text": "Je t'écris parce que je n'arriverais pas à te le dire sans pleurer. Nous avons décidé de nous quitter, et je crois que c'est juste, même si c'est dur.\n\nJe veux te remercier pour les années où tu m'as appris à rire de moi, à cuisiner sans recette, à ne pas avoir peur de l'avion. Rien de cela ne disparaît avec notre histoire.\n\nJe te souhaite d'être heureux, vraiment. Si un jour on se croise, j'espère qu'on saura se sourire.\n\nPrends soin de toi." }
+          ]
+        },
+        {
+          "h2": "Aller plus loin",
+          "p": [
+            "Pour écrire votre propre lettre à partir de zéro, suivez la méthode de notre guide [comment écrire une lettre d'amour](/ressources/comment-ecrire-une-lettre-d-amour). Pour lire des lettres écrites par la communauté, rendez-vous dans le genre [Lettres d'amour](/histoires/genre/lettres-d-amour)."
+          ]
+        }
+      ],
+      "faq": [
+        { "q": "Peut-on recopier ces exemples de lettres d'amour ?", "a": "Ils sont faits pour être adaptés : gardez la structure, mais remplacez les souvenirs et les détails par les vôtres. Une lettre recopiée mot pour mot se reconnaît." },
+        { "q": "Ces lettres sont-elles libres de droits ?", "a": "Vous pouvez vous en inspirer librement pour un usage personnel. Pour toute autre réutilisation, citez Love Ink et renvoyez vers cette page." },
+        { "q": "Où trouver d'autres lettres d'amour en français ?", "a": "Dans le genre [Lettres d'amour](/histoires/genre/lettres-d-amour), où la communauté publie ses lettres après relecture, et dans [Histoires tristes](/histoires/genre/histoires-tristes) pour les lettres d'adieu." }
+      ]
+    },
+    {
+      "slug": "idees-histoires-d-amour",
+      "title": "Idées d'histoires d'amour : 30 points de départ | Love Ink",
+      "description": "30 idées d'histoires d'amour pour écrire en français : rencontres, premier amour, magie, été, ruptures. Points de départ et conseils pour démarrer votre récit.",
+      "h1": "Idées d'histoires d'amour",
+      "lead": "Envie d'écrire mais pas d'idée ? Voici **30 points de départ** classés par genre, à prendre tels quels ou à détourner, et quelques conseils pour transformer une idée en histoire.",
+      "published": "2026-11-07",
+      "updated": "2026-11-07",
+      "genres": ["Rencontres", "Premier amour", "Amour magique", "Aventure estivale", "Histoires tristes", "Amour heureux"],
+      "storiesFrom": "Rencontres",
+      "storiesTitle": "Histoires de rencontres à lire",
+      "sections": [
+        {
+          "h2": "Rencontres",
+          "ul": [
+            "Un message envoyé au mauvais numéro, et une réponse inattendue.",
+            "Deux personnes qui réservent la même table, le même soir, au même nom.",
+            "Un livre de bibliothèque annoté au crayon par un lecteur inconnu.",
+            "Le dernier métro raté, et une heure à attendre le premier bus.",
+            "Une panne d'ascenseur entre le 4e et le 5e étage.",
+            "Un chien qui choisit systématiquement le même inconnu au parc."
+          ]
+        },
+        {
+          "h2": "Premier amour",
+          "ul": [
+            "Une correspondante étrangère qui vient passer deux semaines en famille.",
+            "Le dernier bal de fin d'année, raconté vingt ans plus tard.",
+            "Une lettre jamais donnée, retrouvée en vidant une chambre d'enfant.",
+            "Deux voisins qui communiquent avec une lampe de poche d'une fenêtre à l'autre.",
+            "Une répétition de théâtre où il faut jouer une scène de baiser."
+          ]
+        },
+        {
+          "h2": "Amour magique",
+          "ul": [
+            "Quelqu'un qui revit le même jour tant qu'il n'a pas avoué ses sentiments.",
+            "Une boîte aux lettres qui distribue le courrier avec trente ans de retard.",
+            "Deux inconnus qui font le même rêve chaque nuit.",
+            "Une libraire qui sait quel livre chaque client va aimer, sauf pour une personne.",
+            "Un fantôme qui aide la personne qu'il aimait à retomber amoureuse."
+          ]
+        },
+        {
+          "h2": "Aventure estivale",
+          "ul": [
+            "Un job d'été de maître-nageur ou de serveuse dans une ville de bord de mer.",
+            "Un festival de musique, un bracelet échangé, aucun numéro de téléphone.",
+            "Un voyage en train à travers l'Europe et une couchette partagée par erreur.",
+            "Les retrouvailles, chaque été, de deux amis d'enfance dans la même maison de famille.",
+            "Le dernier soir des vacances et une promesse de s'écrire."
+          ]
+        },
+        {
+          "h2": "Histoires tristes et amours heureux",
+          "ul": [
+            "Un couple qui se sépare et doit encore partager l'appartement un mois.",
+            "Une personne âgée qui raconte à sa petite-fille l'amour qu'elle n'a pas épousé.",
+            "Un répondeur où l'on garde la voix de quelqu'un qui est parti.",
+            "Un couple marié depuis cinquante ans qui refait son premier rendez-vous.",
+            "Deux parents épuisés qui se retrouvent le temps d'une soirée sans enfants.",
+            "Une demande en mariage qui ne se passe pas du tout comme prévu.",
+            "Un amour qui renaît lors d'un enterrement, entre deux anciens amants.",
+            "Une liste de « choses à faire ensemble » retrouvée après une rupture.",
+            "Un couple qui se raconte, chacun de son côté, la même dispute."
+          ]
+        },
+        {
+          "h2": "Transformer une idée en histoire",
+          "ol": [
+            "**Choisissez un point de vue** : qui raconte ? Le « je » rapproche, la troisième personne donne du recul.",
+            "**Donnez un désir et un obstacle** à votre personnage : ce qu'il veut, et ce qui l'en empêche.",
+            "**Entrez tard dans la scène** : commencez au moment où quelque chose bascule, pas au réveil.",
+            "**Montrez au lieu d'expliquer** : un geste, un objet ou un dialogue en dit plus qu'une description des sentiments.",
+            "**Finissez sur une image** plutôt que sur une morale."
+          ],
+          "p": [
+            "Une fois votre texte écrit, vous pouvez le publier sur Love Ink dans le genre qui lui correspond, par exemple [Rencontres](/histoires/genre/rencontres) ou [Amour magique](/histoires/genre/amour-magique). Pour une lettre, voyez plutôt [comment écrire une lettre d'amour](/ressources/comment-ecrire-une-lettre-d-amour)."
+          ]
+        }
+      ],
+      "faq": [
+        { "q": "Comment trouver une idée d'histoire d'amour originale ?", "a": "Croisez une situation banale avec un détail inattendu : un lieu ordinaire, une contrainte de temps, un objet. Les 30 idées de cette page sont construites ainsi." },
+        { "q": "Quelle longueur pour une histoire d'amour courte ?", "a": "Une nouvelle de 1 000 à 3 000 mots se lit en 5 à 15 minutes et laisse le temps de construire une vraie scène. Sur Love Ink, les textes plus courts sont aussi les bienvenus." },
+        { "q": "Peut-on utiliser ces idées pour publier sur Love Ink ?", "a": "Oui, elles sont faites pour cela. Choisissez le genre le plus proche de votre texte au moment de la publication ; chaque histoire est relue avant d'être mise en ligne." }
+      ]
+    }
+  ]
+}
