@@ -23,9 +23,9 @@ concurrency:
 
 jobs:
   impact:
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@27421c60e1eca0107ef376408471412c44767770
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@b236135bf1578e47ba9908e95cb180ca3bae41da
     with:
-      appfactory_ref: 27421c60e1eca0107ef376408471412c44767770
+      appfactory_ref: b236135bf1578e47ba9908e95cb180ca3bae41da
       config_path: .github/appfactory-impact.json
       mode: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'auto' }}
 
@@ -48,9 +48,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@27421c60e1eca0107ef376408471412c44767770
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@b236135bf1578e47ba9908e95cb180ca3bae41da
     with:
-      appfactory_ref: 27421c60e1eca0107ef376408471412c44767770
+      appfactory_ref: b236135bf1578e47ba9908e95cb180ca3bae41da
       mode: ${{ (github.event_name == 'pull_request' || vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '') && 'plan' || 'production' }}
       firebase_project_id: love-ink
       workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -66,9 +66,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@27421c60e1eca0107ef376408471412c44767770
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@b236135bf1578e47ba9908e95cb180ca3bae41da
     with:
-      appfactory_ref: 27421c60e1eca0107ef376408471412c44767770
+      appfactory_ref: b236135bf1578e47ba9908e95cb180ca3bae41da
       mode: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' && 'plan' || 'production' }}
       firebase_project_id: love-ink
       workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
