@@ -4,7 +4,7 @@
 # Change-scoped : l'analyse d'impact (.github/appfactory-impact.json) décide des gates seo-tests / hosting / firestore.
 # Tant que les variables GCP_WORKLOAD_IDENTITY_PROVIDER / GCP_DEPLOY_SERVICE_ACCOUNT ne sont pas définies
 # (bootstrap humain : docs/gcp-wif-one-time-bootstrap.md du dépôt AppFactory), tout reste en mode plan.
-# Épinglage : le SHA ci-dessous est le commit de merge de la PR AppFactory #147.
+# Épinglage : le SHA ci-dessous est le commit de merge de la PR AppFactory #149.
 name: Firebase Deploy
 
 on:
@@ -23,9 +23,9 @@ concurrency:
 
 jobs:
   impact:
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@ec566364c51f4d5f4e5289db9bdab682dda5ee7c
     with:
-      appfactory_ref: 71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+      appfactory_ref: ec566364c51f4d5f4e5289db9bdab682dda5ee7c
       config_path: .github/appfactory-impact.json
       mode: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'auto' }}
 
@@ -48,9 +48,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@ec566364c51f4d5f4e5289db9bdab682dda5ee7c
     with:
-      appfactory_ref: 71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+      appfactory_ref: ec566364c51f4d5f4e5289db9bdab682dda5ee7c
       mode: ${{ (github.event_name == 'pull_request' || vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '') && 'plan' || 'production' }}
       firebase_project_id: love-ink
       workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
@@ -66,9 +66,9 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@ec566364c51f4d5f4e5289db9bdab682dda5ee7c
     with:
-      appfactory_ref: 71149532f5fce30aa24c3e0c6bb312b6ce63f13e
+      appfactory_ref: ec566364c51f4d5f4e5289db9bdab682dda5ee7c
       mode: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' && 'plan' || 'production' }}
       firebase_project_id: love-ink
       workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
