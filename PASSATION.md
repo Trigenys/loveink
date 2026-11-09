@@ -532,3 +532,9 @@
 - Incident : après le déploiement, lien « Retour à la connexion » bleu chez l'utilisateur. Cause : css/js non versionnés et mis en cache 1 h, HTML en no-cache → nouveau HTML avec ancien CSS. /login (sans extension) aussi en max-age=3600 (défaut Firebase).
 - Correctif (branche fix/hosting-cache-revalidate) : no-cache (revalidation ETag) pour css/js et pour les URLs sans extension ; test de non-régression dans tests/seo/hosting.test.mjs.
 - main local réaligné sur origin/main ; ancien commit local gardé dans backup/main-a6bd014 (déjà contenu dans main).
+
+## 2026-11-09 17:09 — PR #28 mergée (cache)
+- Déployée (run 42651745634 success). Prod : css/js, /login et HTML en no-cache, images 7 j ; revalidation ETag → 304.
+- État : #27 et #28 en prod. Reste côté utilisateur : relire/merger PR #8, supprimer les branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme.
+- Pour tester l'e-mail thématisé : le faire depuis loveink.site (en local le mailer 127.0.0.1:8787 n'est pas lancé → repli Firebase, en anglais et souvent en spam).
+- Amélioration possible : versionner (hash) css/js au build pour revenir à un cache long.
