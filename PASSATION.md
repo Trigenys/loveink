@@ -562,3 +562,9 @@
 - Vérifié : SEO 72/72, e2e local 5 OK / 3 ignorés, contrôle visuel desktop/mobile/sombre. Tests des règles non lancés (Java absent).
 - Attention : playwright.config.js cible https://loveink.site par défaut ; un `npm test` a créé le compte prod flow-1794245289333-63693. Lancer les e2e avec E2E_BASE_URL=http://127.0.0.1:5178.
 - Reste : fusionner #30 puis #31 (déploie en prod, sur accord) ; supprimer l'histoire de test 454vUtYCNABRZlWH9xvU et les comptes de test prod ; noms de catégories du fil sans accents (clés de données).
+
+## 2026-11-09 20:17 — PR #30/#31 en prod, survol des stats, modérateur de test
+- #30 et #31 fusionnées et déployées (hosting + règles) ; vérifié sur loveink.site.
+- PR #32 (fix/profile-stat-hover) : --rose-blush sombre appliqué en clair (sélecteur mal formé dans css/profil.css) → tuiles de stats illisibles au survol. SEO 72/72. À fusionner sur accord.
+- Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
+- Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
