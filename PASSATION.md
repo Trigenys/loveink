@@ -465,3 +465,31 @@
 - Correctif AppFactory : PR #152 (affiche l'erreur JSON en annotation ::error::), CI en cours, merge à valider.
 - Suite : merger #152 → re-épingler Love Ink sur son SHA de merge → relancer → lire l'erreur réelle. Hypothèse : permission IAM manquante pour github-deploy@ (ex. serviceusage.serviceUsageConsumer) → ajout par un Owner, sur accord.
 - loveink.site pas encore redéployé ; secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK toujours à supprimer (humain) après un run réussi.
+
+## 2026-11-09 09:53 — Déploiement prod : cause réelle identifiée (IAM)
+- AppFactory #152 mergée (814c717), Love Ink PR 11 mergée (96d5454). Run 42589075417 : « Deploy production » affiche maintenant l'erreur : HTTP 403 sur serviceusage.googleapis.com, « Permission denied to get service [firebasehosting.googleapis.com] ».
+- Cause : il manque roles/serviceusage.serviceUsageConsumer à github-deploy@love-ink.iam.gserviceaccount.com (projet love-ink). Ajout réservé à un Owner, sur accord.
+- Suite : ajouter le rôle → relancer le run (gh run rerun 42589075417) → vérifier loveink.site ; puis suppression humaine du secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK.
+
+## 2026-11-09 11:32 — Rôle annoncé ajouté, 403 persistant
+- La propriétaire dit avoir ajouté Service Usage Consumer. Run 42589075417 relancé (tentatives 2 et 3, ~10:30 UTC) : même 403 serviceusage « Permission denied to get service [firebasehosting.googleapis.com] ».
+- Vérification IAM impossible ici (pas de gcloud ; navigateur bloqué par une popup de connexion).
+- Suite : faire confirmer (capture IAM) que la ligne github-deploy@love-ink.iam.gserviceaccount.com porte « Consommateur Service Usage » au niveau du projet love-ink, puis gh run rerun 42589075417 --failed.
+
+## 2026-11-09 11:46 — Déploiement production réussi
+- Rôle roles/serviceusage.serviceUsageConsumer ajouté à github-deploy@ (Cloud Shell, compte Owner). Run 42589075417 tentative 4 : hosting success (version 56524fdef934b7e8), identifiants supprimés en post-étape.
+- loveink.site : 200, Last-Modified 2026-11-09 10:45 GMT ; sitemap.xml, robots.txt, llms.txt en 200 ; /.env en 404.
+- Reste (humain) : supprimer le secret GitHub FIREBASE_SERVICE_ACCOUNT_LOVE_INK (et la clé JSON associée côté GCP). Plus tard : Firestore (workflow_dispatch), PR #8 ouverte.
+
+## 2026-11-09 14:23 — Backlog produit (communauté, catégories, anti-plagiat, monétisation)
+- Issues #12 à #23 créées (corps avec métadonnées appfactory-project) et synchronisées sur le board « Love Ink Development » (Backlog, priorité/phase/taille vérifiées ; resync complète run 42624854841 après annulations par concurrence).
+- Communauté (Launch) : #12 autrices fondatrices, #13 concours, #14 coup de cœur, #15 WhatsApp/TikTok, #18 tableau de bord + seuil. Growth : #16 suivre/commenter/notifier, #17 rituels.
+- Produit : #19 genres de romance (thèmes conservés), #20 anti-plagiat web, #21 exploration anti-capture (ADR), #22 pourboires + commission (Mobile Money), #23 premium / mise en avant partenaire.
+- Toujours non commitées : les entrées de passation depuis le 4e blocage. Reste humain : supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK.
+
+## 2026-11-09 15:08 — #14 Coup de cœur et #20 anti-plagiat (branche feat/coup-de-coeur-anti-plagiat)
+- #14 : champ `coupDeCoeur` (date serveur) + `coupDeCoeurPar`, posé/retiré par un modo depuis histoire.html (`firebaseAPI.definirCoupDeCoeur`, opslog `story_coup_de_coeur`) ; règle `validModoCoupDeCoeurUpdate` ; bloc « Coup de cœur de la semaine » en accueil et badge sur /histoires/* générés par seo-refresh.
+- #20 : `js/components/attribution.js` (copie ≥ 80 caractères → « Extrait de … » + lien), mention « Tous droits réservés » + lien « Signaler un plagiat », procédure de retrait dans conditions.html#plagiat.
+- Contrat modifié : les pages statiques chargent désormais un seul script autorisé (attribution.js) ; test générateur ajusté. Bug corrigé : `toIso` sur date invalide.
+- Tests SEO 67/67. Tests de règles non exécutés localement (pas de Java) : à faire en CI. Règles Firestore à déployer après accord.
+- Modale d'inscription : rethémée dans `js/components/modale.js`, branche locale fix/register-modal-theme (25135c9, worktree agent), non poussée.

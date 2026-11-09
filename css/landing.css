@@ -347,3 +347,10 @@ html[data-theme="dark"] .lp-btn--primary { background: var(--rose-deep); color: 
 .lp-faq__item summary::after { content: "+"; color: var(--rose-deep); font-size: 1.4rem; transition: transform 0.3s; }
 .lp-faq__item[open] summary::after { transform: rotate(45deg); }
 .lp-faq__item p { margin-top: 10px; color: var(--ink-muted); line-height: 1.65; max-width: 62ch; }
+.lp-pick { margin: 0 0 18px; }
+.lp-pick__label { margin: 0 0 8px; font-size: 0.78rem; letter-spacing: 0.22em; text-transform: uppercase; color: var(--rose-deep); font-weight: 600; }
+.lp-pick a { display: grid; gap: 6px; padding: 22px 24px; background: var(--paper); border: 1px solid var(--rose-deep); border-radius: 16px; text-decoration: none; transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+.lp-pick a:hover { transform: translateY(-2px); box-shadow: 0 16px 36px -22px rgba(122, 62, 62, 0.5); }
+.lp-pick strong { font-family: var(--font-serif); font-weight: 500; font-size: 1.6rem; color: var(--rose-deep); }
+.lp-pick span { font-size: 0.85rem; color: var(--ink-muted); }
+.lp-pick em { color: var(--ink); font-style: italic; line-height: 1.5; }
