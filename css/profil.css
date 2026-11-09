@@ -7,10 +7,7 @@ body.li-app {
     --ink-faint: #a88a8a;
     --cover-ink: #fff;
 }
-html[data-theme="dark"] body.li-app .profile-header,
-body.li-app .tabs-wrap,
-body.li-app .modal-box { font-variant-numeric: lining-nums; }
-body.li-app {
+html[data-theme="dark"] body.li-app {
     --rose-blush: #2e2323;
     --ink-faint: #9c8282;
 }
