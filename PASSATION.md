@@ -508,3 +508,9 @@
 - DNS Spaceship ajoutés par l'utilisateur (DKIM resend._domainkey, CNAME rsend/send, DMARC p=none) ; Resend : loveink.site Verified (eu-west-1).
 - VPS ~/loveink-mailer/.env : MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site (sauvegarde .env.bak-*), conteneur recréé, healthz OK. Mail de test direct Resend → Delivered.
 - Anomalie : POST /v1/auth/password-reset pour un e-mail (probablement sans compte) → 502 « INTERNAL ASSERT FAILED: Unable to create the email action link » ; le code n'attrape que auth/user-not-found, donc le front se replie sur l'e-mail Firebase par défaut. Correctif à faire dans server/mailer/index.js:98.
+
+## 2026-11-09 16:17 — Mailer : reset pour compte inconnu corrigé
+- Cause : l'Admin SDK lève auth/internal-error (« Unable to create the email action link ») pour une adresse sans compte, pas auth/user-not-found → 502 → repli front sur l'e-mail Firebase par défaut (spam).
+- Correctif : server/mailer/reset.js (getUserByEmail avant generatePasswordResetLink) + reset.test.js ; 6/6 tests verts. Branche fix/mailer-reset-unknown-account.
+- Déployé sur le VPS (scp index.js + reset.js, compose recréé) : POST reset compte inconnu → 200, log « reset : compte inconnu ».
+- trigenysdataschool@gmail.com n'a pas de compte Love Ink : aucun mail n'est envoyé, c'est normal.
