@@ -440,3 +440,9 @@
 - Non touché (contrainte) : `.github/workflows/`, `firebase.json`, `.github/appfactory-impact.json` ; aucun déploiement.
 - À faire : relecture des textes par Lee (`data/genres.json`, `data/ressources.json`) ; vérifier que `https://www.trigenys.com/#org` est bien l'`@id` publié par trigenys.com ; Rich Results Test après déploiement ; corriger le repli e-mail de `publier.html` (issue).
 - Verrous : aucun.
+
+## 2026-11-09 08:02 — PR 1 prête à merger
+
+- PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
+- main fusionnée dans feat/firebase-wif-deploy (81d03b6, conflit PASSATION résolu par union), 58/58 tests, CI PR 1 verte (impact, seo-tests, hosting plan), CLEAN.
+- Prochaine étape : merger PR 1 = premier déploiement production WIF ; puis PR 8.
