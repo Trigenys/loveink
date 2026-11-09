@@ -105,3 +105,26 @@ html[data-theme="dark"] .lc-num b { background: #e2bcbc; color: #2e2323; }
 html[data-theme="dark"] .lc-sign, html[data-theme="dark"] .legal-card .lc-chapter p::first-letter { color: #e2bcbc; }
 @media (max-width: 480px) { .legal-card .lc-chapter { padding-left: 54px; } .lc-num { width: 40px; height: 40px; } .legal-card .lc-chapter::before { left: 19px; } }
 @media (prefers-reduced-motion: reduce) { .legal-card .lc-chapter { opacity: 1; transform: none; transition: none; } .lc-h2::after { transform: scaleX(1); transition: none; } .lc-sign i { animation: none; } }
+
+/* Connexion : la carte tourne comme une page (reliure à gauche) entre connexion, oubli et lettre envoyée. */
+.aa-card.li-turn-out { transform-origin: left center; animation: li-turn-out 0.32s cubic-bezier(0.55, 0, 0.8, 0.4) forwards; }
+.aa-card.li-turn-in { transform-origin: left center; animation: li-turn-in 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+.aa-card.li-turn-out-back { transform-origin: right center; animation: li-turn-out-back 0.32s cubic-bezier(0.55, 0, 0.8, 0.4) forwards; }
+.aa-card.li-turn-in-back { transform-origin: right center; animation: li-turn-in-back 0.42s cubic-bezier(0.2, 0.8, 0.3, 1) both; }
+@keyframes li-turn-out { to { transform: perspective(1600px) rotateY(-88deg); box-shadow: -30px 0 40px -20px rgba(122, 62, 62, 0.35); } }
+@keyframes li-turn-in { from { transform: perspective(1600px) rotateY(88deg); } to { transform: none; } }
+@keyframes li-turn-out-back { to { transform: perspective(1600px) rotateY(88deg); box-shadow: 30px 0 40px -20px rgba(122, 62, 62, 0.35); } }
+@keyframes li-turn-in-back { from { transform: perspective(1600px) rotateY(-88deg); } to { transform: none; } }
+.li-view { text-align: center; }
+.li-view .auth-form { text-align: left; }
+.li-back {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+    color: #b76e6e; font-size: 0.9rem; text-decoration: none;
+}
+.li-back:hover { text-decoration: underline; }
+.li-back i { font-size: 0.8em; transition: transform 0.3s ease; }
+.li-back:hover i { transform: translateX(-3px); }
+.li-view .aa-cta + .li-back { display: flex; justify-content: center; }
+#sentTitle:focus { outline: none; }
+html[data-theme="dark"] .li-back { color: #e2bcbc; }
+@media (prefers-reduced-motion: reduce) { .aa-card[class*="li-turn"] { animation: none !important; } }
