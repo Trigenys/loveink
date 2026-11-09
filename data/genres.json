@@ -1,35 +1,79 @@
 {
-  "_doc": "Textes des pages de genre (/histoires/genre/<slug>). Clé = valeur exacte du champ `categorie` des histoires (liste dans publier.html). `intro` : paragraphes séparés par une ligne vide. `description` : meta, 50-160 caractères. `faq` facultative : [{ \"q\": \"...\", \"a\": \"...\" }]. Textes provisoires à faire valider par la cliente.",
+  "_doc": "Textes des pages de genre (/histoires/genre/<slug>). Clé = valeur exacte du champ `categorie` des histoires (liste dans publier.html). `intro` : environ 150 mots, paragraphes séparés par une ligne vide. `description` : meta, 50-160 caractères. `faq` : 2-3 questions [{ \"q\": \"...\", \"a\": \"...\" }], liens internes autorisés au format [texte](/chemin). `updated` : date de dernière révision éditoriale (lastmod du sitemap tant que le genre n'a pas d'histoire). Les clés commençant par `_` sont ignorées. Textes provisoires à faire valider par la cliente.",
   "Premier amour": {
     "description": "Histoires de premier amour à lire gratuitement en français : premiers regards, premiers messages, premiers aveux, écrits par la communauté Love Ink.",
-    "intro": "Le premier amour a ce goût particulier : on ne sait pas encore que l'on écrit une histoire, on la vit. Les textes réunis ici racontent les premiers regards, les premiers messages relus cent fois, les premiers aveux.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Le premier amour a ce goût particulier : on ne sait pas encore que l'on écrit une histoire, on la vit. Les textes réunis ici racontent les premiers regards échangés dans une cour de lycée, les messages relus cent fois avant d'oser répondre, les mains qui se frôlent sans le faire exprès, et cet aveu qu'on a répété dans sa tête pendant des semaines.\n\nCertains premiers amours durent toute une vie, d'autres ne tiennent qu'un été ou qu'une année scolaire. Tous laissent une trace. Les autrices et auteurs de Love Ink écrivent souvent depuis ce souvenir : la timidité, la maladresse, l'impression que le monde entier tient dans une seule personne. On y retrouve la nostalgie, mais aussi beaucoup d'humour.\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Si un souvenir vous revient en lisant, vous pouvez à votre tour l'écrire et le partager avec la communauté.",
+    "faq": [
+      { "q": "Qu'est-ce qu'une histoire de premier amour ?", "a": "Un récit centré sur une première expérience amoureuse : la rencontre, l'attente, le premier aveu ou la première séparation. Elle peut être vécue, inspirée de souvenirs ou entièrement imaginée." },
+      { "q": "Peut-on publier une histoire inspirée de sa propre vie ?", "a": "Oui. Beaucoup de textes partent d'un souvenir réel. Changez les prénoms et les détails qui permettraient de reconnaître quelqu'un : chaque texte est relu avant publication." },
+      { "q": "Comment commencer à écrire son premier amour ?", "a": "Partez d'une scène précise plutôt que de toute l'histoire : un lieu, un geste, une phrase. Le guide [idées d'histoires d'amour](/ressources/idees-histoires-d-amour) propose des points de départ." }
+    ]
   },
   "Amour heureux": {
     "description": "Histoires d'amour heureux à lire gratuitement en français : couples qui durent, tendresse du quotidien, bonheur simple, écrites par la communauté Love Ink.",
-    "intro": "Tout ne finit pas mal. Ces histoires racontent les amours qui tiennent : le quotidien à deux, les petites attentions, la tendresse qui ne fait pas de bruit mais qui reste.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Tout ne finit pas mal. Ces histoires racontent les amours qui tiennent : le quotidien à deux, les petites attentions, le café préparé sans qu'on le demande, la tendresse qui ne fait pas de bruit mais qui reste. On y croise des couples qui se connaissent depuis vingt ans et d'autres qui découvrent à peine ce que veut dire « nous ».\n\nÉcrire le bonheur est plus difficile qu'il n'y paraît, parce qu'il manque souvent de drame. Les textes de ce genre trouvent leur force ailleurs : dans un détail juste, une habitude partagée, une dispute qui se termine en fou rire, un anniversaire oublié puis rattrapé. Ce sont des histoires qui font du bien, à lire le soir ou à offrir à quelqu'un.\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Vous vivez un amour heureux ? Racontez-le, même en quelques paragraphes : il donnera peut-être de l'espoir à un lecteur.",
+    "faq": [
+      { "q": "Une histoire d'amour heureux a-t-elle besoin d'un conflit ?", "a": "Pas forcément d'un drame, mais d'un enjeu : une attente, un doute, une surprise à préparer. Un petit obstacle suffit à donner du relief au bonheur." },
+      { "q": "Ces histoires sont-elles vraies ?", "a": "Certaines sont inspirées de la vie de leurs auteurs, d'autres sont de la fiction. Love Ink ne vérifie pas leur véracité, mais chaque texte est relu avant publication." },
+      { "q": "Peut-on écrire une lettre à son ou sa partenaire plutôt qu'une histoire ?", "a": "Oui, le genre [Lettres d'amour](/histoires/genre/lettres-d-amour) est fait pour cela, et le guide [comment écrire une lettre d'amour](/ressources/comment-ecrire-une-lettre-d-amour) vous accompagne pas à pas." }
+    ]
   },
   "Amour magique": {
     "description": "Histoires d'amour magique en français : rencontres impossibles, destins liés, un soupçon de fantastique. Lecture gratuite sur Love Ink.",
-    "intro": "Un hasard trop grand pour être un hasard, un signe, un lieu qui n'existe sur aucune carte : ici l'amour s'autorise un peu de magie. Contes, destins croisés et rencontres impossibles.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Un hasard trop grand pour être un hasard, un signe, un lieu qui n'existe sur aucune carte : ici l'amour s'autorise un peu de magie. Les textes de ce genre mêlent la romance au conte, au fantastique ou au réalisme magique. Un amoureux qui revient chaque année le jour du solstice, une lettre qui arrive avec trente ans de retard, deux personnes qui rêvent la même nuit du même endroit.\n\nLa magie n'y est pas un décor gratuit : elle dit autrement ce que l'amour a d'inexplicable. Certaines histoires restent très proches du quotidien, avec un seul détail étrange ; d'autres construisent des mondes entiers, avec leurs règles et leurs malédictions. Toutes posent la même question : jusqu'où irait-on pour quelqu'un ?\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Si vous aimez inventer des mondes, ce genre vous attend.",
+    "faq": [
+      { "q": "Qu'appelle-t-on une histoire d'amour magique ?", "a": "Une romance où un élément surnaturel ou merveilleux joue un rôle : destin, sortilège, voyage dans le temps, créature, objet enchanté. La relation amoureuse reste au centre du récit." },
+      { "q": "Faut-il beaucoup de fantastique pour entrer dans ce genre ?", "a": "Non. Un seul élément inexpliqué suffit, tant qu'il compte dans l'histoire. Le réalisme magique, très proche du quotidien, y a toute sa place." }
+    ]
   },
   "Histoires tristes": {
     "description": "Histoires d'amour tristes à lire en français : ruptures, absences, amours qui finissent. Textes relus avant publication, lecture gratuite sur Love Ink.",
-    "intro": "Certaines histoires ne finissent pas bien, et c'est pour cela qu'on les écrit. Ruptures, absences, lettres jamais envoyées : les textes de ce genre disent ce qui reste quand l'amour s'en va.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Certaines histoires ne finissent pas bien, et c'est pour cela qu'on les écrit. Ruptures, absences, deuils, lettres jamais envoyées, amours qui se sont éteints sans qu'on sache vraiment pourquoi : les textes de ce genre disent ce qui reste quand l'amour s'en va. Un parfum dans un pull, un numéro qu'on n'efface pas, une chanson qu'on ne peut plus écouter.\n\nÉcrire la tristesse aide souvent à la traverser. Beaucoup d'auteurs de Love Ink racontent qu'ils ont posé des mots sur une séparation pour enfin pouvoir passer à autre chose. Pour les lecteurs, ces histoires sont une manière de se sentir moins seul : d'autres ont vécu la même chose, et ils en sont revenus.\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Les textes qui abordent des sujets très durs sont modérés avec attention.",
+    "faq": [
+      { "q": "Pourquoi lire des histoires d'amour tristes ?", "a": "Parce qu'elles mettent des mots sur ce que l'on ressent après une rupture ou une perte, et qu'on s'y reconnaît. Beaucoup de lecteurs disent qu'elles les ont aidés à tourner la page." },
+      { "q": "Peut-on écrire sur une rupture récente ?", "a": "Oui. Écrire peut faire du bien, mais évitez les détails qui permettraient d'identifier l'autre personne. Chaque texte est relu avant publication." },
+      { "q": "Une lettre d'adieu entre-t-elle dans ce genre ?", "a": "Elle peut aller ici ou dans [Lettres d'amour](/histoires/genre/lettres-d-amour). Choisissez le genre qui correspond le mieux à l'émotion principale du texte." }
+    ]
   },
   "Lettres d'amour": {
     "description": "Lettres d'amour à lire gratuitement en français : déclarations, lettres d'adieu, mots jamais envoyés, écrites par la communauté Love Ink.",
-    "intro": "Une lettre dit ce que l'on n'ose pas dire en face. Déclarations, lettres d'adieu, mots gardés dans un tiroir : ce genre réunit les textes écrits à la deuxième personne, pour quelqu'un.\n\nChaque lettre est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Une lettre dit ce que l'on n'ose pas dire en face. Déclarations, lettres d'anniversaire, lettres d'adieu, mots gardés dans un tiroir pendant des années : ce genre réunit les textes écrits à la deuxième personne, pour quelqu'un. Le destinataire existe parfois, parfois non ; il peut être un amour présent, perdu ou encore à venir.\n\nLa lettre d'amour est une forme ancienne qui n'a jamais disparu, même à l'heure des messages instantanés. Elle oblige à ralentir, à choisir ses mots, à dire « tu » sans détour. Les lettres publiées ici sont très différentes : certaines tiennent en dix lignes, d'autres en plusieurs pages ; certaines sont pudiques, d'autres brûlantes.\n\nChaque lettre est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Pour écrire la vôtre, nos guides proposent une méthode et des exemples originaux.",
+    "faq": [
+      { "q": "Comment écrire une lettre d'amour ?", "a": "Commencez par un souvenir précis, dites ce que vous ressentez avec vos propres mots et terminez par une promesse ou une question. Le guide [comment écrire une lettre d'amour](/ressources/comment-ecrire-une-lettre-d-amour) détaille chaque étape." },
+      { "q": "Où trouver des exemples de lettres d'amour ?", "a": "Sur cette page, écrites par la communauté, et dans le guide [exemples de lettres d'amour](/ressources/exemples-de-lettres-d-amour), qui propose des modèles originaux à adapter." },
+      { "q": "Peut-on publier une lettre adressée à une vraie personne ?", "a": "Oui, à condition de ne pas permettre de l'identifier : pas de nom de famille, d'adresse ni de détail trop personnel. Chaque lettre est relue avant publication." }
+    ]
   },
   "Poésie d'amour": {
     "description": "Poèmes d'amour en français à lire gratuitement : vers libres, sonnets, textes courts, écrits par la communauté Love Ink et relus avant publication.",
-    "intro": "Quelques vers suffisent parfois. Ce genre rassemble les poèmes d'amour de la communauté : vers libres, sonnets, textes courts à lire d'un souffle.\n\nChaque poème est relu avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Quelques vers suffisent parfois. Ce genre rassemble les poèmes d'amour de la communauté : vers libres, sonnets, haïkus, prose poétique, textes courts à lire d'un souffle ou à relire lentement. On y trouve des déclarations, des absences, des corps, des saisons, et beaucoup de silences entre les lignes.\n\nLa poésie amoureuse a une longue histoire en français, mais personne n'a besoin d'être un grand poète pour écrire un poème sincère. Ce qui compte, c'est l'image juste, le rythme, le mot qu'on n'attendait pas. Les poèmes publiés ici sont écrits par des lecteurs qui ont eu envie, un jour, de mettre leur émotion en vers, avec ou sans rimes.\n\nChaque poème est relu avec bienveillance avant publication et se lit gratuitement, sans compte. Vous écrivez des poèmes dans un carnet ? Le genre Poésie d'amour est l'endroit idéal pour les partager.",
+    "faq": [
+      { "q": "Faut-il des rimes pour écrire un poème d'amour ?", "a": "Non. Le vers libre est très présent sur Love Ink. Le rythme, les images et la sincérité comptent plus que la rime." },
+      { "q": "Quelle longueur pour un poème ?", "a": "Il n'y a pas de minimum ni de maximum : un haïku de trois vers comme un long poème en prose peuvent être publiés." }
+    ]
   },
   "Aventure estivale": {
     "description": "Histoires d'amour d'été à lire gratuitement en français : vacances, rencontres de passage, amours qui durent une saison, écrites par la communauté Love Ink.",
-    "intro": "Un été, une plage, une rencontre qui n'était pas prévue. Les aventures estivales durent une saison, ou toute une vie : ces histoires racontent les deux.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Un été, une plage, une rencontre qui n'était pas prévue. Les aventures estivales durent une saison, ou toute une vie : ces histoires racontent les deux. Colonies de vacances, festivals, petits villages du Sud, voyages en train à travers l'Europe, jobs d'été : le décor change, mais la sensation reste la même, celle d'un temps suspendu où tout semble possible.\n\nCe genre a ses rituels : la date de départ qui approche, les promesses de s'écrire, le dernier soir, et parfois les retrouvailles l'année suivante. Les textes de la communauté jouent avec ces codes, les détournent ou les prennent très au sérieux. Ils se lisent bien au soleil, mais aussi en plein hiver, quand on a besoin de lumière.\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Vous avez un souvenir d'été qui ne vous quitte pas ? Écrivez-le.",
+    "faq": [
+      { "q": "Qu'est-ce qu'une aventure estivale ?", "a": "Une histoire d'amour qui naît pendant l'été, souvent en vacances, avec une échéance : la fin de la saison. Elle peut s'arrêter avec l'été ou continuer bien après." },
+      { "q": "L'histoire doit-elle se passer en France ?", "a": "Non. Les histoires peuvent se dérouler partout, tant qu'elles sont écrites en français." }
+    ]
   },
   "Rencontres": {
     "description": "Histoires de rencontres amoureuses à lire gratuitement en français : coups de foudre, hasards, premiers rendez-vous, écrites par la communauté Love Ink.",
-    "intro": "Tout commence par une rencontre : un café, un quai de gare, un message envoyé par erreur. Les histoires de ce genre s'arrêtent sur ce moment où deux vies se croisent.\n\nChaque histoire est relue avant publication et se lit gratuitement, sans compte."
+    "updated": "2026-11-07",
+    "intro": "Tout commence par une rencontre : un café, un quai de gare, un message envoyé par erreur, une application qu'on allait désinstaller. Les histoires de ce genre s'arrêtent sur ce moment où deux vies se croisent, et sur les quelques heures ou les quelques jours qui suivent. Coup de foudre immédiat ou lente évidence, elles racontent le début de quelque chose.\n\nLa rencontre est sans doute la scène la plus écrite de la littérature amoureuse, et pourtant chacune est unique. Les auteurs de Love Ink la racontent avec des détails très concrets : la météo ce jour-là, la phrase maladroite, le numéro griffonné sur un ticket, le rendez-vous où l'un des deux est arrivé en retard. Certaines rencontres finissent en histoire d'amour, d'autres restent un souvenir.\n\nChaque histoire est relue avec bienveillance avant publication et se lit gratuitement, sans compte. Racontez la vôtre, vraie ou inventée.",
+    "faq": [
+      { "q": "Quelle différence entre « Rencontres » et « Premier amour » ?", "a": "« Rencontres » se concentre sur le moment où deux personnes se croisent, à tout âge. « Premier amour » raconte une première expérience amoureuse, de la rencontre à la fin éventuelle." },
+      { "q": "Comment rendre une scène de rencontre originale ?", "a": "Choisissez un lieu et un détail inattendus, et montrez ce que chaque personnage remarque chez l'autre. Le guide [idées d'histoires d'amour](/ressources/idees-histoires-d-amour) propose des situations de départ." }
+    ]
   }
 }

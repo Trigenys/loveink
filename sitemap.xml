@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url><loc>https://loveink.site/</loc></url>
-  <url><loc>https://loveink.site/register</loc></url>
   <url><loc>https://loveink.site/histoires/</loc></url>
+  <url><loc>https://loveink.site/histoires/genre/premier-amour</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/amour-heureux</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/amour-magique</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/histoires-tristes</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/lettres-d-amour</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/poesie-d-amour</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/aventure-estivale</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/histoires/genre/rencontres</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/ressources/</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/ressources/comment-ecrire-une-lettre-d-amour</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/ressources/exemples-de-lettres-d-amour</loc><lastmod>2026-11-07</lastmod></url>
+  <url><loc>https://loveink.site/ressources/idees-histoires-d-amour</loc><lastmod>2026-11-07</lastmod></url>
 </urlset>

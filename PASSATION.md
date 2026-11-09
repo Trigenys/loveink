@@ -433,3 +433,10 @@
 
 - AppFactory #147 squash-mergée : 71149532f5fce30aa24c3e0c6bb312b6ce63f13e. firebase-deploy.yml et seo-refresh.yml re-épinglés sur ce SHA (PR 1).
 - Prochaine étape (humain) : merger PR 1 (déploie en production), puis PR 2 et PR 8 ; supprimer le secret JSON après un run prod réussi.
+## 2026-11-07 10:38 — SEO/GEO : écarts P0/P1 comblés (branche feat/seo-geo-gaps)
+
+- Fait : sitemap sans `/register` ; JSON-LD histoire enrichi (`additionalType` ShortStory, `genre`, `isPartOf` WebSite, `publisher.parentOrganization` `https://www.trigenys.com/#org`, auteur `Person` avec `@id`/`url`) ; pages auteurs `/histoires/auteur/<slug>` (ProfilePage + Person + ItemList, pseudonyme seul, jamais d'e-mail ni d'uid) ; pages genre éditorialisées (intro ~150 mots, « Les plus appréciées », FAQ visible = FAQPage, `updated` dans `data/genres.json`) ; 3 guides `/ressources/` depuis `data/ressources.json` (lettre d'amour, exemples, idées) + index, maillés depuis histoires/genres/accueil/sitemap/llms ; titles/descriptions uniques (`uniqueBy`).
+- Preuve : `node --test tests/seo/*.test.mjs` → 55/57 en local ; les 2 échecs (`robots bloque /feed`) viennent de la copie de travail Windows en CRLF (`core.autocrlf=true`), le dépôt est en LF → verts en CI Linux. Régénération commitée (0 histoire publiée en prod).
+- Non touché (contrainte) : `.github/workflows/`, `firebase.json`, `.github/appfactory-impact.json` ; aucun déploiement.
+- À faire : relecture des textes par Lee (`data/genres.json`, `data/ressources.json`) ; vérifier que `https://www.trigenys.com/#org` est bien l'`@id` publié par trigenys.com ; Rich Results Test après déploiement ; corriger le repli e-mail de `publier.html` (issue).
+- Verrous : aucun.
