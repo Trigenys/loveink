@@ -532,3 +532,21 @@
 - Incident : après le déploiement, lien « Retour à la connexion » bleu chez l'utilisateur. Cause : css/js non versionnés et mis en cache 1 h, HTML en no-cache → nouveau HTML avec ancien CSS. /login (sans extension) aussi en max-age=3600 (défaut Firebase).
 - Correctif (branche fix/hosting-cache-revalidate) : no-cache (revalidation ETag) pour css/js et pour les URLs sans extension ; test de non-régression dans tests/seo/hosting.test.mjs.
 - main local réaligné sur origin/main ; ancien commit local gardé dans backup/main-a6bd014 (déjà contenu dans main).
+
+## 2026-11-09 17:09 — PR #28 mergée (cache)
+- Déployée (run 42651745634 success). Prod : css/js, /login et HTML en no-cache, images 7 j ; revalidation ETag → 304.
+- État : #27 et #28 en prod. Reste côté utilisateur : relire/merger PR #8, supprimer les branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme.
+- Pour tester l'e-mail thématisé : le faire depuis loveink.site (en local le mailer 127.0.0.1:8787 n'est pas lancé → repli Firebase, en anglais et souvent en spam).
+- Amélioration possible : versionner (hash) css/js au build pour revenir à un cache long.
+- Correction : Firebase Hosting ne renvoie pas 304 sur If-None-Match (testé curl et navigateur : 200, CSS retéléchargé, ~2,6 Ko pour auth-action.css). no-cache coûte donc un téléchargement complet des css/js à chaque visite. Prochaine étape conseillée : hash des css/js au build + cache long immutable.
+
+## 2026-11-09 17:12 — Versionnement css/js (en cours)
+- Branche feat/hosting-fingerprint-assets (part de chore/passation-2026-11-09, qui porte les entrées précédentes).
+- Plan : scripts/fingerprint-assets.mjs lancé en CI via build_command (firebase-deploy.yml jobs hosting + seo-refresh.yml) : hash du contenu de css/ et js/ → copie dans _v/<hash>/css|js (les imports relatifs entre modules restent valides), réécriture des références css/js dans les HTML du checkout CI uniquement (source intacte, dev local inchangé). firebase.json : /_v/** en cache 1 an immutable ; css/js d'origine gardés en no-cache. _v/ dans .gitignore.
+- Faits vérifiés : CSS sans url() relative ; JS sans import absolu ; 29 pages, 0 référence cassée.
+- Reste : script + tests node, vérif émulateur hosting (ordre des règles d'en-têtes), PR (merge = déploiement, demander).
+
+## 2026-11-09 17:17 — Versionnement css/js : prêt (PR)
+- Fait : scripts/fingerprint-assets.mjs (+ tests/seo/fingerprint.test.mjs), build_command des jobs hosting (firebase-deploy.yml, seo-refresh.yml), firebase.json : /@(css|js)/** no-cache et /_v/** 1 an immutable (motifs disjoints : l'émulateur n'applique pas les en-têtes, l'ordre n'a pas pu être vérifié localement).
+- Vérifié : tests SEO 71/71 ; copie construite servie par l'émulateur : toutes les ressources depuis /_v/<hash>, aucune erreur console, e2e 3/3 (dont pages privées après connexion) ; seconde exécution du script : 0 page réécrite.
+- Après merge : contrôler en prod `curl -sI` sur /_v/<hash>/css/styles.css (immutable) et que /login référence /_v/.
