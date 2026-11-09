@@ -363,6 +363,76 @@
 - À faire par l'utilisateur : (1) créer le secret GitHub `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` (JSON d'un compte de service, rôle Firebase Hosting Admin ; + Rules Admin / Datastore Index Admin si on veut déployer Firestore via CI) — sans lui les deux workflows échouent explicitement ; (2) déployer Hosting (`firebase deploy --only hosting --project love-ink`) ; (3) 301 www→apex en console Hosting ; (4) importer le site dans Bing Webmaster Tools ; (5) re-mesurer PSI mobile (baseline 75) ; (6) observer la CSP Report-Only en prod (login Google, publication, messagerie) avant tout passage en bloquant.
 - Verrous : aucun. Secrets jamais lus ni commités.
 
+## 2026-11-06 16:56 — Déploiement Firebase sans clé (WIF) via AppFactory : écarts et plan, en attente de validation
+
+- Demande : avant de créer `FIREBASE_SERVICE_ACCOUNT_LOVE_INK`, étudier GitHub OIDC + Workload Identity Federation et un provider AppFactory réutilisable. Analyse en lecture seule, aucun fichier du dépôt modifié, aucun identifiant créé, aucun déploiement.
+- Constat : `Trigenys/appfactory` (Worker Cloudflare Pages/D1/R2/Neon, broker GitHub) et `EagleFox31/appfactory-project-automation` n'ont **aucune** primitive Firebase/GCP ; patterns à adapter : `reusable-pages-deploy.yml` (contrat sans secret, modes plan/preview/production) et `docs/aws-oidc-one-time-bootstrap.md`.
+- Faisabilité vérifiée : `google-github-actions/auth` v3.0.0 (sha `7c6bc770dae815cd3e89ee6cdf493a5fab2cc093`) ; `firebase-tools` 15.35.0 charge un fichier `external_account` et appelle STS (test local avec pool factice → `invalid_target`, contrôle sans credential → « have you run firebase login? ») ; régression 15.22.2 corrigée en 15.22.3, cause Node 22.23.0/24.17.0 → épingler Node exact. `FirebaseExtended/action-hosting-deploy` reste JSON-only (issues #174, #399 ouvertes) → à remplacer.
+- Plan complet : `C:\Users\lawry\AppData\Local\Temp\claude\dd1a7a74099b0da2\6ee8181d-41ae-4ff3-adc7-deba6558666b\scratchpad\plan-firebase-wif-appfactory.md` (à copier dans `docs/engineering/` si validé). Résumé : nouveau `reusable-firebase-deploy.yml` + `scripts/firebase-deploy/contract.mjs` + tests + docs dans appfactory-project-automation (fichiers neufs, Cloudflare intact) ; Love Ink consomme via `.github/appfactory-impact.json` + `reusable-impact-analysis` ; `seo-refresh` garde le cron 6 h en 3 jobs (refresh → deploy → indexnow, sitemap précédent en artefact) ; bootstrap GCP (pool `github`, provider OIDC avec `attribute.repository`, SA `github-deploy` sans clé, rôles Hosting Admin [+ Rules Admin, Datastore Index Admin si Firestore via CI]) à exécuter par l'utilisateur, plan → apply.
+- Prochaine étape : validation du plan par l'utilisateur, puis phase 1 (PR appfactory-project-automation). Le secret JSON ne doit pas être créé.
+
+## 2026-11-06 17:32 — Firebase WIF phase 1 : PR ouverte dans appfactory-project-automation
+
+- PR https://github.com/EagleFox31/appfactory-project-automation/pull/147 (branche `feat/reusable-firebase-deploy`, commit `27421c6`) : workflow réutilisable `reusable-firebase-deploy.yml` (OIDC + WIF, aucun secret), contrat `scripts/firebase-deploy/contract.mjs`, 18 tests (18/18), docs `docs/reusable-firebase-deploy.md` + `docs/gcp-wif-one-time-bootstrap.md`, exemple `examples/firebase-deploy.yml`, lessons LESSON-2026-017/018.
+- Suite complète `npm test` sur Windows : 15 échecs pré-existants (AWS/CloudFormation/governance), identiques sur `origin/main` propre ; CI Linux fait foi (en attente au moment de l'écriture).
+- Love Ink **non modifié** ; aucun bootstrap GCP, aucun déploiement, aucun secret créé. Mission SEO/GEO (`1fcd2f2`) toujours non déployée.
+- Phase 2 à faire après revue/merge : `hosting.ignore` (`**/gha-creds-*.json`, `**/.*`), `.github/appfactory-impact.json`, remplacer `action-hosting-deploy@v0` + secret JSON par le workflow réutilisable épinglé au SHA mergé, chaîner refresh → deploy (`checkout_ref`, `deployed_sha`) → IndexNow, bootstrap GCP humain (runbook verify puis apply), variables `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_DEPLOY_SERVICE_ACCOUNT`.
+
+## 2026-11-07 03:43 — Firebase WIF phase 2 : PR Love Ink ouverte
+
+- PR https://github.com/Trigenys/loveink/pull/1 (branche `feat/firebase-wif-deploy`, commit `11e8900`) : `hosting.ignore` + `**/gha-creds-*.json`, `.github/appfactory-impact.json` (surfaces `site` → gates `seo-tests`/`hosting`, `firestore` → `firestore`), `firebase-deploy.yml` réécrit (impact → seo-tests → hosting → firestore ; PR = plan, push main = production), `seo-refresh.yml` réécrit (refresh → deploy sur le SHA poussé → IndexNow si `deployed_sha` = SHA poussé, ancien sitemap via artefact), test de garde dans `tests/seo/hosting.test.mjs`. Tests SEO 45/45. Pins vérifiés (checkout/setup-node/upload-artifact v5.0.0, download-artifact v6.0.0).
+- Épinglé sur `27421c60e1eca0107ef376408471412c44767770` = commit de la PR AppFactory #147 (https://github.com/EagleFox31/appfactory-project-automation/pull/147, non mergée) : **re-épingler** les quatre `@27421c6…` + `appfactory_ref` sur le SHA mergé.
+- Verrous : aucun déploiement, aucun bootstrap GCP, aucun secret créé/supprimé. Tant que les variables `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_DEPLOY_SERVICE_ACCOUNT` sont absentes, tout reste en `plan` (le chemin par clé JSON est retiré) → merger après bootstrap + variables, ou accepter la coupure. Mission SEO/GEO (`1fcd2f2`) toujours non déployée.
+- Prochaines étapes (propriétaire) : runbook `docs/gcp-wif-one-time-bootstrap.md` (verify puis apply) sur `love-ink` pour `Trigenys/loveink` ; variables ci-dessus ; environnement `production` (branche `main`) ; merge #147 puis re-pin ; merge PR 1 ; après un run production réussi, supprimer `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` et révoquer la clé.
+
+## 2026-11-07 03:59 — Phase 2 : CI bloquée par la facturation GitHub
+
+- Re-déclenchement (commit vide) : toujours 0 job sur `firebase-deploy.yml` et `project-automation.yml` ; annotation GitHub : paiements de l'organisation Trigenys échoués / limite de dépense. Aucune erreur de workflow identifiée (inputs vérifiés contre les workflows réutilisables à `27421c6`).
+- `gcloud` absent de la machine : bootstrap GCP impossible ici de toute façon (action humaine).
+- Bloqué sur l'utilisateur : (1) rétablir la facturation GitHub puis relancer les checks de la PR 1 ; (2) bootstrap GCP + variables ; (3) merge AppFactory #147 puis re-pin.
+
+## 2026-11-07 10:20 — Phase 2 : CI verte (plan)
+
+- Dépôt `Trigenys/loveink` passé **public** à la demande de l'utilisateur (Actions bloqué en privé, plan gratuit) ; scan préalable : aucun secret dans fichiers ni historique (clé Firebase web publique par conception).
+- Erreur de compilation du workflow réutilisable (`runner.temp` dans `env` de job) corrigée dans AppFactory `b236135` (PR #147, LESSON-2026-019, test structurel) ; Love Ink re-épinglé sur `b236135` (`5bdff0a`).
+- Run 42332913072 : impact, seo-tests, hosting (plan) OK, firestore ignoré, étapes d'identité ignorées comme prévu.
+- Reste (propriétaire) : bootstrap GCP + variables + environnement `production` ; merge #147 puis re-pin sur SHA mergé ; merge PR 1 ; suppression du secret JSON après run production réussi.
+- Demande SEO/GEO reçue de la session expert-seo-geo : P0 déjà largement couvert par `scripts/build-seo-pages.mjs` (pages histoires/genres statiques, sitemap lastmod, JSON-LD Article) mais non déployé ; écarts : `/register` dans le sitemap, pas de pages auteurs, pas de `parentOrganization`, P1 (intros genres, pages ressources) absent.
+
+## 2026-11-07 10:33 — Bootstrap GCP : bloqué par les droits
+
+- Cloud Shell (navigateur, compte connecté du propriétaire) sur `love-ink`, numéro de projet 942272722437. Saisie du terminal : seules les frappes `key` touche par touche passent (`type` est ignoré).
+- Vérification en lecture seule : pas de pool WIF, pas de compte `github-deploy`.
+- Appliqué : activation de `iamcredentials.googleapis.com` et `sts.googleapis.com` (idempotent).
+- Bloqué : `workload-identity-pools create` → IAM_PERMISSION_DENIED. Le compte connecté n'a que `roles/editor` sur le projet ; il faut le compte Owner (ou les rôles Workload Identity Pool Admin + Service Account Admin + Project IAM Admin) pour la suite du runbook (pool, provider, SA, 3 rôles projet, binding workloadIdentityUser sur `Trigenys/loveink`).
+- Session SEO lancée par l'utilisateur : `local_db63e3e4-…` (écarts P0/P1 en worktree, PR sans merge).
+
+## 2026-11-07 10:42 — PR SEO/GEO ouverte
+
+- PR 2 (`feat/seo-geo-gaps`, non mergée) : pages auteurs, 3 guides `/ressources/`, genres éditorialisés, JSON-LD enrichi, `/register` hors sitemap ; 57/57 tests SEO annoncés par la session. Issues P2 #3–#6, suivi #7 (pseudo auteur = partie locale de l'e-mail).
+- Les checks de la PR 2 ne lancent que sync-project : les tests SEO tourneront en CI après merge de la PR 1 (workflow firebase-deploy).
+- Bootstrap GCP toujours bloqué (compte Editor seulement).
+
+## 2026-11-07 11:25 — Bootstrap GCP : attente droits Owner
+
+- Owner (liakoa99@gmail.com) en train d'accorder le rôle Propriétaire à lawrynnjennifer@gmail.com via la console IAM (mobile).
+- Ensuite : reprendre le runbook WIF dans Cloud Shell (pool github, provider github-actions, SA github-deploy + 3 rôles, liaison workloadIdentityUser), puis variables GitHub + environnement production via gh.
+
+## 2026-11-07 15:57 — Bootstrap GCP WIF terminé
+
+- Owner accordé à lawrynnjennifer@gmail.com. Créés (Cloud Shell, script idempotent describe||create) : pool `github`, provider `github-actions` (ACTIVE, condition repository_owner==Trigenys), SA `github-deploy@love-ink.iam.gserviceaccount.com` + firebasehosting.admin, firebaserules.admin, datastore.indexAdmin ; workloadIdentityUser limité à Trigenys/loveink.
+- GitHub : variables GCP_WORKLOAD_IDENTITY_PROVIDER et GCP_DEPLOY_SERVICE_ACCOUNT posées, environnement `production` limité à `main`.
+- Reste (humain) : merger AppFactory #147, re-épingler le SHA, merger PR 1 (le push sur main déploiera en production), puis PR 2 ; supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK après un run prod réussi.
+
+## 2026-11-07 15:57 — PR #8 (issue #7) ouverte
+
+- PR 8 : pseudo du profil seul nom d'auteur, publication bloquée sans pseudo ; 64 tests SEO annoncés, aucun check CI sur GitHub. Non mergée.
+- Ordre de merge : AppFactory #147 → re-épinglage SHA → PR 1 → PR 2 → PR 8.
+
+## 2026-11-09 07:59 — #147 mergée, PR 1 re-épinglée
+
+- AppFactory #147 squash-mergée : 71149532f5fce30aa24c3e0c6bb312b6ce63f13e. firebase-deploy.yml et seo-refresh.yml re-épinglés sur ce SHA (PR 1).
+- Prochaine étape (humain) : merger PR 1 (déploie en production), puis PR 2 et PR 8 ; supprimer le secret JSON après un run prod réussi.
 ## 2026-11-07 10:38 — SEO/GEO : écarts P0/P1 comblés (branche feat/seo-geo-gaps)
 
 - Fait : sitemap sans `/register` ; JSON-LD histoire enrichi (`additionalType` ShortStory, `genre`, `isPartOf` WebSite, `publisher.parentOrganization` `https://www.trigenys.com/#org`, auteur `Person` avec `@id`/`url`) ; pages auteurs `/histoires/auteur/<slug>` (ProfilePage + Person + ItemList, pseudonyme seul, jamais d'e-mail ni d'uid) ; pages genre éditorialisées (intro ~150 mots, « Les plus appréciées », FAQ visible = FAQPage, `updated` dans `data/genres.json`) ; 3 guides `/ressources/` depuis `data/ressources.json` (lettre d'amour, exemples, idées) + index, maillés depuis histoires/genres/accueil/sitemap/llms ; titles/descriptions uniques (`uniqueBy`).
@@ -383,3 +453,77 @@
 - Reste (issue #7) : recenser les histoires existantes dont `auteur` provient de l'ancien repli ; `getUserPseudo()`
   (`js/core/auth-session.js`) et `profil.html` gardent un repli e-mail pour l'affichage privé (nav, profil).
 - Conflit attendu en fin de `lessons-learned.md` avec la PR #2 (deux ajouts en fin de fichier) : garder les deux.
+
+## 2026-11-09 08:02 — PR 1 prête à merger
+
+- PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
+- main fusionnée dans feat/firebase-wif-deploy (81d03b6, conflit PASSATION résolu par union), 58/58 tests, CI PR 1 verte (impact, seo-tests, hosting plan), CLEAN.
+- Prochaine étape : merger PR 1 = premier déploiement production WIF ; puis PR 8.
+
+## 2026-11-09 08:16 — Déploiement production sauté : bug AppFactory, correctif #149
+- Run production post-PR 1 vert mais rien déployé : le contrat CLI (`file:///${argv[1]}`) ne s'exécutait jamais sous Linux → sorties vides → étapes deploy sautées. Le plan non plus ne validait rien.
+- Correctif : EagleFox31/appfactory-project-automation#149 (pathToFileURL + garde `deploy=` qui fait échouer le plan + tests). CI verte, non mergée (accord requis).
+- Ensuite : merger #149, re-épingler firebase-deploy.yml et seo-refresh.yml sur le SHA de merge, PR, puis vérifier que l'étape « Deploy production » s'exécute réellement et que loveink.site est à jour.
+- Secret `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` : ne le supprimer qu'après ce run réussi.
+
+## 2026-11-09 08:54 — Déploiement production : 3e blocage, correctif AppFactory #151
+- Mergés : AppFactory #149 (entrypoint Linux) et #150 (.env.example toléré) ; Love Ink PR 9 (épinglage cc90978) mergée → run 42581909565 : plan OK, auth OIDC/WIF OK, puis échec fermé « credentials file is not under … » (auth écrit gha-creds dans le checkout : override GITHUB_WORKSPACE ignoré par le runner). Rien n'a été publié.
+- Correctif : EagleFox31/appfactory-project-automation#151 (déplacement du fichier sous RUNNER_TEMP + ré-export des variables). CI verte, non mergée (accord requis).
+- Branche locale fix/repin-appfactory-151 créée depuis origin/main (rien de commité hormis cette entrée).
+- Suite : merger #151 → re-épingler firebase-deploy.yml + seo-refresh.yml sur son SHA de merge → PR → merge → vérifier « Deploy production » success et loveink.site.
+- Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK : suppression humaine seulement après ce run réussi.
+
+## 2026-11-09 09:05 — Déploiement prod : 4e blocage (erreur firebase-tools masquée)
+- PR 10 mergée (épinglage sur fdca41d = AppFactory #151). Run 42582790211 : plan, auth OIDC/WIF, déplacement et vérification des identifiants OK ; « Deploy production » échoue avec seulement « exit code 1 » (firebase-tools --json écrit l'erreur dans le fichier redirigé).
+- Correctif AppFactory : PR #152 (affiche l'erreur JSON en annotation ::error::), CI en cours, merge à valider.
+- Suite : merger #152 → re-épingler Love Ink sur son SHA de merge → relancer → lire l'erreur réelle. Hypothèse : permission IAM manquante pour github-deploy@ (ex. serviceusage.serviceUsageConsumer) → ajout par un Owner, sur accord.
+- loveink.site pas encore redéployé ; secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK toujours à supprimer (humain) après un run réussi.
+
+## 2026-11-09 09:53 — Déploiement prod : cause réelle identifiée (IAM)
+- AppFactory #152 mergée (814c717), Love Ink PR 11 mergée (96d5454). Run 42589075417 : « Deploy production » affiche maintenant l'erreur : HTTP 403 sur serviceusage.googleapis.com, « Permission denied to get service [firebasehosting.googleapis.com] ».
+- Cause : il manque roles/serviceusage.serviceUsageConsumer à github-deploy@love-ink.iam.gserviceaccount.com (projet love-ink). Ajout réservé à un Owner, sur accord.
+- Suite : ajouter le rôle → relancer le run (gh run rerun 42589075417) → vérifier loveink.site ; puis suppression humaine du secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK.
+
+## 2026-11-09 11:32 — Rôle annoncé ajouté, 403 persistant
+- La propriétaire dit avoir ajouté Service Usage Consumer. Run 42589075417 relancé (tentatives 2 et 3, ~10:30 UTC) : même 403 serviceusage « Permission denied to get service [firebasehosting.googleapis.com] ».
+- Vérification IAM impossible ici (pas de gcloud ; navigateur bloqué par une popup de connexion).
+- Suite : faire confirmer (capture IAM) que la ligne github-deploy@love-ink.iam.gserviceaccount.com porte « Consommateur Service Usage » au niveau du projet love-ink, puis gh run rerun 42589075417 --failed.
+
+## 2026-11-09 11:46 — Déploiement production réussi
+- Rôle roles/serviceusage.serviceUsageConsumer ajouté à github-deploy@ (Cloud Shell, compte Owner). Run 42589075417 tentative 4 : hosting success (version 56524fdef934b7e8), identifiants supprimés en post-étape.
+- loveink.site : 200, Last-Modified 2026-11-09 10:45 GMT ; sitemap.xml, robots.txt, llms.txt en 200 ; /.env en 404.
+- Reste (humain) : supprimer le secret GitHub FIREBASE_SERVICE_ACCOUNT_LOVE_INK (et la clé JSON associée côté GCP). Plus tard : Firestore (workflow_dispatch), PR #8 ouverte.
+
+## 2026-11-09 14:23 — Backlog produit (communauté, catégories, anti-plagiat, monétisation)
+- Issues #12 à #23 créées (corps avec métadonnées appfactory-project) et synchronisées sur le board « Love Ink Development » (Backlog, priorité/phase/taille vérifiées ; resync complète run 42624854841 après annulations par concurrence).
+- Communauté (Launch) : #12 autrices fondatrices, #13 concours, #14 coup de cœur, #15 WhatsApp/TikTok, #18 tableau de bord + seuil. Growth : #16 suivre/commenter/notifier, #17 rituels.
+- Produit : #19 genres de romance (thèmes conservés), #20 anti-plagiat web, #21 exploration anti-capture (ADR), #22 pourboires + commission (Mobile Money), #23 premium / mise en avant partenaire.
+- Toujours non commitées : les entrées de passation depuis le 4e blocage. Reste humain : supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK.
+
+## 2026-11-09 15:08 — #14 Coup de cœur et #20 anti-plagiat (branche feat/coup-de-coeur-anti-plagiat)
+- #14 : champ `coupDeCoeur` (date serveur) + `coupDeCoeurPar`, posé/retiré par un modo depuis histoire.html (`firebaseAPI.definirCoupDeCoeur`, opslog `story_coup_de_coeur`) ; règle `validModoCoupDeCoeurUpdate` ; bloc « Coup de cœur de la semaine » en accueil et badge sur /histoires/* générés par seo-refresh.
+- #20 : `js/components/attribution.js` (copie ≥ 80 caractères → « Extrait de … » + lien), mention « Tous droits réservés » + lien « Signaler un plagiat », procédure de retrait dans conditions.html#plagiat.
+- Contrat modifié : les pages statiques chargent désormais un seul script autorisé (attribution.js) ; test générateur ajusté. Bug corrigé : `toIso` sur date invalide.
+- Tests SEO 67/67. Tests de règles non exécutés localement (pas de Java) : à faire en CI. Règles Firestore à déployer après accord.
+- Modale d'inscription : rethémée dans `js/components/modale.js`, branche locale fix/register-modal-theme (25135c9, worktree agent), non poussée.
+
+## 2026-11-09 15:14 — PR #24 et #25 mergées et déployées ; diagnostic spams
+- #24 (Coup de cœur + anti-plagiat) et #25 (modale thémée) mergées en squash (e815dc4, 6fe0117). Runs Firebase Deploy 42632172714 (hosting + firestore rules OK) et 42632186034 (hosting OK). Prod vérifiée : conditions#plagiat, attribution.js, modale.js thémée servis.
+- Spams : expéditeur `loveink@trigenys.com` alors que les liens pointent sur loveink.site ; loveink.site sans SPF/DKIM/DMARC. Correctif proposé : domaine loveink.site dans Resend + DNS Spaceship (utilisateur), puis MAIL_FROM=Love Ink <noreply@loveink.site> et MAIL_REPLY_TO=contact@loveink.site sur le VPS (accord requis), test d'envoi.
+- Branches feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme encore présentes à distance.
+
+## 2026-11-09 15:18 — loveink.site ajouté dans Resend (en attente DNS)
+- Domaine loveink.site créé dans Resend (compte trigenys, région eu-west-1, id 4f8f0ca0-30aa-443a-b0a9-310731f8d6c2), non vérifié.
+- DNS à créer chez Spaceship : TXT resend._domainkey (clé DKIM affichée par Resend) ; CNAME rsend → rsend-euw1.forge.rmta.net ; CNAME send → send.forge.rmta.net ; TXT _dmarc = v=DMARC1; p=none; rua=mailto:contact@loveink.site.
+- Ensuite : Resend « I've added the records » → Verified ; puis VPS MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site, recréer le conteneur, mail de test.
+
+## 2026-11-09 15:49 — Expéditeur mails basculé sur noreply@loveink.site
+- DNS Spaceship ajoutés par l'utilisateur (DKIM resend._domainkey, CNAME rsend/send, DMARC p=none) ; Resend : loveink.site Verified (eu-west-1).
+- VPS ~/loveink-mailer/.env : MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site (sauvegarde .env.bak-*), conteneur recréé, healthz OK. Mail de test direct Resend → Delivered.
+- Anomalie : POST /v1/auth/password-reset pour un e-mail (probablement sans compte) → 502 « INTERNAL ASSERT FAILED: Unable to create the email action link » ; le code n'attrape que auth/user-not-found, donc le front se replie sur l'e-mail Firebase par défaut. Correctif à faire dans server/mailer/index.js:98.
+
+## 2026-11-09 16:17 — Mailer : reset pour compte inconnu corrigé
+- Cause : l'Admin SDK lève auth/internal-error (« Unable to create the email action link ») pour une adresse sans compte, pas auth/user-not-found → 502 → repli front sur l'e-mail Firebase par défaut (spam).
+- Correctif : server/mailer/reset.js (getUserByEmail avant generatePasswordResetLink) + reset.test.js ; 6/6 tests verts. Branche fix/mailer-reset-unknown-account.
+- Déployé sur le VPS (scp index.js + reset.js, compose recréé) : POST reset compte inconnu → 200, log « reset : compte inconnu ».
+- trigenysdataschool@gmail.com n'a pas de compte Love Ink : aucun mail n'est envoyé, c'est normal.

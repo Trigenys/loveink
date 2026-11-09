@@ -245,3 +245,4 @@ html.li-focus .story-page { padding-top: 24px; }
 @media print {
     .li-reader-bar, .li-reader-panel, .li-resume, .li-story-end { display: none !important; }
 }
+.story-page .story-rights { margin: 18px 0 0; font-size: 0.82rem; opacity: 0.75; }

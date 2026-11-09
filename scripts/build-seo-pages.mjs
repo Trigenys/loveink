@@ -50,9 +50,11 @@ const decode = (v) => {
     if ('arrayValue' in v) return (v.arrayValue.values || []).map(decode);
     return null;
 };
-const toIso = (d) => { const t = d ? new Date(d) : null; return t && !Number.isNaN(t) ? t.toISOString() : null; };
+const toIso = (d) => { const t = d ? new Date(d) : null; return t && !Number.isNaN(t.getTime()) ? t.toISOString() : null; };
 export const publicName = (v) => { const s = String(v ?? '').replace(/\s+/g, ' ').trim(); return !s || s.includes('@') ? UNKNOWN_AUTHOR : s.slice(0, 60); };
-export const normalize = (f, id) => ({ id, ...f, auteur: publicName(f.auteur), likes: Number(f.likes) || 0, date: toIso(f.date), dateModified: toIso(f.dateModification || f.updatedAt || f.date) });
+export const normalize = (f, id) => ({ id, ...f, auteur: publicName(f.auteur), likes: Number(f.likes) || 0, date: toIso(f.date), dateModified: toIso(f.dateModification || f.updatedAt || f.date), coupDeCoeur: toIso(f.coupDeCoeur) });
+// Coup de coeur editorial courant : la selection la plus recente (null si aucune).
+export const pickCoupDeCoeur = (stories) => stories.filter((s) => s.coupDeCoeur).sort((a, b) => b.coupDeCoeur.localeCompare(a.coupDeCoeur) || a.id.localeCompare(b.id))[0] || null;
 
 // Pagination par curseur sur __name__ (pas d'index composite requis) : aucun plafond silencieux.
 export async function fetchPublished(project, pageSize = 300) {
@@ -224,11 +226,12 @@ ${body}
         const byline = author ? `<a href="${author.path}" rel="author">${esc(s.auteur)}</a>` : esc(s.auteur || UNKNOWN_AUTHOR);
         const body = `        <article class="sp-story">
             <p class="sp-kicker"><a href="/histoires/">Histoires</a> › <a href="${genrePath(genre)}">${esc(genre)}</a></p>
-            <h1>${esc(s.titre || 'Sans titre')}</h1>
+${s.coupDeCoeur ? `            <p class="sp-badge">Coup de cœur Love Ink · <time datetime="${s.coupDeCoeur}">${fmtDate(s.coupDeCoeur)}</time></p>\n` : ''}            <h1>${esc(s.titre || 'Sans titre')}</h1>
             <p class="sp-meta">Par ${byline}${s.date ? ` · <time datetime="${s.date}">${fmtDate(s.date)}</time>` : ''} · ${readingMinutes(s.contenu)} min de lecture</p>
-            <div class="sp-content">
+            <div class="sp-content" data-li-attrib data-titre="${esc(s.titre || 'Sans titre')}" data-auteur="${esc(s.auteur || UNKNOWN_AUTHOR)}" data-url="${BASE}${path}">
 ${paragraphs(s.contenu)}
             </div>
+            <p class="sp-rights">© ${(s.date || '').slice(0, 4) || year} ${esc(s.auteur || UNKNOWN_AUTHOR)} · Tous droits réservés. Reproduction interdite sans l'accord de l'auteur. <a href="/conditions#plagiat">Signaler un plagiat</a></p>
             <aside class="sp-react"><p>Cette histoire vous a touché ? Réagissez, commentez et suivez l'auteur sur Love Ink.</p><a class="sp-cta" href="/histoire?id=${esc(s.id)}">Lire dans l'application</a> <a class="sp-link" href="/register">Créer un compte gratuit</a></aside>
         </article>`;
         const article = {
@@ -239,7 +242,7 @@ ${paragraphs(s.contenu)}
             articleSection: genre, genre, wordCount: wordCount(s.contenu), timeRequired: `PT${readingMinutes(s.contenu)}M`, isAccessibleForFree: true,
             inLanguage: 'fr', mainEntityOfPage: `${BASE}${path}`, image: OG_IMG, isPartOf: WEBSITE, publisher: ORG,
         };
-        const meta = [s.date && `<meta property="article:published_time" content="${s.date}">`, (s.dateModified || s.date) && `<meta property="article:modified_time" content="${s.dateModified || s.date}">`, `<meta property="article:section" content="${esc(genre)}">`, `<meta property="article:author" content="${esc(s.auteur || UNKNOWN_AUTHOR)}">`].filter(Boolean).map((m) => `    ${m}\n`).join('');
+        const meta = [s.date && `<meta property="article:published_time" content="${s.date}">`, (s.dateModified || s.date) && `<meta property="article:modified_time" content="${s.dateModified || s.date}">`, `<meta property="article:section" content="${esc(genre)}">`, `<meta property="article:author" content="${esc(s.auteur || UNKNOWN_AUTHOR)}">`, '<script type="module" src="/js/components/attribution.js"></script>'].filter(Boolean).map((m) => `    ${m}\n`).join('');
         const jsonLd = [article, crumbs([['Accueil', '/'], ['Histoires', '/histoires/'], [genre, genrePath(genre)], [s.titre || 'Sans titre', path]])];
         return { path, html: page({ title, description, path, body, jsonLd, type: 'article', meta }), lastmod: s.dateModified || s.date };
     }
@@ -381,9 +384,11 @@ ${stories.slice(0, 30).map(entry).join('\n')}
     function latestBlock(byGenre, stories) {
         const guidesHtml = guides.length ? `\n                <p class="lp-latest__genres">Guides : ${guides.map((g) => `<a href="${guidePath(g).slice(1)}">${esc(g.h1 || g.title)}</a>`).join(' · ')}</p>` : '';
         if (!stories.length) return `${LATEST_MARK[0]}\n                <p class="lp-lead">Les premières histoires arrivent. <a href="histoires/">Voir la bibliothèque</a> ou <a href="register.html">écrire la vôtre</a>.</p>${guidesHtml}\n                ${LATEST_MARK[1]}`;
-        const items = stories.slice(0, 6).map((s) => `                    <li><a href="${storyPath(s).slice(1)}"><strong>${esc(s.titre || 'Sans titre')}</strong><span>${esc(s.auteur || UNKNOWN_AUTHOR)} · ${esc(s.categorie || 'Divers')} · ${readingMinutes(s.contenu)} min</span></a></li>`).join('\n');
+        const pick = pickCoupDeCoeur(stories);
+        const pickHtml = pick ? `                <div class="lp-pick"><p class="lp-pick__label">Coup de cœur de la semaine</p><a href="${storyPath(pick).slice(1)}"><strong>${esc(pick.titre || 'Sans titre')}</strong><span>${esc(pick.auteur || UNKNOWN_AUTHOR)} · ${esc(pick.categorie || 'Divers')} · ${readingMinutes(pick.contenu)} min</span><em>${esc(excerpt(pick, 160))}</em></a></div>\n` : '';
+        const items = stories.filter((s) => s !== pick).slice(0, 6).map((s) => `                    <li><a href="${storyPath(s).slice(1)}"><strong>${esc(s.titre || 'Sans titre')}</strong><span>${esc(s.auteur || UNKNOWN_AUTHOR)} · ${esc(s.categorie || 'Divers')} · ${readingMinutes(s.contenu)} min</span></a></li>`).join('\n');
         const genresHtml = [...byGenre.keys()].map((g) => `<a href="${genrePath(g).slice(1)}">${esc(g)}</a>`).join(' · ');
-        return `${LATEST_MARK[0]}\n                <ul class="lp-latest">\n${items}\n                </ul>\n                <p class="lp-latest__genres">Par genre : ${genresHtml}</p>${guidesHtml}\n                ${LATEST_MARK[1]}`;
+        return `${LATEST_MARK[0]}\n${pickHtml}                <ul class="lp-latest">\n${items}\n                </ul>\n                <p class="lp-latest__genres">Par genre : ${genresHtml}</p>${guidesHtml}\n                ${LATEST_MARK[1]}`;
     }
 
     function llmsSection(byGenre, stories, allGenres = [...byGenre.keys()], authors = []) {

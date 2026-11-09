@@ -1,10 +1,14 @@
-# Déploiement à chaque push sur la branche par défaut (et à la demande).
-# Hosting : toujours, via compte de service (secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK, rôle Firebase Hosting Admin).
-# Règles / index Firestore : seulement si firestore.rules ou firestore.indexes.json ont changé (change-scoped),
-# ce qui demande en plus le rôle Cloud Datastore Index Admin + Firebase Rules Admin sur le même compte.
+# Déploiement Firebase sans clé : OIDC GitHub + Workload Identity Federation (workflow réutilisable AppFactory).
+# Pull request : mode plan (build + contrat, aucun identifiant). Push sur la branche par défaut : production,
+# limité à cette branche par le contrat, le workflow réutilisable et l'environnement GitHub "production".
+# Change-scoped : l'analyse d'impact (.github/appfactory-impact.json) décide des gates seo-tests / hosting / firestore.
+# Tant que les variables GCP_WORKLOAD_IDENTITY_PROVIDER / GCP_DEPLOY_SERVICE_ACCOUNT ne sont pas définies
+# (bootstrap humain : docs/gcp-wif-one-time-bootstrap.md du dépôt AppFactory), tout reste en mode plan.
+# Épinglage : le SHA ci-dessous est le commit de merge de la PR AppFactory #152 (inclut #149 à #151).
 name: Firebase Deploy
 
 on:
+  pull_request:
   workflow_dispatch:
   push:
     branches:
@@ -12,62 +16,64 @@ on:
 
 permissions:
   contents: read
-  checks: write
-  pull-requests: write
 
 concurrency:
   group: hosting-deploy
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  impact:
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-impact-analysis.yml@814c71785d520a7b307e39d2d3aeeeec39df6e0a
+    with:
+      appfactory_ref: 814c71785d520a7b307e39d2d3aeeeec39df6e0a
+      config_path: .github/appfactory-impact.json
+      mode: ${{ github.event_name == 'workflow_dispatch' && 'all' || 'auto' }}
+
+  seo-tests:
+    needs: impact
+    if: ${{ contains(fromJSON(needs.impact.outputs.gates), 'seo-tests') }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
-          fetch-depth: 2
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
-          node-version: 20
+          node-version: 24.18.0
+      - run: node --test tests/seo/*.test.mjs
 
-      - name: Secret de déploiement présent
-        run: |
-          if [ -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}" ]; then
-            echo "::error::Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK absent : créer un compte de service (rôle Firebase Hosting Admin) et coller son JSON dans les secrets du dépôt."
-            exit 1
-          fi
+  hosting:
+    needs: [impact, seo-tests]
+    if: ${{ !cancelled() && needs.seo-tests.result != 'failure' && contains(fromJSON(needs.impact.outputs.gates), 'hosting') }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@814c71785d520a7b307e39d2d3aeeeec39df6e0a
+    with:
+      appfactory_ref: 814c71785d520a7b307e39d2d3aeeeec39df6e0a
+      mode: ${{ (github.event_name == 'pull_request' || vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '') && 'plan' || 'production' }}
+      firebase_project_id: love-ink
+      workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      targets: hosting
+      checkout_ref: ${{ github.sha }}
+      build_command: ""
+      github_environment: ${{ github.event_name == 'pull_request' && '' || 'production' }}
 
-      - name: Tests SEO
-        run: node --test tests/seo/*.test.mjs
-
-      - name: Surfaces impactées
-        id: impact
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ] || [ "${{ github.event.before }}" = "0000000000000000000000000000000000000000" ]; then
-            echo "firestore=true" >> "$GITHUB_OUTPUT"
-          elif git diff --name-only "${{ github.event.before }}" "${{ github.sha }}" | grep -qE '^firestore\.(rules|indexes\.json)$'; then
-            echo "firestore=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "firestore=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Déployer Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}
-          projectId: love-ink
-          channelId: live
-
-      - name: Déployer règles et index Firestore
-        if: steps.impact.outputs.firestore == 'true'
-        env:
-          SA_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LOVE_INK }}
-        run: |
-          printf '%s' "$SA_JSON" > "$RUNNER_TEMP/sa.json"
-          export GOOGLE_APPLICATION_CREDENTIALS="$RUNNER_TEMP/sa.json"
-          npx -y firebase-tools@13 deploy --only firestore --project love-ink --non-interactive
-          rm -f "$RUNNER_TEMP/sa.json"
+  firestore:
+    needs: [impact, hosting]
+    if: ${{ !cancelled() && (needs.hosting.result == 'success' || needs.hosting.result == 'skipped') && github.event_name != 'pull_request' && contains(fromJSON(needs.impact.outputs.gates), 'firestore') }}
+    permissions:
+      contents: read
+      id-token: write
+    uses: EagleFox31/appfactory-project-automation/.github/workflows/reusable-firebase-deploy.yml@814c71785d520a7b307e39d2d3aeeeec39df6e0a
+    with:
+      appfactory_ref: 814c71785d520a7b307e39d2d3aeeeec39df6e0a
+      mode: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER == '' && 'plan' || 'production' }}
+      firebase_project_id: love-ink
+      workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+      service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
+      targets: firestore:rules,firestore:indexes
+      checkout_ref: ${{ github.sha }}
+      build_command: ""
+      github_environment: production

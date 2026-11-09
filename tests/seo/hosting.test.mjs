@@ -53,3 +53,15 @@ test('pièges : **/.* ignoré (donc pas de .well-known), robots bloque /feed (do
     assert.ok(!/\/feed[./]/.test(sitemap));
     assert.ok(!/\.well-known/.test(sitemap));
 });
+
+test('sécurité CI : aucun fichier de credentials publiable, aucun secret JSON ni action à clé dans les workflows', () => {
+    assert.ok(h.ignore.includes('**/gha-creds-*.json'), 'hosting.ignore doit exclure **/gha-creds-*.json (public = checkout)');
+    const wf = join(ROOT, '.github', 'workflows');
+    for (const f of ['firebase-deploy.yml', 'seo-refresh.yml']) {
+        const y = readFileSync(join(wf, f), 'utf8');
+        assert.ok(!/FirebaseExtended\/action-hosting-deploy/.test(y), `${f} utilise encore action-hosting-deploy`);
+        assert.ok(!/secrets\.FIREBASE_SERVICE_ACCOUNT/.test(y), `${f} lit encore un secret JSON de compte de service`);
+        assert.ok(/reusable-firebase-deploy\.yml@[0-9a-f]{40}/.test(y), `${f} doit appeler reusable-firebase-deploy épinglé par SHA`);
+        assert.ok(/id-token:\s*write/.test(y), `${f} doit demander id-token: write (OIDC)`);
+    }
+});

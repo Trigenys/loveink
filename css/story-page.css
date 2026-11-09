@@ -56,3 +56,6 @@ h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500
     :root { --ink: #f1e6e6; --ink-muted: #c9b4b4; --paper: #241b1b; --border: rgba(226, 188, 188, 0.2); --rose-deep: #e2bcbc; }
     .sp-react, .sp-card a, .sp-example blockquote { background: #2e2323; }
 }
+.sp-badge { display: inline-block; margin: 0 0 10px; padding: 4px 12px; border: 1px solid var(--rose); border-radius: 999px; color: var(--rose); font-size: 0.8rem; letter-spacing: 0.04em; }
+.sp-rights { margin: 18px 0 0; font-size: 0.82rem; color: var(--ink-muted); }
+.sp-rights a { color: var(--rose-deep); }

@@ -195,6 +195,25 @@ async function approuverHistoire(histoireId, moderateurId) {
     }
 }
 
+// Coup de coeur editorial (#14) : marque (date de selection) ou retire ; la page d'accueil statique
+// affiche la selection la plus recente au prochain rafraichissement SEO.
+async function definirCoupDeCoeur(histoireId, moderateurId, actif) {
+    try {
+        await updateDoc(doc(db, 'histoires', String(histoireId)), {
+            coupDeCoeur: actif ? serverTimestamp() : null,
+            coupDeCoeurPar: String(moderateurId)
+        });
+        await creerOpsLog('story_coup_de_coeur', {
+            targetStoryId: String(histoireId),
+            message: actif ? 'Coup de coeur attribue' : 'Coup de coeur retire'
+        });
+        return true;
+    } catch (error) {
+        console.error("Erreur definirCoupDeCoeur:", error);
+        return false;
+    }
+}
+
 async function rejeterHistoire(histoireId, moderateurId, motif) {
     try {
         const histoireRef = doc(db, 'histoires', String(histoireId));
@@ -1354,6 +1373,7 @@ const firebaseAPI = {
     getHistoiresEnAttente,
     approuverHistoire,
     rejeterHistoire,
+    definirCoupDeCoeur,
     editerHistoireModeration,
     likerHistoire,
     aLiker,
