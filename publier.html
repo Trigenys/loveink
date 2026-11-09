@@ -107,6 +107,23 @@
             line-height: 1.5;
         }
 
+        .author-pseudo-notice {
+            display: none;
+            margin: 0 0 20px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid #ecd8a2;
+            background: #fff8e6;
+            color: #6d5225;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .author-pseudo-notice a {
+            color: inherit;
+            font-weight: 600;
+        }
+
         .moderation-actions {
             display: none;
             gap: 10px;
@@ -146,6 +163,10 @@
             <div class="moderation-banner" id="moderationBanner"></div>
             
             <form class="publish-form" id="publishForm">
+                <div class="author-pseudo-notice" id="authorPseudoNotice" role="alert">
+                    <span id="authorPseudoNoticeText"></span>
+                    <a href="parametres.html" id="authorPseudoNoticeLink">Choisir mon pseudonyme</a>
+                </div>
                 <div class="form-group">
                     <label for="titre">Titre de l'histoire *</label>
                     <input type="text" id="titre" placeholder="Ex: L'été de mes 16 ans" required>
@@ -188,6 +209,7 @@
         import { firebaseAPI } from './js/core/firebase-data.js';
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
+        import { resolvePublicAuthorName, authorNameErrorMessage, PSEUDO_SETTINGS_URL } from './js/core/public-author.js';
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
 
         const contenu = document.getElementById('contenu');
@@ -201,6 +223,7 @@
 
         let currentUser = null;
         let currentUserRole = 'user';
+        let currentUserProfile = null;
         let moderationStoryId = '';
         let moderationStory = null;
 
@@ -295,11 +318,23 @@
                 currentUser = user;
                 setNavPseudo(pseudo);
                 const profile = await firebaseAPI.getUtilisateur(user.uid);
+                currentUserProfile = profile || null;
                 currentUserRole = String(profile?.role || 'user');
                 await loadModerationStory();
+                if (!moderationStoryId) {
+                    const authorName = resolvePublicAuthorName(currentUserProfile, user);
+                    if (!authorName.ok) showAuthorPseudoNotice(authorName.reason);
+                }
             }
         });
         
+        function showAuthorPseudoNotice(reason) {
+            const notice = document.getElementById('authorPseudoNotice');
+            document.getElementById('authorPseudoNoticeText').textContent = authorNameErrorMessage(reason) + ' ';
+            document.getElementById('authorPseudoNoticeLink').href = PSEUDO_SETTINGS_URL;
+            notice.style.display = 'block';
+        }
+
         contenu.addEventListener('input', () => {
             charCount.textContent = contenu.value.length + ' caractères';
         });
@@ -347,7 +382,18 @@
                     return;
                 }
 
-                const auteur = currentUser.displayName || currentUser.email.split('@')[0];
+                // Nom public = pseudonyme du profil uniquement, jamais dérivé de l'e-mail.
+                // Relu au moment de publier : le pseudo a pu changer dans un autre onglet.
+                currentUserProfile = (await firebaseAPI.getUtilisateur(currentUser.uid)) || currentUserProfile;
+                const authorName = resolvePublicAuthorName(currentUserProfile, currentUser);
+                if (!authorName.ok) {
+                    showAuthorPseudoNotice(authorName.reason);
+                    await notify('warning', authorNameErrorMessage(authorName.reason), { title: 'Publication' });
+                    setSubmittingState(action, false);
+                    return;
+                }
+                document.getElementById('authorPseudoNotice').style.display = 'none';
+                const auteur = authorName.auteur;
                 const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid);
 
                 if (!histoireId) throw new Error('ID null');

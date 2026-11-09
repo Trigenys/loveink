@@ -441,6 +441,19 @@
 - À faire : relecture des textes par Lee (`data/genres.json`, `data/ressources.json`) ; vérifier que `https://www.trigenys.com/#org` est bien l'`@id` publié par trigenys.com ; Rich Results Test après déploiement ; corriger le repli e-mail de `publier.html` (issue).
 - Verrous : aucun.
 
+## 2026-11-07 15:54 — Issue #7 : nom d'auteur public jamais dérivé de l'e-mail
+
+- Branche `fix/publier-auteur-pseudo` (depuis `main`), PR vers `main`, non fusionnée, aucun déploiement.
+- `publier.html` : nom d'auteur = pseudo du profil Firestore uniquement (`js/core/public-author.js`) ; sans pseudo
+  valide (vide, avec `@`, ou égal à l'identifiant de l'e-mail) → publication bloquée, bandeau + lien `parametres.html`.
+- `parametres.html` : pré-remplissage du pseudo sans repli sur l'e-mail (champ obligatoire laissé vide).
+- Test : `tests/seo/author-name.test.mjs` ; `node --test tests/seo/*.test.mjs` → 51/51.
+- Piège local Windows : avec `core.autocrlf=true`, `robots.txt` en CRLF fait échouer 2 tests de `hosting.test.mjs`
+  (déjà le cas sur `main`, la CI Linux est en LF). Recharger : `rm robots.txt && git -c core.autocrlf=false checkout -- robots.txt`.
+- Reste (issue #7) : recenser les histoires existantes dont `auteur` provient de l'ancien repli ; `getUserPseudo()`
+  (`js/core/auth-session.js`) et `profil.html` gardent un repli e-mail pour l'affichage privé (nav, profil).
+- Conflit attendu en fin de `lessons-learned.md` avec la PR #2 (deux ajouts en fin de fichier) : garder les deux.
+
 ## 2026-11-09 08:02 — PR 1 prête à merger
 
 - PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
