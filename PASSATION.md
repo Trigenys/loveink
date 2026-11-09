@@ -538,3 +538,4 @@
 - État : #27 et #28 en prod. Reste côté utilisateur : relire/merger PR #8, supprimer les branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme.
 - Pour tester l'e-mail thématisé : le faire depuis loveink.site (en local le mailer 127.0.0.1:8787 n'est pas lancé → repli Firebase, en anglais et souvent en spam).
 - Amélioration possible : versionner (hash) css/js au build pour revenir à un cache long.
+- Correction : Firebase Hosting ne renvoie pas 304 sur If-None-Match (testé curl et navigateur : 200, CSS retéléchargé, ~2,6 Ko pour auth-action.css). no-cache coûte donc un téléchargement complet des css/js à chaque visite. Prochaine étape conseillée : hash des css/js au build + cache long immutable.
