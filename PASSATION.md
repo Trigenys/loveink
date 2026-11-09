@@ -556,3 +556,9 @@
 - Constats : aucune histoire publiée en prod (fil vide) ; pas de lien pour relire une histoire en révision depuis le profil ; avatars à initiales en teinte arbitraire (vert, bleu…) ; catégories de publier.html (8) ≠ catégories du fil (18) ; mes-histoires.html est une page d'attente ; textes sans accents (« apres validation par un moderateur », « vous a touche ») ; e2e full-app crée un compte et une histoire en prod à chaque passage.
 - Branche fix/avatar-initials-theme-hues : avatars limités à la gamme rose–terre cuite (+ test), lien « Relire » dans le profil (+ étape e2e, passée en local).
 - À faire : supprimer l'histoire de test (pas de suppression côté app ; console Firestore ou modérateur).
+
+## 2026-11-09 18:37 — Mise au thème des pages app + personnalisation du profil (PR #31)
+- PR #31 (feat/theme-app-pages), empilée sur #30 : css/app.css partagé (navbar, footer, onglets, états vides, sombre), couverture + devise du profil (règles Firestore : devise ≤120, couverture enum), getFreshDoc (document partiel après écriture de présence), messagerie mobile, accents.
+- Vérifié : SEO 72/72, e2e local 5 OK / 3 ignorés, contrôle visuel desktop/mobile/sombre. Tests des règles non lancés (Java absent).
+- Attention : playwright.config.js cible https://loveink.site par défaut ; un `npm test` a créé le compte prod flow-1794245289333-63693. Lancer les e2e avec E2E_BASE_URL=http://127.0.0.1:5178.
+- Reste : fusionner #30 puis #31 (déploie en prod, sur accord) ; supprimer l'histoire de test 454vUtYCNABRZlWH9xvU et les comptes de test prod ; noms de catégories du fil sans accents (clés de données).
