@@ -60,6 +60,11 @@ test.describe('Love Ink - E2E global', () => {
         }
         await expect(page.locator('#panel-histoires')).toBeVisible();
 
+        // L'auteur peut relire une histoire encore en revision depuis son profil.
+        await page.locator('#panel-histoires .story-card .story-edit-btn').first().click();
+        await expect(page).toHaveURL(/\/histoire(\.html)?\?id=/);
+        await expect(page.getByText('en attente de validation par un modérateur')).toBeVisible({ timeout: 20000 });
+
         await page.goto('/parametres.html');
         await expect(page.locator('#saveProfileBtn')).toBeVisible();
         await page.fill('#bio', `Bio mise a jour par test e2e ${Date.now()}`);
