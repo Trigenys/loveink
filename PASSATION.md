@@ -550,3 +550,8 @@
 - Fait : scripts/fingerprint-assets.mjs (+ tests/seo/fingerprint.test.mjs), build_command des jobs hosting (firebase-deploy.yml, seo-refresh.yml), firebase.json : /@(css|js)/** no-cache et /_v/** 1 an immutable (motifs disjoints : l'émulateur n'applique pas les en-têtes, l'ordre n'a pas pu être vérifié localement).
 - Vérifié : tests SEO 71/71 ; copie construite servie par l'émulateur : toutes les ressources depuis /_v/<hash>, aucune erreur console, e2e 3/3 (dont pages privées après connexion) ; seconde exécution du script : 0 page réécrite.
 - Après merge : contrôler en prod `curl -sI` sur /_v/<hash>/css/styles.css (immutable) et que /login référence /_v/.
+
+## 2026-11-09 17:28 — Versionnement css/js en production
+- PR #29 fusionnée (5e87c41), déploiement 42654191294 réussi.
+- Prod vérifiée : /login ne référence plus que /_v/927c61dee258/ (0 référence css/ ou js/ directe) ; /_v/…/css/styles.css en `public, max-age=31536000, immutable` ; /css, /js et /login en `no-cache`.
+- e2e contre la prod : 5 réussis, 3 ignorés (comptes censeur/modérateur non fournis, messagerie temps réel non testable).
