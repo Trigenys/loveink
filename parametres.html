@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parametres - Love Ink</title>
+    <title>Paramètres - Love Ink</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
     <link rel="stylesheet" href="css/styles.css">
@@ -281,9 +281,11 @@
         }
     </style>
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
+    <link rel="stylesheet" href="css/app.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
     import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
@@ -292,8 +294,8 @@
 
     <main class="settings-page">
         <header class="settings-header">
-            <h1>Parametres du compte</h1>
-            <p>Gerez votre profil, vos preferences et la securite de votre compte.</p>
+            <h1>Paramètres du compte</h1>
+            <p>Gérez votre profil, vos préférences et la sécurité de votre compte.</p>
         </header>
 
         <section class="settings-grid">
@@ -307,7 +309,7 @@
                     <div class="avatar-controls">
                         <label class="form-group">Photo de profil</label>
                         <div class="settings-note" id="avatarHint">
-                            Upload avatar desactive en mode gratuit (Spark). Passez en Blaze uniquement si vous voulez activer Firebase Storage.
+                            L'envoi d'une photo n'est pas encore disponible : votre avatar affiche vos initiales.
                         </div>
                     </div>
                 </div>
@@ -324,7 +326,7 @@
             </article>
 
             <article class="settings-card">
-                <h2><i class="fas fa-sliders-h"></i> Preferences</h2>
+                <h2><i class="fas fa-sliders-h"></i> Préférences</h2>
 
                 <div class="toggle-row">
                     <div class="text">
@@ -370,7 +372,7 @@
                         <input type="password" id="confirmNewPassword" minlength="6" autocomplete="new-password">
                     </div>
                     <div class="save-bar">
-                        <button class="btn-save" id="changePasswordBtn" type="submit"><i class="fas fa-key"></i> Mettre a jour</button>
+                        <button class="btn-save" id="changePasswordBtn" type="submit"><i class="fas fa-key"></i> Mettre à jour</button>
                     </div>
                 </form>
             </article>
@@ -414,6 +416,7 @@
         import { auth, db } from './js/core/firebase-config.js';
         import { notify, notifyConfirm } from './js/components/ui-notify.js';
         import { clearUserSession, logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
+        import { getFreshDoc } from './js/core/fresh-doc.js';
         import { getStoredThemeMode, setThemeMode } from './js/core/theme.js';
         import { applyInitialsAvatar } from './js/components/avatar-initials.js';
         import { setNavAvatar, setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
@@ -475,7 +478,7 @@
         }
 
         async function loadProfile(uid) {
-            const snap = await getDoc(doc(db, 'utilisateurs', uid));
+            const snap = await getFreshDoc(doc(db, 'utilisateurs', uid));
             currentProfile = snap.exists() ? snap.data() : {};
 
             const fallbackPseudo = auth.currentUser?.displayName || auth.currentUser?.email?.split('@')[0] || 'Utilisateur';
@@ -509,8 +512,8 @@
             const passwordProvider = hasPasswordProvider(auth.currentUser);
             setPasswordSectionState(passwordProvider);
             passwordProviderHint.textContent = passwordProvider
-                ? 'Compte email/mot de passe detecte. La re-authentification est requise avant modification.'
-                : 'Connexion federée detectee (Google). Le mot de passe est gere par votre fournisseur.';
+                ? 'Compte e-mail et mot de passe détecté. Une nouvelle authentification est requise avant modification.'
+                : 'Connexion fédérée détectée (Google). Le mot de passe est géré par votre fournisseur.';
         }
 
         wireNavInteractions({
@@ -529,7 +532,7 @@
             const pseudo = pseudoInput.value.trim();
             const bio = bioInput.value.trim();
             if (!pseudo) {
-                await notify('warning', 'Le pseudo est obligatoire.', { title: 'Parametres' });
+                await notify('warning', 'Le pseudo est obligatoire.', { title: 'Paramètres' });
                 pseudoInput.focus();
                 return;
             }
@@ -577,10 +580,10 @@
                     type: currentProfile.type || 'lecteur'
                 });
 
-                await notify('success', 'Parametres enregistres.', { title: 'Parametres' });
+                await notify('success', 'Paramètres enregistrés.', { title: 'Paramètres' });
             } catch (error) {
                 console.error('Erreur sauvegarde parametres:', error);
-                await notify('error', 'Impossible de sauvegarder les parametres.', { title: 'Parametres' });
+                await notify('error', 'Impossible de sauvegarder les paramètres.', { title: 'Paramètres' });
             } finally {
                 saveProfileBtn.disabled = false;
                 saveProfileBtn.innerHTML = '<i class="fas fa-save"></i> Enregistrer';
@@ -592,7 +595,7 @@
             if (!currentUser) return;
 
             if (!hasPasswordProvider(currentUser)) {
-                await notify('info', 'Le mot de passe est gere par votre fournisseur de connexion.', { title: 'Securite' });
+                await notify('info', 'Le mot de passe est géré par votre fournisseur de connexion.', { title: 'Sécurité' });
                 return;
             }
 
@@ -601,17 +604,17 @@
             const confirmPassword = confirmNewPasswordInput.value;
 
             if (!currentPassword || !newPassword || !confirmPassword) {
-                await notify('warning', 'Remplissez tous les champs mot de passe.', { title: 'Securite' });
+                await notify('warning', 'Remplissez tous les champs mot de passe.', { title: 'Sécurité' });
                 return;
             }
 
             if (newPassword.length < 6) {
-                await notify('warning', 'Le nouveau mot de passe doit contenir au moins 6 caracteres.', { title: 'Securite' });
+                await notify('warning', 'Le nouveau mot de passe doit contenir au moins 6 caractères.', { title: 'Sécurité' });
                 return;
             }
 
             if (newPassword !== confirmPassword) {
-                await notify('warning', 'La confirmation ne correspond pas.', { title: 'Securite' });
+                await notify('warning', 'La confirmation ne correspond pas.', { title: 'Sécurité' });
                 return;
             }
 
@@ -623,11 +626,11 @@
                 currentPasswordInput.value = '';
                 newPasswordInput.value = '';
                 confirmNewPasswordInput.value = '';
-                await notify('success', 'Mot de passe mis a jour.', { title: 'Securite' });
+                await notify('success', 'Mot de passe mis à jour.', { title: 'Sécurité' });
             } catch (error) {
                 console.error('Erreur changement mot de passe:', error);
 
-                let message = 'Impossible de mettre a jour le mot de passe.';
+                let message = 'Impossible de mettre à jour le mot de passe.';
                 if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
                     message = 'Mot de passe actuel incorrect.';
                 } else if (error.code === 'auth/requires-recent-login') {
@@ -636,7 +639,7 @@
                     message = 'Mot de passe trop faible.';
                 }
 
-                await notify('error', message, { title: 'Securite' });
+                await notify('error', message, { title: 'Sécurité' });
             }
         });
 

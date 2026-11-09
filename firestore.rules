@@ -185,6 +185,14 @@ service cloud.firestore {
           !('presencePage' in request.resource.data) ||
           (request.resource.data.presencePage is string && request.resource.data.presencePage.size() <= 120)
         ) &&
+        (
+          !('devise' in request.resource.data) ||
+          (request.resource.data.devise is string && request.resource.data.devise.size() <= 120)
+        ) &&
+        (
+          !('couverture' in request.resource.data) ||
+          request.resource.data.couverture in ['rose', 'aurore', 'crepuscule', 'encre', 'jardin', 'papier']
+        ) &&
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'statut', 'suspensionJusqua', 'admin', 'isAdmin', 'roles']);
     }
 

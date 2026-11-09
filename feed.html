@@ -642,10 +642,11 @@
     </style>
     <link rel="stylesheet" href="css/feed-extras.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/app.css">
     <script type="module" src="js/components/feed-extras.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
     import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
@@ -654,7 +655,7 @@
 
     <div class="search-bar">
         <div class="search-inner">
-            <input id="searchInput" class="search-input" type="text" placeholder="Rechercher une histoire, un auteur, une categorie...">
+            <input id="searchInput" class="search-input" type="text" placeholder="Rechercher une histoire, un auteur, une catégorie…">
             <button id="searchBtn" class="search-btn">Rechercher</button>
         </div>
     </div>
@@ -665,7 +666,7 @@
     </div>
 
     <section class="categories-section" id="categories">
-        <h2 class="section-title">Explorez par <em>categorie</em></h2>
+        <h2 class="section-title">Explorez par <em>catégorie</em></h2>
         <div class="categories-grid" id="categoriesGrid"></div>
     </section>
 
@@ -679,13 +680,21 @@
         <div class="authors-grid" id="authorsGrid"></div>
     </section>
 
-    <footer>
-        <div class="footer-logo">Love Ink</div>
-        <p>© 2026 Love Ink - L'encre des coeurs</p>
-        <p style="margin-top:8px;">Fait avec <i class="fas fa-heart"></i> pour les amoureux des mots</p>
-        <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
-        <p style="margin-top:14px"><a href="candidature-modo.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:1px;"><i class="fas fa-shield-alt" style="margin-right:5px"></i>Devenir modérateur</a></p>
+    <footer class="li-appfoot">
+        <div class="li-appfoot__in">
+            <div class="li-appfoot__brand">
+                <span class="li-appfoot__logo">Love Ink</span>
+                <span>© 2026 · L'encre des cœurs</span>
+            </div>
+            <nav class="li-appfoot__links" aria-label="Liens de bas de page">
+                <a href="candidature-modo.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Devenir modérateur</a>
+                <a href="conditions.html">Conditions d'utilisation</a>
+                <a href="confidentialite.html">Confidentialité</a>
+            </nav>
+            <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
+        </div>
     </footer>
+
 
     <script src="js/components/modale.js"></script>
     <script type="module">
@@ -712,7 +721,7 @@
         { nom: 'Nos conseils', icon: 'fa-comment-dots' },
         { nom: "Poesie d'amour", icon: 'fa-feather' },
         { nom: 'Rapport occasionnel', icon: 'fa-calendar-check' },
-        { nom: 'Rencontres', icon: 'fa-handshake-simple' },
+        { nom: 'Rencontres', icon: 'fa-user-group' },
         { nom: 'Divers', icon: 'fa-ellipsis' }
     ];
 

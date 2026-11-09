@@ -273,17 +273,19 @@
         .chat-input button:disabled { background: #ccc; cursor: not-allowed; }
     </style>
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
+    <link rel="stylesheet" href="css/app.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
         import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
-        mountAppNav({ variant: 'classic', active: 'messagerie', showUser: true, showPublish: true });
+        mountAppNav({ variant: 'classic', active: 'messagerie', showUser: true, showPublish: true, footer: false });
     </script>
 
     <div class="messagerie-page">
-        <h1>Ma messagerie</h1>
+        <header class="page-header"><h1>Ma messagerie</h1></header>
         <div class="messagerie-container">
             <!-- Colonne gauche -->
             <div class="conversations-list">
@@ -304,6 +306,7 @@
 
                 <div id="chatPanel" style="display:none; flex-direction:column; overflow:hidden; flex:1;">
                     <div class="chat-header" id="chatHeader">
+                        <button type="button" class="chat-back" id="chatBack" aria-label="Retour aux conversations"><i class="fas fa-arrow-left" aria-hidden="true"></i></button>
                         <div class="avatar-icon"><i class="fas fa-user"></i></div>
                         <div class="chat-header-meta">
                             <span class="chat-header-name" id="chatHeaderName">…</span>
@@ -345,6 +348,9 @@
         const messageInput = document.getElementById('messageInput');
         const sendBtn      = document.getElementById('sendBtn');
         const searchInput  = document.getElementById('searchInput');
+        document.getElementById('chatBack')?.addEventListener('click', () => {
+            document.querySelector('.messagerie-container')?.classList.remove('has-chat');
+        });
 
         // ── Helpers ────────────────────────────────────────────────────────────
         function formatTime(ts) {
@@ -466,6 +472,7 @@
             });
 
             // Show chat panel
+            document.querySelector('.messagerie-container')?.classList.add('has-chat');
             chatEmpty.style.display = 'none';
             chatPanel.style.display = 'flex';
             chatPanel.style.flexDirection = 'column';

@@ -701,16 +701,18 @@
         }
     </style>
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/profil.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
     import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
     mountAppNav({ variant: 'feed', active: 'profil', showUser: true });
     </script>
 
-    <div class="cover-band"></div>
+    <div class="cover-band" id="profileCover" data-cover="rose" aria-hidden="true"></div>
 
     <div class="profile-header">
         <div class="profile-top">
@@ -724,6 +726,7 @@
             <div class="profile-name-row">
                 <div class="profile-name" id="profilPseudo">...</div>
                 <div class="profile-bio-short" id="profilBio">...</div>
+                <p class="profile-devise" id="profilDevise" hidden></p>
             </div>
 
             <div class="profile-actions">
@@ -739,7 +742,7 @@
             </div>
             <div class="stat-item">
                 <div class="stat-num" id="statAbonnes">0</div>
-                <div class="stat-lbl">Abonnes</div>
+                <div class="stat-lbl">Abonnés</div>
             </div>
             <div class="stat-item">
                 <div class="stat-num" id="statAbonnements">0</div>
@@ -752,12 +755,12 @@
         </div>
     </div>
 
-    <div class="tabs-wrap">
+    <div class="tabs-wrap" role="tablist" aria-label="Sections du profil">
         <button class="tab-btn active" data-tab="histoires"><i class="fas fa-book"></i> Mes histoires</button>
         <button class="tab-btn" data-tab="abonnements"><i class="fas fa-user-friends"></i> Abonnements</button>
         <button class="tab-btn" data-tab="favoris"><i class="fas fa-heart"></i> Favoris</button>
-        <button class="tab-btn" data-tab="apropos"><i class="fas fa-info-circle"></i> A propos</button>
-        <button class="tab-btn" id="tabModeration" data-tab="moderation" style="display:none"><i class="fas fa-shield-alt"></i> Moderation<span class="modo-count-badge" id="modoCountBadge" style="display:none">0</span></button>
+        <button class="tab-btn" data-tab="apropos"><i class="fas fa-info-circle"></i> À propos</button>
+        <button class="tab-btn" id="tabModeration" data-tab="moderation" style="display:none"><i class="fas fa-shield-alt"></i> Modération<span class="modo-count-badge" id="modoCountBadge" style="display:none">0</span></button>
     </div>
 
     <div class="tab-panel active" id="panel-histoires">
@@ -765,9 +768,9 @@
             <div class="stories-tab-header">
                 <h3>Mes publications</h3>
                 <div class="status-filters">
-                    <button class="status-filter-btn active" data-status="publie">Publiees</button>
-                    <button class="status-filter-btn" data-status="en_attente">En revision</button>
-                    <button class="status-filter-btn" data-status="rejete">Rejetees</button>
+                    <button class="status-filter-btn active" data-status="publie">Publiées</button>
+                    <button class="status-filter-btn" data-status="en_attente">En révision</button>
+                    <button class="status-filter-btn" data-status="rejete">Rejetées</button>
                 </div>
                 <button class="btn-primary" id="newStoryBtn"><i class="fas fa-plus"></i> Nouvelle histoire</button>
             </div>
@@ -787,7 +790,7 @@
             <h3>Histoires favorites</h3>
             <div class="fav-empty">
                 <i class="fas fa-heart"></i>
-                <p>Vos histoires favorites apparaitront ici.</p>
+                <p>Vos histoires favorites apparaîtront ici.</p>
             </div>
         </div>
     </div>
@@ -795,11 +798,11 @@
     <div class="tab-panel" id="panel-apropos">
         <div class="apropos-tab">
             <div class="apropos-card">
-                <h3>A propos de moi</h3>
+                <h3>À propos de moi</h3>
                 <p id="proposComplet">...</p>
 
                 <div class="apropos-section">
-                    <h4>Genres de predilection</h4>
+                    <h4>Genres de prédilection</h4>
                     <div class="genre-tags" id="genresList"></div>
                 </div>
 
@@ -814,7 +817,7 @@
     <div class="tab-panel" id="panel-moderation">
         <div class="apropos-tab">
             <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:8px;">Histoires en attente de validation</h3>
-            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace moderation actif pour les roles <strong>moderateur</strong> et <strong>censeur</strong>.</p>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace modération actif pour les rôles <strong>modérateur</strong> et <strong>censeur</strong>.</p>
             <div class="modo-list" id="moderationList"></div>
             <div id="censeurOpsRoot"></div>
         </div>
@@ -830,16 +833,16 @@
                 <select id="sanctionType" style="width:100%;padding:10px 12px;border:1.5px solid var(--rose-pale);border-radius:10px;font-family:var(--font-sans);font-size:14px;background:var(--rose-blush);outline:none;">
                     <option value="avertissement">Avertissement</option>
                     <option value="suspension_temporaire">Suspension temporaire</option>
-                    <option value="bannissement">Bannissement definitif</option>
+                    <option value="bannissement">Bannissement définitif</option>
                 </select>
             </div>
             <div class="form-group duration-field" id="durationField">
-                <label>Duree (en heures)</label>
+                <label>Durée (en heures)</label>
                 <input type="number" id="sanctionDuree" min="1" max="8760" placeholder="Ex: 24 pour 1 jour, 168 pour 1 semaine">
             </div>
             <div class="form-group">
                 <label>Motif <span style="color:#b76e6e">*</span></label>
-                <textarea id="sanctionMotif" rows="3" placeholder="Expliquez la raison de cette sanction (500 caracteres max)." maxlength="500"></textarea>
+                <textarea id="sanctionMotif" rows="3" placeholder="Expliquez la raison de cette sanction (500 caractères max)." maxlength="500"></textarea>
             </div>
             <div class="modal-actions">
                 <button class="btn-primary" id="sanctionConfirmBtn" style="background:#b76e6e"><i class="fas fa-gavel"></i> Appliquer</button>
@@ -854,7 +857,7 @@
             <div class="modal-title">Rejeter cette histoire</div>
             <div class="form-group">
                 <label>Motif du rejet <span style="color:#b76e6e">*</span></label>
-                <textarea id="rejectMotifInput" rows="4" placeholder="Expliquez pourquoi cette histoire est rejetee. L'auteur recevra ce message." maxlength="1000"></textarea>
+                <textarea id="rejectMotifInput" rows="4" placeholder="Expliquez pourquoi cette histoire est rejetée. L'auteur recevra ce message." maxlength="1000"></textarea>
                 <div style="text-align:right;font-size:11px;color:var(--ink-faint);margin-top:4px"><span id="rejectMotifCount">0</span>/1000</div>
             </div>
             <div class="modal-actions">
@@ -870,23 +873,40 @@
             <form id="editProfileForm">
                 <div class="form-group">
                     <label>Pseudo</label>
-                    <input type="text" id="editPseudo" required>
+                    <input type="text" id="editPseudo" required maxlength="40">
                 </div>
 
                 <div class="form-group">
                     <label>Bio courte</label>
-                    <textarea id="editBio" rows="2" placeholder="Une courte presentation..."></textarea>
+                    <textarea id="editBio" rows="2" placeholder="Une courte présentation…" maxlength="600"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>A propos (detaille)</label>
-                    <textarea id="editAPropos" rows="4" placeholder="Parlez de vous, de votre parcours d'ecrivain..."></textarea>
+                    <label>À propos (détaillé)</label>
+                    <textarea id="editAPropos" rows="4" placeholder="Parlez de vous, de votre parcours d'écrivain…" maxlength="4000"></textarea>
                 </div>
 
                 <div class="form-group">
-                    <label>Genres (separes par des virgules)</label>
-                    <input type="text" id="editGenres" placeholder="Premier amour, Poesie, Triste...">
+                    <label>Genres (séparés par des virgules)</label>
+                    <input type="text" id="editGenres" placeholder="Premier amour, Poésie, Triste…" maxlength="300">
                 </div>
+
+                <div class="form-group">
+                    <label for="editDevise">Devise <span class="form-hint">affichée sous votre nom</span></label>
+                    <input type="text" id="editDevise" maxlength="120" placeholder="J'écris ce que le cœur n'ose pas dire.">
+                </div>
+
+                <fieldset class="form-group cover-picker">
+                    <legend>Couverture</legend>
+                    <div class="cover-swatches" id="coverSwatches">
+                        <label class="cover-swatch" data-cover="rose"><input type="radio" name="couverture" value="rose"><span>Rose poudré</span></label>
+                        <label class="cover-swatch" data-cover="aurore"><input type="radio" name="couverture" value="aurore"><span>Aurore</span></label>
+                        <label class="cover-swatch" data-cover="crepuscule"><input type="radio" name="couverture" value="crepuscule"><span>Crépuscule</span></label>
+                        <label class="cover-swatch" data-cover="encre"><input type="radio" name="couverture" value="encre"><span>Encre</span></label>
+                        <label class="cover-swatch" data-cover="jardin"><input type="radio" name="couverture" value="jardin"><span>Jardin</span></label>
+                        <label class="cover-swatch" data-cover="papier"><input type="radio" name="couverture" value="papier"><span>Papier</span></label>
+                    </div>
+                </fieldset>
 
                 <div class="modal-actions">
                     <button type="submit" class="btn-primary"><i class="fas fa-check"></i> Enregistrer</button>
@@ -896,12 +916,20 @@
         </div>
     </div>
 
-    <footer>
-        <div class="footer-logo">Love Ink</div>
-        <p>© 2026 Love Ink - L'encre des coeurs</p>
-        <p style="margin-top:6px">Fait avec <i class="fas fa-heart"></i> pour les amoureux des mots</p>
-        <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
-        <p style="margin-top:14px"><a href="candidature-modo.html" style="color:rgba(255,255,255,0.55);font-size:12px;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.2);padding-bottom:1px;"><i class="fas fa-shield-alt" style="margin-right:5px"></i>Devenir modérateur</a></p>
+
+    <footer class="li-appfoot">
+        <div class="li-appfoot__in">
+            <div class="li-appfoot__brand">
+                <span class="li-appfoot__logo">Love Ink</span>
+                <span>© 2026 · L'encre des cœurs</span>
+            </div>
+            <nav class="li-appfoot__links" aria-label="Liens de bas de page">
+                <a href="candidature-modo.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Devenir modérateur</a>
+                <a href="conditions.html">Conditions d'utilisation</a>
+                <a href="confidentialite.html">Confidentialité</a>
+            </nav>
+            <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
+        </div>
     </footer>
 
     <script src="js/components/modale.js"></script>
@@ -916,6 +944,8 @@
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
 
         let currentUser = null;
+        const PROFILE_COVERS = ['rose', 'aurore', 'crepuscule', 'encre', 'jardin', 'papier'];
+        const normalizeCover = (value) => PROFILE_COVERS.includes(value) ? value : 'rose';
         let currentStatus = 'publie';
 
         const modal = document.getElementById('editModal');
@@ -1338,8 +1368,13 @@
         function renderProfile() {
             setNavPseudo(currentUser.pseudo);
             document.getElementById('profilPseudo').textContent = currentUser.pseudo;
-            document.getElementById('profilBio').textContent = String(currentUser.bio || '').trim() || "Amoureux(se) des mots, ecrivain(e) en herbe…";
-            document.getElementById('proposComplet').textContent = String(currentUser.aPropos || '').trim() || "Je suis passionne(e) par l'ecriture et les histoires d'amour. Bienvenue dans mon univers !";
+            document.getElementById('profilBio').textContent = String(currentUser.bio || '').trim() || "Amoureux(se) des mots, écrivain(e) en herbe…";
+            const devise = String(currentUser.devise || '').trim();
+            const deviseEl = document.getElementById('profilDevise');
+            deviseEl.textContent = devise;
+            deviseEl.hidden = !devise;
+            document.getElementById('profileCover').dataset.cover = normalizeCover(currentUser.couverture);
+            document.getElementById('proposComplet').textContent = String(currentUser.aPropos || '').trim() || "Je suis passionné(e) par l'écriture et les histoires d'amour. Bienvenue dans mon univers !";
             document.getElementById('membreDepuis').textContent = getDateLabel(currentUser.dateInscription);
             applyInitialsAvatar(document.getElementById('profileInitials'), currentUser.pseudo);
             renderGenres(currentUser.genres || '');
@@ -1494,6 +1529,9 @@
             document.getElementById('editBio').value = currentUser.bio || '';
             document.getElementById('editAPropos').value = currentUser.aPropos || '';
             document.getElementById('editGenres').value = currentUser.genres || '';
+            document.getElementById('editDevise').value = currentUser.devise || '';
+            const cover = normalizeCover(currentUser.couverture);
+            document.querySelectorAll('#coverSwatches input[name="couverture"]').forEach(r => { r.checked = r.value === cover; });
             openModal();
         });
 
@@ -1506,6 +1544,8 @@
             currentUser.bio = document.getElementById('editBio').value.trim();
             currentUser.aPropos = document.getElementById('editAPropos').value.trim();
             currentUser.genres = document.getElementById('editGenres').value.trim();
+            currentUser.devise = document.getElementById('editDevise').value.trim().slice(0, 120);
+            currentUser.couverture = normalizeCover(document.querySelector('#coverSwatches input[name="couverture"]:checked')?.value);
             try {
                 await setDoc(doc(db, 'utilisateurs', currentUser.uid), {
                     uid: currentUser.uid,
@@ -1513,6 +1553,8 @@
                     bio: currentUser.bio,
                     aPropos: currentUser.aPropos,
                     genres: currentUser.genres,
+                    devise: currentUser.devise,
+                    couverture: currentUser.couverture,
                     type: currentUser.type || 'lecteur',
                     dateInscription: currentUser.dateInscription ? new Date(currentUser.dateInscription) : serverTimestamp()
                 }, { merge: true });
@@ -1522,7 +1564,7 @@
                 syncUserSession(currentUser, { pseudo: currentUser.pseudo, bio: currentUser.bio, aPropos: currentUser.aPropos, genres: currentUser.genres, type: currentUser.type, dateInscription: currentUser.dateInscription });
                 renderProfile();
                 closeModal();
-                await notify('success', 'Profil mis a jour !', { title: 'Profil' });
+                await notify('success', 'Profil mis à jour !', { title: 'Profil' });
             } catch (err) {
                 console.error('Erreur mise a jour profil:', err);
                 await notify('error', "Impossible d'enregistrer le profil.", { title: 'Profil' });
@@ -1558,6 +1600,8 @@
                     bio: typeof userDoc?.bio === 'string' ? userDoc.bio : (sess.bio || ''),
                     aPropos: typeof userDoc?.aPropos === 'string' ? userDoc.aPropos : (sess.aPropos || ''),
                     genres: typeof userDoc?.genres === 'string' ? userDoc.genres : (sess.genres || ''),
+                    devise: typeof userDoc?.devise === 'string' ? userDoc.devise : '',
+                    couverture: normalizeCover(userDoc?.couverture),
                     dateInscription
                 };
 

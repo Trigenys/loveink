@@ -17,11 +17,12 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@400;500;600&display=swap">
     <link rel="stylesheet" href="css/reader.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="css/app.css">
     <script type="module" src="js/components/reader.js"></script>
     <script type="module" src="js/components/attribution.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
     import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
@@ -45,12 +46,21 @@
         </div>
     </section>
 
-    <footer class="footer">
-        <div class="container">
-            <p>© 2026 - Love Ink - L'encre des cœurs</p>
+    <footer class="li-appfoot">
+        <div class="li-appfoot__in">
+            <div class="li-appfoot__brand">
+                <span class="li-appfoot__logo">Love Ink</span>
+                <span>© 2026 · L'encre des cœurs</span>
+            </div>
+            <nav class="li-appfoot__links" aria-label="Liens de bas de page">
+                <a href="candidature-modo.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Devenir modérateur</a>
+                <a href="conditions.html">Conditions d'utilisation</a>
+                <a href="confidentialite.html">Confidentialité</a>
+            </nav>
             <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
         </div>
     </footer>
+
 
     <script src="js/components/modale.js"></script>
     <script type="module">

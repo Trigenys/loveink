@@ -230,7 +230,7 @@ html[data-theme="dark"] .li-reader-panel { color: #ecdfd9; }
 
 /* Mode focus : seule la page reste */
 html.li-focus .navbar, html.li-focus .nav, html.li-focus #appNavRoot,
-html.li-focus .comments-section, html.li-focus .footer { display: none !important; }
+html.li-focus .comments-section, html.li-focus .footer, html.li-focus .li-appfoot { display: none !important; }
 html.li-focus .story-page { padding-top: 24px; }
 
 @media (max-width: 560px) {
