@@ -459,3 +459,9 @@
 - Branche locale fix/repin-appfactory-151 créée depuis origin/main (rien de commité hormis cette entrée).
 - Suite : merger #151 → re-épingler firebase-deploy.yml + seo-refresh.yml sur son SHA de merge → PR → merge → vérifier « Deploy production » success et loveink.site.
 - Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK : suppression humaine seulement après ce run réussi.
+
+## 2026-11-09 09:05 — Déploiement prod : 4e blocage (erreur firebase-tools masquée)
+- PR 10 mergée (épinglage sur fdca41d = AppFactory #151). Run 42582790211 : plan, auth OIDC/WIF, déplacement et vérification des identifiants OK ; « Deploy production » échoue avec seulement « exit code 1 » (firebase-tools --json écrit l'erreur dans le fichier redirigé).
+- Correctif AppFactory : PR #152 (affiche l'erreur JSON en annotation ::error::), CI en cours, merge à valider.
+- Suite : merger #152 → re-épingler Love Ink sur son SHA de merge → relancer → lire l'erreur réelle. Hypothèse : permission IAM manquante pour github-deploy@ (ex. serviceusage.serviceUsageConsumer) → ajout par un Owner, sur accord.
+- loveink.site pas encore redéployé ; secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK toujours à supprimer (humain) après un run réussi.
