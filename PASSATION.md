@@ -446,3 +446,9 @@
 - PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
 - main fusionnée dans feat/firebase-wif-deploy (81d03b6, conflit PASSATION résolu par union), 58/58 tests, CI PR 1 verte (impact, seo-tests, hosting plan), CLEAN.
 - Prochaine étape : merger PR 1 = premier déploiement production WIF ; puis PR 8.
+
+## 2026-11-09 08:16 — Déploiement production sauté : bug AppFactory, correctif #149
+- Run production post-PR 1 vert mais rien déployé : le contrat CLI (`file:///${argv[1]}`) ne s'exécutait jamais sous Linux → sorties vides → étapes deploy sautées. Le plan non plus ne validait rien.
+- Correctif : EagleFox31/appfactory-project-automation#149 (pathToFileURL + garde `deploy=` qui fait échouer le plan + tests). CI verte, non mergée (accord requis).
+- Ensuite : merger #149, re-épingler firebase-deploy.yml et seo-refresh.yml sur le SHA de merge, PR, puis vérifier que l'étape « Deploy production » s'exécute réellement et que loveink.site est à jour.
+- Secret `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` : ne le supprimer qu'après ce run réussi.
