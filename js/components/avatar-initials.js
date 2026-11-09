@@ -33,9 +33,14 @@ function hashString(value) {
     return Math.abs(hash);
 }
 
+// Teinte propre à chaque pseudo, mais limitée à la gamme du thème (rose, bordeaux, terre cuite) :
+// sur tout le cercle chromatique, certains avatars sortaient en vert ou en bleu.
+export const AVATAR_HUE_START = 330;
+export const AVATAR_HUE_SPAN = 50;
+
 export function getAvatarPalette(pseudo) {
     const safe = toSafePseudo(pseudo) || "Love Ink";
-    const hue = hashString(safe) % 360;
+    const hue = (AVATAR_HUE_START + (hashString(safe) % AVATAR_HUE_SPAN)) % 360;
 
     return {
         background: `hsl(${hue} 48% 86%)`,
