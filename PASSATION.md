@@ -526,3 +526,9 @@
 - Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK : il n'a jamais existé (aucun secret dans le dépôt ni dans l'environnement production) ; consigne de suppression caduque.
 - Branche feat/login-forgot-page-turn : login.html en trois vues (connexion, oubli, lettre envoyée) dans la même carte, avec tournage de page (rotateY ; perspective dans la transformation, sinon le décor encre passe devant la carte) ; lien direct #mot-de-passe-oublie ; reduced-motion respecté ; ancien .reset-box supprimé. Test e2e ajouté (mailer simulé) : 2/2 en local sur le port 5178.
 - Échec non bloquant : sync-project (broker de jetons HTTP 502 github_oauth_unavailable) sur la PR #26.
+
+## 2026-11-09 17:07 — Cache CSS/JS après déploiement
+- PR #27 mergée et déployée ; e2e 3/3 en prod. L'e-mail en spam venait du test sur 127.0.0.1:5178 (mailer local absent → repli Firebase), pas de la prod.
+- Incident : après le déploiement, lien « Retour à la connexion » bleu chez l'utilisateur. Cause : css/js non versionnés et mis en cache 1 h, HTML en no-cache → nouveau HTML avec ancien CSS. /login (sans extension) aussi en max-age=3600 (défaut Firebase).
+- Correctif (branche fix/hosting-cache-revalidate) : no-cache (revalidation ETag) pour css/js et pour les URLs sans extension ; test de non-régression dans tests/seo/hosting.test.mjs.
+- main local réaligné sur origin/main ; ancien commit local gardé dans backup/main-a6bd014 (déjà contenu dans main).
