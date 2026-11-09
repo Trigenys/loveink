@@ -545,3 +545,8 @@
 - Plan : scripts/fingerprint-assets.mjs lancé en CI via build_command (firebase-deploy.yml jobs hosting + seo-refresh.yml) : hash du contenu de css/ et js/ → copie dans _v/<hash>/css|js (les imports relatifs entre modules restent valides), réécriture des références css/js dans les HTML du checkout CI uniquement (source intacte, dev local inchangé). firebase.json : /_v/** en cache 1 an immutable ; css/js d'origine gardés en no-cache. _v/ dans .gitignore.
 - Faits vérifiés : CSS sans url() relative ; JS sans import absolu ; 29 pages, 0 référence cassée.
 - Reste : script + tests node, vérif émulateur hosting (ordre des règles d'en-têtes), PR (merge = déploiement, demander).
+
+## 2026-11-09 17:17 — Versionnement css/js : prêt (PR)
+- Fait : scripts/fingerprint-assets.mjs (+ tests/seo/fingerprint.test.mjs), build_command des jobs hosting (firebase-deploy.yml, seo-refresh.yml), firebase.json : /@(css|js)/** no-cache et /_v/** 1 an immutable (motifs disjoints : l'émulateur n'applique pas les en-têtes, l'ordre n'a pas pu être vérifié localement).
+- Vérifié : tests SEO 71/71 ; copie construite servie par l'émulateur : toutes les ressources depuis /_v/<hash>, aucune erreur console, e2e 3/3 (dont pages privées après connexion) ; seconde exécution du script : 0 page réécrite.
+- Après merge : contrôler en prod `curl -sI` sur /_v/<hash>/css/styles.css (immutable) et que /login référence /_v/.

@@ -19,8 +19,10 @@ test('cleanUrls actif, trailingSlash non défini (sinon /histoires/ ou les URL p
 
 test('cache : images longues, css/js revalidés, HTML et fichiers SEO non mis en cache', () => {
     assert.match(headersFor('/images/**')['Cache-Control'], /max-age=604800/);
-    // css/js non versionnés : sans revalidation, un déploiement sert le nouveau HTML avec l'ancien CSS.
-    assert.equal(headersFor('**/*.@(css|js)')['Cache-Control'], 'no-cache');
+    // css/js d'origine : sans revalidation, un déploiement sert le nouveau HTML avec l'ancien CSS.
+    assert.equal(headersFor('/@(css|js)/**')['Cache-Control'], 'no-cache');
+    // Copie versionnée (scripts/fingerprint-assets.mjs) : cache long ; motifs disjoints, l'ordre des règles n'importe pas.
+    assert.match(headersFor('/_v/**')['Cache-Control'], /max-age=31536000, immutable/);
     assert.equal(headersFor('**/!(*.*)')['Cache-Control'], 'no-cache');
     assert.match(headersFor('**/*.@(html|xml|txt)')['Cache-Control'], /no-cache/);
 });
