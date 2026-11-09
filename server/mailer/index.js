@@ -9,6 +9,7 @@ const cfg = require('./config');
 const { sendEmail } = require('./resend');
 const { templates } = require('./templates');
 const { rewriteActionLink } = require('./link');
+const { sendPasswordReset } = require('./reset');
 
 // Admin SDK : GOOGLE_APPLICATION_CREDENTIALS (chemin du compte de service) ou FIREBASE_SERVICE_ACCOUNT_JSON.
 const saJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
@@ -91,11 +92,11 @@ async function handlePasswordReset(req, res) {
     // Réponse toujours identique : ne révèle pas l'existence d'un compte.
     if (rateLimited(`r:${clientIp(req)}`) || rateLimited(`r:${email}`)) return json(res, 200, { ok: true });
     try {
-        const link = actionLink(await auth.generatePasswordResetLink(email, { url: `${cfg.appBaseUrl}/login.html` }));
-        await deliver('passwordReset', email, { link });
+        const r = await sendPasswordReset({ auth, deliver, email, continueUrl: `${cfg.appBaseUrl}/login.html`, toActionLink: actionLink });
+        if (r === 'unknown') log('info', 'reset : compte inconnu', { to: maskEmail(email) });
     } catch (e) {
-        // Compte inconnu : même réponse. Autre panne (Admin SDK, Resend) : 502 pour que le front se replie sur Firebase.
-        if (e.code !== 'auth/user-not-found') { log('error', 'reset échoué', { to: maskEmail(email), err: e.message }); throw e; }
+        // Panne réelle (Admin SDK, Resend) : 502 pour que le front se replie sur Firebase.
+        log('error', 'reset échoué', { to: maskEmail(email), err: e.message }); throw e;
     }
     json(res, 200, { ok: true });
 }

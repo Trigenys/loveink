@@ -493,3 +493,24 @@
 - Contrat modifié : les pages statiques chargent désormais un seul script autorisé (attribution.js) ; test générateur ajusté. Bug corrigé : `toIso` sur date invalide.
 - Tests SEO 67/67. Tests de règles non exécutés localement (pas de Java) : à faire en CI. Règles Firestore à déployer après accord.
 - Modale d'inscription : rethémée dans `js/components/modale.js`, branche locale fix/register-modal-theme (25135c9, worktree agent), non poussée.
+
+## 2026-11-09 15:14 — PR #24 et #25 mergées et déployées ; diagnostic spams
+- #24 (Coup de cœur + anti-plagiat) et #25 (modale thémée) mergées en squash (e815dc4, 6fe0117). Runs Firebase Deploy 42632172714 (hosting + firestore rules OK) et 42632186034 (hosting OK). Prod vérifiée : conditions#plagiat, attribution.js, modale.js thémée servis.
+- Spams : expéditeur `loveink@trigenys.com` alors que les liens pointent sur loveink.site ; loveink.site sans SPF/DKIM/DMARC. Correctif proposé : domaine loveink.site dans Resend + DNS Spaceship (utilisateur), puis MAIL_FROM=Love Ink <noreply@loveink.site> et MAIL_REPLY_TO=contact@loveink.site sur le VPS (accord requis), test d'envoi.
+- Branches feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme encore présentes à distance.
+
+## 2026-11-09 15:18 — loveink.site ajouté dans Resend (en attente DNS)
+- Domaine loveink.site créé dans Resend (compte trigenys, région eu-west-1, id 4f8f0ca0-30aa-443a-b0a9-310731f8d6c2), non vérifié.
+- DNS à créer chez Spaceship : TXT resend._domainkey (clé DKIM affichée par Resend) ; CNAME rsend → rsend-euw1.forge.rmta.net ; CNAME send → send.forge.rmta.net ; TXT _dmarc = v=DMARC1; p=none; rua=mailto:contact@loveink.site.
+- Ensuite : Resend « I've added the records » → Verified ; puis VPS MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site, recréer le conteneur, mail de test.
+
+## 2026-11-09 15:49 — Expéditeur mails basculé sur noreply@loveink.site
+- DNS Spaceship ajoutés par l'utilisateur (DKIM resend._domainkey, CNAME rsend/send, DMARC p=none) ; Resend : loveink.site Verified (eu-west-1).
+- VPS ~/loveink-mailer/.env : MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site (sauvegarde .env.bak-*), conteneur recréé, healthz OK. Mail de test direct Resend → Delivered.
+- Anomalie : POST /v1/auth/password-reset pour un e-mail (probablement sans compte) → 502 « INTERNAL ASSERT FAILED: Unable to create the email action link » ; le code n'attrape que auth/user-not-found, donc le front se replie sur l'e-mail Firebase par défaut. Correctif à faire dans server/mailer/index.js:98.
+
+## 2026-11-09 16:17 — Mailer : reset pour compte inconnu corrigé
+- Cause : l'Admin SDK lève auth/internal-error (« Unable to create the email action link ») pour une adresse sans compte, pas auth/user-not-found → 502 → repli front sur l'e-mail Firebase par défaut (spam).
+- Correctif : server/mailer/reset.js (getUserByEmail avant generatePasswordResetLink) + reset.test.js ; 6/6 tests verts. Branche fix/mailer-reset-unknown-account.
+- Déployé sur le VPS (scp index.js + reset.js, compose recréé) : POST reset compte inconnu → 200, log « reset : compte inconnu ».
+- trigenysdataschool@gmail.com n'a pas de compte Love Ink : aucun mail n'est envoyé, c'est normal.
