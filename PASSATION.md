@@ -539,3 +539,9 @@
 - Pour tester l'e-mail thématisé : le faire depuis loveink.site (en local le mailer 127.0.0.1:8787 n'est pas lancé → repli Firebase, en anglais et souvent en spam).
 - Amélioration possible : versionner (hash) css/js au build pour revenir à un cache long.
 - Correction : Firebase Hosting ne renvoie pas 304 sur If-None-Match (testé curl et navigateur : 200, CSS retéléchargé, ~2,6 Ko pour auth-action.css). no-cache coûte donc un téléchargement complet des css/js à chaque visite. Prochaine étape conseillée : hash des css/js au build + cache long immutable.
+
+## 2026-11-09 17:12 — Versionnement css/js (en cours)
+- Branche feat/hosting-fingerprint-assets (part de chore/passation-2026-11-09, qui porte les entrées précédentes).
+- Plan : scripts/fingerprint-assets.mjs lancé en CI via build_command (firebase-deploy.yml jobs hosting + seo-refresh.yml) : hash du contenu de css/ et js/ → copie dans _v/<hash>/css|js (les imports relatifs entre modules restent valides), réécriture des références css/js dans les HTML du checkout CI uniquement (source intacte, dev local inchangé). firebase.json : /_v/** en cache 1 an immutable ; css/js d'origine gardés en no-cache. _v/ dans .gitignore.
+- Faits vérifiés : CSS sans url() relative ; JS sans import absolu ; 29 pages, 0 référence cassée.
+- Reste : script + tests node, vérif émulateur hosting (ordre des règles d'en-têtes), PR (merge = déploiement, demander).
