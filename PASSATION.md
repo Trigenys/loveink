@@ -412,3 +412,24 @@
 - PR 2 (`feat/seo-geo-gaps`, non mergée) : pages auteurs, 3 guides `/ressources/`, genres éditorialisés, JSON-LD enrichi, `/register` hors sitemap ; 57/57 tests SEO annoncés par la session. Issues P2 #3–#6, suivi #7 (pseudo auteur = partie locale de l'e-mail).
 - Les checks de la PR 2 ne lancent que sync-project : les tests SEO tourneront en CI après merge de la PR 1 (workflow firebase-deploy).
 - Bootstrap GCP toujours bloqué (compte Editor seulement).
+
+## 2026-11-07 11:25 — Bootstrap GCP : attente droits Owner
+
+- Owner (liakoa99@gmail.com) en train d'accorder le rôle Propriétaire à lawrynnjennifer@gmail.com via la console IAM (mobile).
+- Ensuite : reprendre le runbook WIF dans Cloud Shell (pool github, provider github-actions, SA github-deploy + 3 rôles, liaison workloadIdentityUser), puis variables GitHub + environnement production via gh.
+
+## 2026-11-07 15:57 — Bootstrap GCP WIF terminé
+
+- Owner accordé à lawrynnjennifer@gmail.com. Créés (Cloud Shell, script idempotent describe||create) : pool `github`, provider `github-actions` (ACTIVE, condition repository_owner==Trigenys), SA `github-deploy@love-ink.iam.gserviceaccount.com` + firebasehosting.admin, firebaserules.admin, datastore.indexAdmin ; workloadIdentityUser limité à Trigenys/loveink.
+- GitHub : variables GCP_WORKLOAD_IDENTITY_PROVIDER et GCP_DEPLOY_SERVICE_ACCOUNT posées, environnement `production` limité à `main`.
+- Reste (humain) : merger AppFactory #147, re-épingler le SHA, merger PR 1 (le push sur main déploiera en production), puis PR 2 ; supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK après un run prod réussi.
+
+## 2026-11-07 15:57 — PR #8 (issue #7) ouverte
+
+- PR 8 : pseudo du profil seul nom d'auteur, publication bloquée sans pseudo ; 64 tests SEO annoncés, aucun check CI sur GitHub. Non mergée.
+- Ordre de merge : AppFactory #147 → re-épinglage SHA → PR 1 → PR 2 → PR 8.
+
+## 2026-11-09 07:59 — #147 mergée, PR 1 re-épinglée
+
+- AppFactory #147 squash-mergée : 71149532f5fce30aa24c3e0c6bb312b6ce63f13e. firebase-deploy.yml et seo-refresh.yml re-épinglés sur ce SHA (PR 1).
+- Prochaine étape (humain) : merger PR 1 (déploie en production), puis PR 2 et PR 8 ; supprimer le secret JSON après un run prod réussi.
