@@ -550,3 +550,9 @@
 - Fait : scripts/fingerprint-assets.mjs (+ tests/seo/fingerprint.test.mjs), build_command des jobs hosting (firebase-deploy.yml, seo-refresh.yml), firebase.json : /@(css|js)/** no-cache et /_v/** 1 an immutable (motifs disjoints : l'émulateur n'applique pas les en-têtes, l'ordre n'a pas pu être vérifié localement).
 - Vérifié : tests SEO 71/71 ; copie construite servie par l'émulateur : toutes les ressources depuis /_v/<hash>, aucune erreur console, e2e 3/3 (dont pages privées après connexion) ; seconde exécution du script : 0 page réécrite.
 - Après merge : contrôler en prod `curl -sI` sur /_v/<hash>/css/styles.css (immutable) et que /login référence /_v/.
+
+## 2026-11-09 17:48 — Test écriture/publication/lecture en prod (compte claude_test)
+- Publication OK : histoire « [TEST] Lettre d'essai du 9 novembre » (id 454vUtYCNABRZlWH9xvU) en révision ; lecture auteur OK (bandeau, accents) ; J'aime 0→1→0 persistant.
+- Constats : aucune histoire publiée en prod (fil vide) ; pas de lien pour relire une histoire en révision depuis le profil ; avatars à initiales en teinte arbitraire (vert, bleu…) ; catégories de publier.html (8) ≠ catégories du fil (18) ; mes-histoires.html est une page d'attente ; textes sans accents (« apres validation par un moderateur », « vous a touche ») ; e2e full-app crée un compte et une histoire en prod à chaque passage.
+- Branche fix/avatar-initials-theme-hues : avatars limités à la gamme rose–terre cuite (+ test), lien « Relire » dans le profil (+ étape e2e, passée en local).
+- À faire : supprimer l'histoire de test (pas de suppression côté app ; console Firestore ou modérateur).

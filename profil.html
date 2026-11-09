@@ -1027,7 +1027,7 @@
                                 <span><i class="fas fa-comment"></i> ${Number(h.commentaires || 0)}</span>
                                 ${badge}
                             </div>
-                            ${h.statut === 'publie' ? `<a href="histoire.html?id=${encodeURIComponent(h.id)}" class="story-edit-btn"><i class="fas fa-eye"></i> Voir</a>` : ''}
+                            <a href="histoire.html?id=${encodeURIComponent(h.id)}" class="story-edit-btn"><i class="fas fa-eye"></i> ${h.statut === 'publie' ? 'Voir' : 'Relire'}</a>
                         </div>
                     </div>
                 `;
