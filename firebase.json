@@ -17,6 +17,7 @@
       ".github/**",
       ".claude/**",
       "**/.*",
+      "**/gha-creds-*.json",
       "**/node_modules/**",
       "functions/**",
       "server/**",

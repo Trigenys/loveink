@@ -363,6 +363,76 @@
 - À faire par l'utilisateur : (1) créer le secret GitHub `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` (JSON d'un compte de service, rôle Firebase Hosting Admin ; + Rules Admin / Datastore Index Admin si on veut déployer Firestore via CI) — sans lui les deux workflows échouent explicitement ; (2) déployer Hosting (`firebase deploy --only hosting --project love-ink`) ; (3) 301 www→apex en console Hosting ; (4) importer le site dans Bing Webmaster Tools ; (5) re-mesurer PSI mobile (baseline 75) ; (6) observer la CSP Report-Only en prod (login Google, publication, messagerie) avant tout passage en bloquant.
 - Verrous : aucun. Secrets jamais lus ni commités.
 
+## 2026-11-06 16:56 — Déploiement Firebase sans clé (WIF) via AppFactory : écarts et plan, en attente de validation
+
+- Demande : avant de créer `FIREBASE_SERVICE_ACCOUNT_LOVE_INK`, étudier GitHub OIDC + Workload Identity Federation et un provider AppFactory réutilisable. Analyse en lecture seule, aucun fichier du dépôt modifié, aucun identifiant créé, aucun déploiement.
+- Constat : `Trigenys/appfactory` (Worker Cloudflare Pages/D1/R2/Neon, broker GitHub) et `EagleFox31/appfactory-project-automation` n'ont **aucune** primitive Firebase/GCP ; patterns à adapter : `reusable-pages-deploy.yml` (contrat sans secret, modes plan/preview/production) et `docs/aws-oidc-one-time-bootstrap.md`.
+- Faisabilité vérifiée : `google-github-actions/auth` v3.0.0 (sha `7c6bc770dae815cd3e89ee6cdf493a5fab2cc093`) ; `firebase-tools` 15.35.0 charge un fichier `external_account` et appelle STS (test local avec pool factice → `invalid_target`, contrôle sans credential → « have you run firebase login? ») ; régression 15.22.2 corrigée en 15.22.3, cause Node 22.23.0/24.17.0 → épingler Node exact. `FirebaseExtended/action-hosting-deploy` reste JSON-only (issues #174, #399 ouvertes) → à remplacer.
+- Plan complet : `C:\Users\lawry\AppData\Local\Temp\claude\dd1a7a74099b0da2\6ee8181d-41ae-4ff3-adc7-deba6558666b\scratchpad\plan-firebase-wif-appfactory.md` (à copier dans `docs/engineering/` si validé). Résumé : nouveau `reusable-firebase-deploy.yml` + `scripts/firebase-deploy/contract.mjs` + tests + docs dans appfactory-project-automation (fichiers neufs, Cloudflare intact) ; Love Ink consomme via `.github/appfactory-impact.json` + `reusable-impact-analysis` ; `seo-refresh` garde le cron 6 h en 3 jobs (refresh → deploy → indexnow, sitemap précédent en artefact) ; bootstrap GCP (pool `github`, provider OIDC avec `attribute.repository`, SA `github-deploy` sans clé, rôles Hosting Admin [+ Rules Admin, Datastore Index Admin si Firestore via CI]) à exécuter par l'utilisateur, plan → apply.
+- Prochaine étape : validation du plan par l'utilisateur, puis phase 1 (PR appfactory-project-automation). Le secret JSON ne doit pas être créé.
+
+## 2026-11-06 17:32 — Firebase WIF phase 1 : PR ouverte dans appfactory-project-automation
+
+- PR https://github.com/EagleFox31/appfactory-project-automation/pull/147 (branche `feat/reusable-firebase-deploy`, commit `27421c6`) : workflow réutilisable `reusable-firebase-deploy.yml` (OIDC + WIF, aucun secret), contrat `scripts/firebase-deploy/contract.mjs`, 18 tests (18/18), docs `docs/reusable-firebase-deploy.md` + `docs/gcp-wif-one-time-bootstrap.md`, exemple `examples/firebase-deploy.yml`, lessons LESSON-2026-017/018.
+- Suite complète `npm test` sur Windows : 15 échecs pré-existants (AWS/CloudFormation/governance), identiques sur `origin/main` propre ; CI Linux fait foi (en attente au moment de l'écriture).
+- Love Ink **non modifié** ; aucun bootstrap GCP, aucun déploiement, aucun secret créé. Mission SEO/GEO (`1fcd2f2`) toujours non déployée.
+- Phase 2 à faire après revue/merge : `hosting.ignore` (`**/gha-creds-*.json`, `**/.*`), `.github/appfactory-impact.json`, remplacer `action-hosting-deploy@v0` + secret JSON par le workflow réutilisable épinglé au SHA mergé, chaîner refresh → deploy (`checkout_ref`, `deployed_sha`) → IndexNow, bootstrap GCP humain (runbook verify puis apply), variables `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_DEPLOY_SERVICE_ACCOUNT`.
+
+## 2026-11-07 03:43 — Firebase WIF phase 2 : PR Love Ink ouverte
+
+- PR https://github.com/Trigenys/loveink/pull/1 (branche `feat/firebase-wif-deploy`, commit `11e8900`) : `hosting.ignore` + `**/gha-creds-*.json`, `.github/appfactory-impact.json` (surfaces `site` → gates `seo-tests`/`hosting`, `firestore` → `firestore`), `firebase-deploy.yml` réécrit (impact → seo-tests → hosting → firestore ; PR = plan, push main = production), `seo-refresh.yml` réécrit (refresh → deploy sur le SHA poussé → IndexNow si `deployed_sha` = SHA poussé, ancien sitemap via artefact), test de garde dans `tests/seo/hosting.test.mjs`. Tests SEO 45/45. Pins vérifiés (checkout/setup-node/upload-artifact v5.0.0, download-artifact v6.0.0).
+- Épinglé sur `27421c60e1eca0107ef376408471412c44767770` = commit de la PR AppFactory #147 (https://github.com/EagleFox31/appfactory-project-automation/pull/147, non mergée) : **re-épingler** les quatre `@27421c6…` + `appfactory_ref` sur le SHA mergé.
+- Verrous : aucun déploiement, aucun bootstrap GCP, aucun secret créé/supprimé. Tant que les variables `GCP_WORKLOAD_IDENTITY_PROVIDER` / `GCP_DEPLOY_SERVICE_ACCOUNT` sont absentes, tout reste en `plan` (le chemin par clé JSON est retiré) → merger après bootstrap + variables, ou accepter la coupure. Mission SEO/GEO (`1fcd2f2`) toujours non déployée.
+- Prochaines étapes (propriétaire) : runbook `docs/gcp-wif-one-time-bootstrap.md` (verify puis apply) sur `love-ink` pour `Trigenys/loveink` ; variables ci-dessus ; environnement `production` (branche `main`) ; merge #147 puis re-pin ; merge PR 1 ; après un run production réussi, supprimer `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` et révoquer la clé.
+
+## 2026-11-07 03:59 — Phase 2 : CI bloquée par la facturation GitHub
+
+- Re-déclenchement (commit vide) : toujours 0 job sur `firebase-deploy.yml` et `project-automation.yml` ; annotation GitHub : paiements de l'organisation Trigenys échoués / limite de dépense. Aucune erreur de workflow identifiée (inputs vérifiés contre les workflows réutilisables à `27421c6`).
+- `gcloud` absent de la machine : bootstrap GCP impossible ici de toute façon (action humaine).
+- Bloqué sur l'utilisateur : (1) rétablir la facturation GitHub puis relancer les checks de la PR 1 ; (2) bootstrap GCP + variables ; (3) merge AppFactory #147 puis re-pin.
+
+## 2026-11-07 10:20 — Phase 2 : CI verte (plan)
+
+- Dépôt `Trigenys/loveink` passé **public** à la demande de l'utilisateur (Actions bloqué en privé, plan gratuit) ; scan préalable : aucun secret dans fichiers ni historique (clé Firebase web publique par conception).
+- Erreur de compilation du workflow réutilisable (`runner.temp` dans `env` de job) corrigée dans AppFactory `b236135` (PR #147, LESSON-2026-019, test structurel) ; Love Ink re-épinglé sur `b236135` (`5bdff0a`).
+- Run 42332913072 : impact, seo-tests, hosting (plan) OK, firestore ignoré, étapes d'identité ignorées comme prévu.
+- Reste (propriétaire) : bootstrap GCP + variables + environnement `production` ; merge #147 puis re-pin sur SHA mergé ; merge PR 1 ; suppression du secret JSON après run production réussi.
+- Demande SEO/GEO reçue de la session expert-seo-geo : P0 déjà largement couvert par `scripts/build-seo-pages.mjs` (pages histoires/genres statiques, sitemap lastmod, JSON-LD Article) mais non déployé ; écarts : `/register` dans le sitemap, pas de pages auteurs, pas de `parentOrganization`, P1 (intros genres, pages ressources) absent.
+
+## 2026-11-07 10:33 — Bootstrap GCP : bloqué par les droits
+
+- Cloud Shell (navigateur, compte connecté du propriétaire) sur `love-ink`, numéro de projet 942272722437. Saisie du terminal : seules les frappes `key` touche par touche passent (`type` est ignoré).
+- Vérification en lecture seule : pas de pool WIF, pas de compte `github-deploy`.
+- Appliqué : activation de `iamcredentials.googleapis.com` et `sts.googleapis.com` (idempotent).
+- Bloqué : `workload-identity-pools create` → IAM_PERMISSION_DENIED. Le compte connecté n'a que `roles/editor` sur le projet ; il faut le compte Owner (ou les rôles Workload Identity Pool Admin + Service Account Admin + Project IAM Admin) pour la suite du runbook (pool, provider, SA, 3 rôles projet, binding workloadIdentityUser sur `Trigenys/loveink`).
+- Session SEO lancée par l'utilisateur : `local_db63e3e4-…` (écarts P0/P1 en worktree, PR sans merge).
+
+## 2026-11-07 10:42 — PR SEO/GEO ouverte
+
+- PR 2 (`feat/seo-geo-gaps`, non mergée) : pages auteurs, 3 guides `/ressources/`, genres éditorialisés, JSON-LD enrichi, `/register` hors sitemap ; 57/57 tests SEO annoncés par la session. Issues P2 #3–#6, suivi #7 (pseudo auteur = partie locale de l'e-mail).
+- Les checks de la PR 2 ne lancent que sync-project : les tests SEO tourneront en CI après merge de la PR 1 (workflow firebase-deploy).
+- Bootstrap GCP toujours bloqué (compte Editor seulement).
+
+## 2026-11-07 11:25 — Bootstrap GCP : attente droits Owner
+
+- Owner (liakoa99@gmail.com) en train d'accorder le rôle Propriétaire à lawrynnjennifer@gmail.com via la console IAM (mobile).
+- Ensuite : reprendre le runbook WIF dans Cloud Shell (pool github, provider github-actions, SA github-deploy + 3 rôles, liaison workloadIdentityUser), puis variables GitHub + environnement production via gh.
+
+## 2026-11-07 15:57 — Bootstrap GCP WIF terminé
+
+- Owner accordé à lawrynnjennifer@gmail.com. Créés (Cloud Shell, script idempotent describe||create) : pool `github`, provider `github-actions` (ACTIVE, condition repository_owner==Trigenys), SA `github-deploy@love-ink.iam.gserviceaccount.com` + firebasehosting.admin, firebaserules.admin, datastore.indexAdmin ; workloadIdentityUser limité à Trigenys/loveink.
+- GitHub : variables GCP_WORKLOAD_IDENTITY_PROVIDER et GCP_DEPLOY_SERVICE_ACCOUNT posées, environnement `production` limité à `main`.
+- Reste (humain) : merger AppFactory #147, re-épingler le SHA, merger PR 1 (le push sur main déploiera en production), puis PR 2 ; supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK après un run prod réussi.
+
+## 2026-11-07 15:57 — PR #8 (issue #7) ouverte
+
+- PR 8 : pseudo du profil seul nom d'auteur, publication bloquée sans pseudo ; 64 tests SEO annoncés, aucun check CI sur GitHub. Non mergée.
+- Ordre de merge : AppFactory #147 → re-épinglage SHA → PR 1 → PR 2 → PR 8.
+
+## 2026-11-09 07:59 — #147 mergée, PR 1 re-épinglée
+
+- AppFactory #147 squash-mergée : 71149532f5fce30aa24c3e0c6bb312b6ce63f13e. firebase-deploy.yml et seo-refresh.yml re-épinglés sur ce SHA (PR 1).
+- Prochaine étape (humain) : merger PR 1 (déploie en production), puis PR 2 et PR 8 ; supprimer le secret JSON après un run prod réussi.
 ## 2026-11-07 10:38 — SEO/GEO : écarts P0/P1 comblés (branche feat/seo-geo-gaps)
 
 - Fait : sitemap sans `/register` ; JSON-LD histoire enrichi (`additionalType` ShortStory, `genre`, `isPartOf` WebSite, `publisher.parentOrganization` `https://www.trigenys.com/#org`, auteur `Person` avec `@id`/`url`) ; pages auteurs `/histoires/auteur/<slug>` (ProfilePage + Person + ItemList, pseudonyme seul, jamais d'e-mail ni d'uid) ; pages genre éditorialisées (intro ~150 mots, « Les plus appréciées », FAQ visible = FAQPage, `updated` dans `data/genres.json`) ; 3 guides `/ressources/` depuis `data/ressources.json` (lettre d'amour, exemples, idées) + index, maillés depuis histoires/genres/accueil/sitemap/llms ; titles/descriptions uniques (`uniqueBy`).
@@ -370,3 +440,9 @@
 - Non touché (contrainte) : `.github/workflows/`, `firebase.json`, `.github/appfactory-impact.json` ; aucun déploiement.
 - À faire : relecture des textes par Lee (`data/genres.json`, `data/ressources.json`) ; vérifier que `https://www.trigenys.com/#org` est bien l'`@id` publié par trigenys.com ; Rich Results Test après déploiement ; corriger le repli e-mail de `publier.html` (issue).
 - Verrous : aucun.
+
+## 2026-11-09 08:02 — PR 1 prête à merger
+
+- PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
+- main fusionnée dans feat/firebase-wif-deploy (81d03b6, conflit PASSATION résolu par union), 58/58 tests, CI PR 1 verte (impact, seo-tests, hosting plan), CLEAN.
+- Prochaine étape : merger PR 1 = premier déploiement production WIF ; puis PR 8.
