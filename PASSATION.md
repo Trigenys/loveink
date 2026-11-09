@@ -498,3 +498,8 @@
 - #24 (Coup de cœur + anti-plagiat) et #25 (modale thémée) mergées en squash (e815dc4, 6fe0117). Runs Firebase Deploy 42632172714 (hosting + firestore rules OK) et 42632186034 (hosting OK). Prod vérifiée : conditions#plagiat, attribution.js, modale.js thémée servis.
 - Spams : expéditeur `loveink@trigenys.com` alors que les liens pointent sur loveink.site ; loveink.site sans SPF/DKIM/DMARC. Correctif proposé : domaine loveink.site dans Resend + DNS Spaceship (utilisateur), puis MAIL_FROM=Love Ink <noreply@loveink.site> et MAIL_REPLY_TO=contact@loveink.site sur le VPS (accord requis), test d'envoi.
 - Branches feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme encore présentes à distance.
+
+## 2026-11-09 15:18 — loveink.site ajouté dans Resend (en attente DNS)
+- Domaine loveink.site créé dans Resend (compte trigenys, région eu-west-1, id 4f8f0ca0-30aa-443a-b0a9-310731f8d6c2), non vérifié.
+- DNS à créer chez Spaceship : TXT resend._domainkey (clé DKIM affichée par Resend) ; CNAME rsend → rsend-euw1.forge.rmta.net ; CNAME send → send.forge.rmta.net ; TXT _dmarc = v=DMARC1; p=none; rua=mailto:contact@loveink.site.
+- Ensuite : Resend « I've added the records » → Verified ; puis VPS MAIL_FROM=Love Ink <noreply@loveink.site>, MAIL_REPLY_TO=contact@loveink.site, recréer le conteneur, mail de test.
