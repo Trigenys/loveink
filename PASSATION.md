@@ -514,3 +514,9 @@
 - Correctif : server/mailer/reset.js (getUserByEmail avant generatePasswordResetLink) + reset.test.js ; 6/6 tests verts. Branche fix/mailer-reset-unknown-account.
 - Déployé sur le VPS (scp index.js + reset.js, compose recréé) : POST reset compte inconnu → 200, log « reset : compte inconnu ».
 - trigenysdataschool@gmail.com n'a pas de compte Love Ink : aucun mail n'est envoyé, c'est normal.
+
+## 2026-11-09 16:42 — PR #26 mergée, délivrabilité confirmée
+- PR #26 (mailer reset compte inconnu) mergée en squash (c29e576) ; Firebase Deploy main : success. main local aligné sur origin.
+- L'utilisateur a reçu le mail de test (expéditeur noreply@loveink.site) : délivrabilité OK.
+- Reste (humain) : supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK. Branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme à nettoyer ; PR #8 plus tard.
+- Le job sync-project / bootstrap-github-app-user a échoué sur la PR #26 : non analysé.
