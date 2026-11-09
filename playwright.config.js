@@ -4,6 +4,8 @@ const baseURL = process.env.E2E_BASE_URL || 'https://loveink.site';
 
 module.exports = defineConfig({
     testDir: './tests/e2e',
+    // Recette prod (comptes jetables) : seulement via tests/e2e/prod/run.js, jamais avec npm test.
+    testIgnore: process.env.E2E_PROD === '1' ? [] : ['**/prod/**'],
     timeout: 120000,
     expect: {
         timeout: 15000
