@@ -452,3 +452,10 @@
 - Correctif : EagleFox31/appfactory-project-automation#149 (pathToFileURL + garde `deploy=` qui fait échouer le plan + tests). CI verte, non mergée (accord requis).
 - Ensuite : merger #149, re-épingler firebase-deploy.yml et seo-refresh.yml sur le SHA de merge, PR, puis vérifier que l'étape « Deploy production » s'exécute réellement et que loveink.site est à jour.
 - Secret `FIREBASE_SERVICE_ACCOUNT_LOVE_INK` : ne le supprimer qu'après ce run réussi.
+
+## 2026-11-09 08:54 — Déploiement production : 3e blocage, correctif AppFactory #151
+- Mergés : AppFactory #149 (entrypoint Linux) et #150 (.env.example toléré) ; Love Ink PR 9 (épinglage cc90978) mergée → run 42581909565 : plan OK, auth OIDC/WIF OK, puis échec fermé « credentials file is not under … » (auth écrit gha-creds dans le checkout : override GITHUB_WORKSPACE ignoré par le runner). Rien n'a été publié.
+- Correctif : EagleFox31/appfactory-project-automation#151 (déplacement du fichier sous RUNNER_TEMP + ré-export des variables). CI verte, non mergée (accord requis).
+- Branche locale fix/repin-appfactory-151 créée depuis origin/main (rien de commité hormis cette entrée).
+- Suite : merger #151 → re-épingler firebase-deploy.yml + seo-refresh.yml sur son SHA de merge → PR → merge → vérifier « Deploy production » success et loveink.site.
+- Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK : suppression humaine seulement après ce run réussi.
