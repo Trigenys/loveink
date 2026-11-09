@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/reader.css">
     <link rel="stylesheet" href="css/immersive.css">
     <script type="module" src="js/components/reader.js"></script>
+    <script type="module" src="js/components/attribution.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body>
@@ -182,12 +183,16 @@
                         <button class="btn ${userLiked ? 'btn-favorite' : 'btn-secondary'}" id="likeBtn">
                             <i class="fas fa-heart"></i>
                             <span id="likeCount">${Number(currentStory.likes || 0)}</span> J'aime
-                        </button>
+                        </button>${isModo && isPublie ? `
+                        <button class="btn btn-secondary" id="coupDeCoeurBtn" data-actif="${currentStory.coupDeCoeur ? '1' : ''}">
+                            <i class="fas fa-star"></i> ${currentStory.coupDeCoeur ? 'Retirer le coup de cœur' : 'Coup de cœur de la semaine'}
+                        </button>` : ''}
                     </div>
                 </div>
-                <div class="story-content">
+                <div class="story-content" data-li-attrib data-titre="${escapeHtml(currentStory.titre || 'Sans titre')}" data-auteur="${escapeHtml(currentStory.auteur || '')}">
                     ${renderStoryContent(currentStory.contenu)}
                 </div>
+                <p class="story-rights">© ${escapeHtml(currentStory.auteur || 'Auteur inconnu')} · Tous droits réservés. Reproduction interdite sans l'accord de l'auteur. <a href="conditions.html#plagiat">Signaler un plagiat</a></p>
             `;
             document.dispatchEvent(new CustomEvent('li:story-rendered', { detail: { story: currentStory, storyId } }));
         }
@@ -263,6 +268,20 @@
             }
         }
 
+        async function handleCoupDeCoeur(btn) {
+            if (!storyId || !currentUser) return;
+            const actif = !btn.dataset.actif;
+            btn.disabled = true;
+            const ok = await firebaseAPI.definirCoupDeCoeur(storyId, currentUser.uid, actif);
+            if (!ok) {
+                btn.disabled = false;
+                await notify('error', "Impossible de modifier le coup de cœur.", { title: 'Coup de cœur' });
+                return;
+            }
+            await notify('success', actif ? "Histoire sélectionnée. La page d'accueil sera mise à jour au prochain rafraîchissement (6 h au plus)." : 'Coup de cœur retiré.', { title: 'Coup de cœur' });
+            await renderStory();
+        }
+
         async function handleCommentSubmit() {
             const input = document.getElementById('newComment');
             if (!input || !storyId || !currentUser) return;
@@ -286,6 +305,8 @@
             if (event.target.closest('#likeBtn')) {
                 handleLike();
             }
+            const cdc = event.target.closest('#coupDeCoeurBtn');
+            if (cdc) handleCoupDeCoeur(cdc);
         });
 
         commentsContainer.addEventListener('click', (event) => {

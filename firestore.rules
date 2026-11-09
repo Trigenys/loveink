@@ -265,6 +265,14 @@ service cloud.firestore {
         request.resource.data.dateModeration is timestamp;
     }
 
+    // Coup de coeur editorial (#14) : un modo marque ou retire une histoire publiee ; rien d'autre ne change.
+    function validModoCoupDeCoeurUpdate() {
+      return resource.data.statut == 'publie' &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['coupDeCoeur', 'coupDeCoeurPar']) &&
+        request.resource.data.coupDeCoeurPar == request.auth.uid &&
+        (request.resource.data.coupDeCoeur == request.time || request.resource.data.coupDeCoeur == null);
+    }
+
     // Moderation editoriale: correction de contenu AVANT publication + conservation original.
     function validModoEditorialUpdate() {
       return resource.data.statut == 'en_attente' &&
@@ -407,7 +415,8 @@ service cloud.firestore {
           'sanction_lift',
           'candidature_approuvee',
           'candidature_refusee',
-          'role_promotion'
+          'role_promotion',
+          'story_coup_de_coeur'
         ] &&
         request.resource.data.date is timestamp &&
         (
@@ -448,7 +457,7 @@ service cloud.firestore {
       allow update: if signedIn() && (
         (resource.data.auteurId == request.auth.uid && isActif() && validStoryOwnerUpdate()) ||
         (isActif() && storyCountersOnly(histoireId)) ||
-        (isModo() && (validModoStoryUpdate() || validModoEditorialUpdate()))
+        (isModo() && (validModoStoryUpdate() || validModoEditorialUpdate() || validModoCoupDeCoeurUpdate()))
       );
       allow delete: if signedIn() && resource.data.auteurId == request.auth.uid;
     }

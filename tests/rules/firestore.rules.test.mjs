@@ -127,3 +127,17 @@ test('histoires : sans connexion, lecture limitee aux histoires publiees', async
   await assertFails(getDocs(collection(anon, 'histoires')));
   await assertSucceeds(getDocs(query(collection(anon, 'histoires'), where('statut', '==', 'publie'))));
 });
+
+// --- #14 Coup de coeur : reserve aux modos, histoires publiees, deux champs seulement ---
+test('coup de coeur : modo marque et retire une histoire publiee', async () => {
+  await assertSucceeds(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: MODO }));
+  await assertSucceeds(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: null, coupDeCoeurPar: MODO }));
+});
+test('coup de coeur : refuse aux non-modos, aux dates forgees, aux autres champs et hors publication', async () => {
+  await assertFails(updateDoc(doc(db(A), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: A }));
+  await assertFails(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: new Date('2030-01-01'), coupDeCoeurPar: MODO }));
+  await assertFails(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: B }));
+  await assertFails(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: MODO, likes: 99 }));
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'histoires', 'h1'), { statut: 'en_attente' }));
+  await assertFails(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: MODO }));
+});

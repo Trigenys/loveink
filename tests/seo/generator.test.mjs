@@ -74,7 +74,9 @@ test('page histoire : texte intégral présent dans le HTML sans JavaScript', ()
     const firstPara = story.contenu.split(/\n{2,}/)[0].trim().split('\n')[0];
     assert.ok(html.includes(`<p>${firstPara.replace(/'/g, '&#39;')}`), 'premier paragraphe absent du HTML statique');
     const scripts = [...html.matchAll(/<script\b([^>]*)>/g)].map((m) => m[1]);
-    assert.ok(scripts.every((a) => a.includes('type="application/ld+json"')), 'seuls des blocs JSON-LD sont autorisés, aucun script exécutable');
+    // Seule exception : l'attribution au copier (#20), amélioration progressive ; le texte ne dépend d'aucun script.
+    const ALLOWED = ['type="module" src="/js/components/attribution.js"'];
+    assert.ok(scripts.every((a) => a.includes('type="application/ld+json"') || ALLOWED.includes(a.trim())), 'seuls des blocs JSON-LD et le script d\'attribution sont autorisés');
 });
 
 test('data/genres.json : chaque catégorie de publier.html a une intro et une description (50-160 caractères)', () => {
