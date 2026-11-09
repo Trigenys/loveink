@@ -1,5 +1,6 @@
 // firebase-data.js - Fonctions de donnees Firestore (SDK v9 modulaire)
 import { auth, db } from './firebase-config.js';
+import { getFreshDoc } from './fresh-doc.js';
 import {
     addDoc,
     collection,
@@ -888,7 +889,7 @@ async function enregistrerUtilisateur(user) {
 
 async function getUtilisateur(userId) {
     try {
-        const snapshotDoc = await getDoc(doc(db, 'utilisateurs', userId));
+        const snapshotDoc = await getFreshDoc(doc(db, 'utilisateurs', userId));
         if (!snapshotDoc.exists()) {
             return null;
         }

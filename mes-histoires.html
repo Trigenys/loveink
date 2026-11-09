@@ -9,23 +9,30 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
+    <link rel="stylesheet" href="css/app.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
     import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
     mountAppNav({ variant: 'classic', active: 'mes-histoires', showUser: true, showPublish: true });
     </script>
 
-    <main class="container" style="padding: 40px 20px;">
-        <div style="background: white; border-radius: 16px; padding: 30px; box-shadow: 0 6px 24px rgba(0,0,0,0.06);">
-            <h1 style="color: #b76e6e; margin-bottom: 10px;">Mes histoires</h1>
-            <p style="color: #5c3e35; margin-bottom: 20px;">
-                Cette page redirige vers la vue profil en attendant la section dediee.
-            </p>
-            <a href="profil.html" class="btn btn-primary">Aller a mon profil</a>
-            <a href="publier.html" class="btn btn-secondary" style="margin-left: 10px;">Publier une histoire</a>
+    <main class="li-page">
+        <header class="page-header">
+            <span class="li-eyebrow">Votre plume</span>
+            <h1>Mes histoires</h1>
+            <p>Vos histoires publiées, en révision ou rejetées se retrouvent dans l'onglet « Histoires » de votre profil.</p>
+        </header>
+        <div class="li-empty">
+            <i class="fas fa-feather-alt" aria-hidden="true"></i>
+            <p>Retrouvez et relisez toutes vos histoires depuis votre profil.</p>
+            <div class="li-empty__actions">
+                <a href="profil.html" class="btn btn-primary">Aller à mon profil</a>
+                <a href="publier.html" class="btn btn-secondary">Publier une histoire</a>
+            </div>
         </div>
     </main>
 
