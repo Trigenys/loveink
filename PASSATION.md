@@ -493,3 +493,8 @@
 - Contrat modifié : les pages statiques chargent désormais un seul script autorisé (attribution.js) ; test générateur ajusté. Bug corrigé : `toIso` sur date invalide.
 - Tests SEO 67/67. Tests de règles non exécutés localement (pas de Java) : à faire en CI. Règles Firestore à déployer après accord.
 - Modale d'inscription : rethémée dans `js/components/modale.js`, branche locale fix/register-modal-theme (25135c9, worktree agent), non poussée.
+
+## 2026-11-09 15:14 — PR #24 et #25 mergées et déployées ; diagnostic spams
+- #24 (Coup de cœur + anti-plagiat) et #25 (modale thémée) mergées en squash (e815dc4, 6fe0117). Runs Firebase Deploy 42632172714 (hosting + firestore rules OK) et 42632186034 (hosting OK). Prod vérifiée : conditions#plagiat, attribution.js, modale.js thémée servis.
+- Spams : expéditeur `loveink@trigenys.com` alors que les liens pointent sur loveink.site ; loveink.site sans SPF/DKIM/DMARC. Correctif proposé : domaine loveink.site dans Resend + DNS Spaceship (utilisateur), puis MAIL_FROM=Love Ink <noreply@loveink.site> et MAIL_REPLY_TO=contact@loveink.site sur le VPS (accord requis), test d'envoi.
+- Branches feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme encore présentes à distance.
