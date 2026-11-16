@@ -99,14 +99,14 @@
             margin-top: 4px;
         }
         .info-box {
-            background: #f5f0ff;
-            border-left: 3px solid #9b7ecb;
+            background: var(--rose-pale, #f5e6e6);
+            border-left: 3px solid var(--rose-mid, #b07070);
             border-radius: 0 8px 8px 0;
             padding: 12px 16px;
             margin-bottom: 28px;
             font-family: 'Century Gothic', sans-serif;
             font-size: 13px;
-            color: #5a4070;
+            color: var(--ink, #2a1a1a);
             line-height: 1.6;
         }
         .info-box i { margin-right: 6px; }
@@ -145,13 +145,15 @@
         }
     </style>
     <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
+    <link rel="stylesheet" href="css/app.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
-<body>
+<body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
         import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
-        mountAppNav({ variant: 'classic', showUser: true, showPublish: true });
+        mountAppNav({ variant: 'classic', active: 'candidature-modo', showUser: true, showPublish: true });
     </script>
 
     <div class="candidature-wrap">

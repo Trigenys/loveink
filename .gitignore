@@ -6,3 +6,6 @@ playwright-report/
 .env
 .env.*
 .claude/settings.local.json
+
+# Copie versionnée des css/js générée en CI (scripts/fingerprint-assets.mjs)
+_v/

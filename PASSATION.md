@@ -527,3 +527,144 @@
 - Correctif : server/mailer/reset.js (getUserByEmail avant generatePasswordResetLink) + reset.test.js ; 6/6 tests verts. Branche fix/mailer-reset-unknown-account.
 - Déployé sur le VPS (scp index.js + reset.js, compose recréé) : POST reset compte inconnu → 200, log « reset : compte inconnu ».
 - trigenysdataschool@gmail.com n'a pas de compte Love Ink : aucun mail n'est envoyé, c'est normal.
+
+## 2026-11-09 16:42 — PR #26 mergée, délivrabilité confirmée
+- PR #26 (mailer reset compte inconnu) mergée en squash (c29e576) ; Firebase Deploy main : success. main local aligné sur origin.
+- L'utilisateur a reçu le mail de test (expéditeur noreply@loveink.site) : délivrabilité OK.
+- Reste (humain) : supprimer le secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK. Branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme à nettoyer ; PR #8 plus tard.
+- Le job sync-project / bootstrap-github-app-user a échoué sur la PR #26 : non analysé.
+
+## 2026-11-09 16:57 — Mot de passe oublié : carte qui tourne
+- PR #8 : conflit PASSATION résolu (merge de main, deux côtés gardés), 74/74 tests SEO, poussée ; reste à relire et merger.
+- Secret FIREBASE_SERVICE_ACCOUNT_LOVE_INK : il n'a jamais existé (aucun secret dans le dépôt ni dans l'environnement production) ; consigne de suppression caduque.
+- Branche feat/login-forgot-page-turn : login.html en trois vues (connexion, oubli, lettre envoyée) dans la même carte, avec tournage de page (rotateY ; perspective dans la transformation, sinon le décor encre passe devant la carte) ; lien direct #mot-de-passe-oublie ; reduced-motion respecté ; ancien .reset-box supprimé. Test e2e ajouté (mailer simulé) : 2/2 en local sur le port 5178.
+- Échec non bloquant : sync-project (broker de jetons HTTP 502 github_oauth_unavailable) sur la PR #26.
+
+## 2026-11-09 17:07 — Cache CSS/JS après déploiement
+- PR #27 mergée et déployée ; e2e 3/3 en prod. L'e-mail en spam venait du test sur 127.0.0.1:5178 (mailer local absent → repli Firebase), pas de la prod.
+- Incident : après le déploiement, lien « Retour à la connexion » bleu chez l'utilisateur. Cause : css/js non versionnés et mis en cache 1 h, HTML en no-cache → nouveau HTML avec ancien CSS. /login (sans extension) aussi en max-age=3600 (défaut Firebase).
+- Correctif (branche fix/hosting-cache-revalidate) : no-cache (revalidation ETag) pour css/js et pour les URLs sans extension ; test de non-régression dans tests/seo/hosting.test.mjs.
+- main local réaligné sur origin/main ; ancien commit local gardé dans backup/main-a6bd014 (déjà contenu dans main).
+
+## 2026-11-09 17:09 — PR #28 mergée (cache)
+- Déployée (run 42651745634 success). Prod : css/js, /login et HTML en no-cache, images 7 j ; revalidation ETag → 304.
+- État : #27 et #28 en prod. Reste côté utilisateur : relire/merger PR #8, supprimer les branches distantes feat/coup-de-coeur-anti-plagiat et fix/register-modal-theme.
+- Pour tester l'e-mail thématisé : le faire depuis loveink.site (en local le mailer 127.0.0.1:8787 n'est pas lancé → repli Firebase, en anglais et souvent en spam).
+- Amélioration possible : versionner (hash) css/js au build pour revenir à un cache long.
+- Correction : Firebase Hosting ne renvoie pas 304 sur If-None-Match (testé curl et navigateur : 200, CSS retéléchargé, ~2,6 Ko pour auth-action.css). no-cache coûte donc un téléchargement complet des css/js à chaque visite. Prochaine étape conseillée : hash des css/js au build + cache long immutable.
+
+## 2026-11-09 17:12 — Versionnement css/js (en cours)
+- Branche feat/hosting-fingerprint-assets (part de chore/passation-2026-11-09, qui porte les entrées précédentes).
+- Plan : scripts/fingerprint-assets.mjs lancé en CI via build_command (firebase-deploy.yml jobs hosting + seo-refresh.yml) : hash du contenu de css/ et js/ → copie dans _v/<hash>/css|js (les imports relatifs entre modules restent valides), réécriture des références css/js dans les HTML du checkout CI uniquement (source intacte, dev local inchangé). firebase.json : /_v/** en cache 1 an immutable ; css/js d'origine gardés en no-cache. _v/ dans .gitignore.
+- Faits vérifiés : CSS sans url() relative ; JS sans import absolu ; 29 pages, 0 référence cassée.
+- Reste : script + tests node, vérif émulateur hosting (ordre des règles d'en-têtes), PR (merge = déploiement, demander).
+
+## 2026-11-09 17:17 — Versionnement css/js : prêt (PR)
+- Fait : scripts/fingerprint-assets.mjs (+ tests/seo/fingerprint.test.mjs), build_command des jobs hosting (firebase-deploy.yml, seo-refresh.yml), firebase.json : /@(css|js)/** no-cache et /_v/** 1 an immutable (motifs disjoints : l'émulateur n'applique pas les en-têtes, l'ordre n'a pas pu être vérifié localement).
+- Vérifié : tests SEO 71/71 ; copie construite servie par l'émulateur : toutes les ressources depuis /_v/<hash>, aucune erreur console, e2e 3/3 (dont pages privées après connexion) ; seconde exécution du script : 0 page réécrite.
+- Après merge : contrôler en prod `curl -sI` sur /_v/<hash>/css/styles.css (immutable) et que /login référence /_v/.
+
+## 2026-11-09 17:48 — Test écriture/publication/lecture en prod (compte claude_test)
+- Publication OK : histoire « [TEST] Lettre d'essai du 9 novembre » (id 454vUtYCNABRZlWH9xvU) en révision ; lecture auteur OK (bandeau, accents) ; J'aime 0→1→0 persistant.
+- Constats : aucune histoire publiée en prod (fil vide) ; pas de lien pour relire une histoire en révision depuis le profil ; avatars à initiales en teinte arbitraire (vert, bleu…) ; catégories de publier.html (8) ≠ catégories du fil (18) ; mes-histoires.html est une page d'attente ; textes sans accents (« apres validation par un moderateur », « vous a touche ») ; e2e full-app crée un compte et une histoire en prod à chaque passage.
+- Branche fix/avatar-initials-theme-hues : avatars limités à la gamme rose–terre cuite (+ test), lien « Relire » dans le profil (+ étape e2e, passée en local).
+- À faire : supprimer l'histoire de test (pas de suppression côté app ; console Firestore ou modérateur).
+
+## 2026-11-09 18:37 — Mise au thème des pages app + personnalisation du profil (PR #31)
+- PR #31 (feat/theme-app-pages), empilée sur #30 : css/app.css partagé (navbar, footer, onglets, états vides, sombre), couverture + devise du profil (règles Firestore : devise ≤120, couverture enum), getFreshDoc (document partiel après écriture de présence), messagerie mobile, accents.
+- Vérifié : SEO 72/72, e2e local 5 OK / 3 ignorés, contrôle visuel desktop/mobile/sombre. Tests des règles non lancés (Java absent).
+- Attention : playwright.config.js cible https://loveink.site par défaut ; un `npm test` a créé le compte prod flow-1794245289333-63693. Lancer les e2e avec E2E_BASE_URL=http://127.0.0.1:5178.
+- Reste : fusionner #30 puis #31 (déploie en prod, sur accord) ; supprimer l'histoire de test 454vUtYCNABRZlWH9xvU et les comptes de test prod ; noms de catégories du fil sans accents (clés de données).
+
+## 2026-11-09 20:17 — PR #30/#31 en prod, survol des stats, modérateur de test
+- #30 et #31 fusionnées et déployées (hosting + règles) ; vérifié sur loveink.site.
+- PR #32 (fix/profile-stat-hover) : --rose-blush sombre appliqué en clair (sélecteur mal formé dans css/profil.css) → tuiles de stats illisibles au survol. SEO 72/72. À fusionner sur accord.
+- Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
+- Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
+
+## 2026-11-16 12:49 — Refonte de « Explorez par catégorie » (/feed)
+- Branche feat/feed-categories-redesign (depuis origin/main b9be392), PR ouverte, non fusionnée (en attente d'accord).
+- Nouveau composant js/components/feed-categories.js (données + rendu + fonctions pures) et css/feed-categories.css. Le CSS inline de l'ancienne grille est retiré de feed.html.
+- Les 6 genres qui ont un visuel de la landing sont affichés en tuiles photo (carrousel à accroche sur mobile), les 12 autres en liste compacte. Animations au survol et au focus, état actif (aria-current) synchronisé avec la recherche, prefers-reduced-motion respecté.
+- Les clés de données (`nom`) sont inchangées et servent toujours à la recherche ; seuls les libellés affichés sont accentués (« De l'amitié à l'amour », « Intéressant », « Poésie d'amour »).
+- Compteurs par genre : firebaseAPI.compterHistoiresParCategorie (getCountFromServer, statut=='publie' + categorie==nom, sans index composite), mis en cache 10 min dans sessionStorage (clé loveInk_catCounts). En cas d'échec, rien n'est affiché.
+- Vérifié :
+  - test:seo 79/79 sur une copie en LF.
+  - Sur ce checkout Windows, 2 tests robots.txt échouent déjà sur la base, à cause du CRLF dû à core.autocrlf (voir lessons-learned).
+  - Harnais Playwright avec Firebase stubbé, sans appel prod : clic catégorie → recherche + filtre + vignette w320 conservés ; captures dans docs/pr/feed-categories/.
+- Non vérifié : comptage réel contre Firestore prod (règles publiques en lecture sur statut publie ; à observer après déploiement).
+
+## 2026-11-16 14:32 — /feed catégories en prod + chapeau à 0 histoire
+- La PR #36 est fusionnée (02a58e8) et déployée. Vérifié sur loveink.site : le CSS et le JS de feed-categories sont servis en 200.
+- Le comptage par genre (requête d'agrégation statut publie + categorie) fonctionne sans connexion. Il renvoie 0 partout : la prod n'a encore aucune histoire publiée.
+- Correctif (fix/feed-categories-empty-lede) : quand le total vaut 0, le chapeau garde le texte par défaut au lieu de « 0 histoire publiée ».
+- Reste :
+  - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
+  - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).
+
+## 2026-11-16 19:22 — Visuels pour les 12 genres sans image (/feed)
+- Branche feat/feed-categories-visuels : 12 nouveaux visuels (images/landing/cat-*.webp, 320×400, ~5 Ko chacun), dans le style des 6 existants (nature morte, rose/bordeaux, sans personnage).
+- Les 18 genres sont désormais des tuiles photo (6 colonnes × 3 rangées sur ordinateur). Sur mobile : carrousel horizontal sur deux rangées. La liste compacte n'est plus rendue que s'il reste des genres sans visuel.
+- Le test d'intégrité exige un visuel distinct et présent pour chaque genre.
+- Captures avant/après : docs/pr/feed-categories-visuels/.
+## 2026-11-16 10:43 — Inscription : retour à la connexion après l'e-mail de confirmation
+- Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
+- Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).
+- En parallèle : PR #33 (recette e2e prod) ouverte, en attente de npm run e2e:prod:setup. Transcription locale (faster-whisper medium) du vocal cliente du 2026-11-15 en cours → scratchpad vocal.txt ; premiers éléments : 1 à 4 images par histoire, espace modérateurs séparé où le modérateur peut corriger le texte.
+
+## 2026-11-16 10:54 — Piste images d'histoires (demande cliente)
+- Besoin : 1 à 4 images par histoire. Firebase Storage indisponible (plan Spark). Piste proposée : Cloudflare R2 + Worker qui vérifie le jeton Firebase. Pas de décision prise ni de code écrit.
+- PR #34 (redirection vers la connexion après inscription) et PR #33 (recette e2e prod) toujours ouvertes, fusion sur accord.
+
+## 2026-11-16 11:14 — Images via trigenys-storage + idées communauté
+- Projet existant : Trigenys/trigenys-storage (Worker Cloudflare + R2 privé + D1, WebP, variantes w320/w800, cache immuable). Prototype ; mise en prod (#5) non prouvée.
+- Écarts pour Love Ink : l'autorisation d'envoi exige un backend de confiance qui détient le secret du tenant (Love Ink n'en a pas, plan Spark) ; v1 = images publiques immuables seulement, sans retrait ni état « en attente ». À ajouter dans trigenys-storage : vérification du jeton Firebase par tenant, état non public jusqu'à approbation, suppression avec purge du cache.
+- Idées cliente (communauté) : défis d'écriture, salons thématiques, lectures partagées, badge « membre fondateur », noyau de 50 à 100 membres actifs. Rien de codé.
+- PR #33 et #34 toujours en attente d'accord.
+
+## 2026-11-16 11:32 — trigenys-storage : support Firebase pour les images Love Ink
+
+- PR Trigenys/trigenys-storage#13 (branche `feat/firebase-tenant-auth`) : tenants authentifiés par jeton Firebase, upload privé jusqu'à publication par un modérateur (rôle lu dans `utilisateurs/{uid}` avec le jeton de l'utilisateur), lecture privée propriétaire/modérateur, `POST .../visibility`, `DELETE` idempotent, plafond d'images en attente par utilisateur. `npm run check` : 20/20.
+- Pas encore fait (actions utilisateur) : merge de la PR, migration D1 0004, déploiement du Worker, ajout de l'entrée `loveink` au secret `TENANT_CONFIG_JSON` (forme dans `backend/README.md` du dépôt storage).
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP côté navigateur, publication/suppression des images depuis l'espace modérateur.
+
+## 2026-11-16 11:53 — Stockage images en prod + Search Console
+
+- trigenys-storage : PR #13 mergée ; migrations D1 0003 (no-op, objets déjà présents) et 0004 appliquées en prod ; Worker déployé (version d97d3e98, rollback 4eeb9aab). `TENANT_CONFIG_JSON` non touché (secret Xeption illisible).
+- PR Trigenys/trigenys-storage#14 (ouverte) : tenant `loveink` déclaré dans la variable non secrète `END_USER_TENANTS_JSON`. Le tenant n'est actif qu'après merge + `npx wrangler deploy --config wrangler.production.jsonc --keep-vars` depuis main.
+- Search Console (propriété préfixe https://loveink.site/) : sitemap relu (14 URL) ; indexation demandée pour 3 pages ressources, /ressources/, /histoires/, /, et genres premier-amour, lettres-d-amour, poesie-d-amour. Demain : genres amour-heureux, amour-magique, histoires-tristes, aventure-estivale, rencontres.
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP navigateur, publication/suppression des images dans l'espace modérateur.
+
+## 2026-11-16 11:56 — Tenant loveink actif sur trigenys-storage
+
+- PR Trigenys/trigenys-storage#14 mergée (8348f93) ; Worker redéployé depuis main avec `--keep-vars` : version 85770195 (rollback d97d3e98). Binding `END_USER_TENANTS_JSON` (tenant `loveink`) présent ; /health OK ; tests 21/21.
+- Non vérifié de bout en bout : un upload réel exige un jeton Firebase d'un compte Love Ink (à faire depuis le client une fois l'intégration écrite).
+- Prochaine étape : intégration client (sélecteur 1 à 4 images, WebP, publication/suppression par modérateur). Search Console : 5 genres restants demain.
+
+## 2026-11-16 12:07 — Intégration images (1 à 4 par histoire) : démarrage
+
+- Plan architecte retenu : ids seuls dans `histoires.images [{id,w,h,alt}]` (règles 0–4, UI impose minImages=1 sur les nouvelles soumissions, à confirmer avec la cliente) ; upload privé avant création ; le modo passe les images en public AVANT `statut: publie` ; rejet = images conservées (privées) ; suppression au retrait par le modo et à la suppression du compte.
+- Fichiers : js/core/media-config.js, js/core/media-storage.js (générique), js/core/story-images.js, publier.html, histoire.html, feed.html, js/core/firebase-data.js (approuver/éditer), parametres.html, firestore.rules (+ tests), firebase.json (CSP connect-src), scripts/build-seo-pages.mjs (og:image, optionnel).
+- Implémentation en cours sur une branche dédiée depuis origin/main (feat/story-images).
+
+## 2026-11-16 12:22 — Images histoires : PR #35 ouverte
+
+- Branche feat/story-images (6 commits, worktree .claude/worktrees/agent-acf9b11d9d09b4ae2), PR https://github.com/Trigenys/loveink/pull/35, non mergée (accord requis).
+- Tests : media 20/20, rules 20/20, seo 70/72 (2 échecs robots.txt dus au CRLF local, fichier non touché).
+- Non vérifié : parcours navigateur réel (sélecteur, WebP Safari, galerie privée), e2e non lancé (baseURL prod ; il écrirait une histoire).
+- Pas de suppression d'histoire unitaire dans l'app : seules les suppressions de compte nettoient les images.
+- Reste : og:image depuis images[0] (optionnel), confirmation cliente minImages=1, test réel après déploiement avec un compte cliente.
+
+## 2026-11-16 12:26 — Images histoires : mergé et déployé
+
+- PR #35 squash-mergée (b9be392), branche supprimée. Run Firebase Deploy 43857498810 : hosting + firestore (règles) OK.
+- Smoke prod : /publier et /histoire servent le nouveau code, media-storage.js 200, CSP connect-src contient le Worker, Worker /health 200.
+- Non vérifié : upload réel de bout en bout (nécessite un compte cliente ; interdit de créer un compte en prod). À faire par la cliente : publier une histoire avec 1 image, l'approuver en modo, vérifier l'affichage.
+- Reste : og:image depuis images[0], confirmation minImages=1, indexation des 5 genres restants (Search Console).
+
+## 2026-11-16 19:39 — Genres du fil alignés sur les 8 genres publiables (/feed)
+- Constat : le fil affichait 18 genres, mais le formulaire de publication (publier.html) n'en propose que 8. Les 10 autres ne pouvaient donc jamais contenir d'histoire. En plus, la tuile « Poesie d'amour » (sans accent) ne correspondait pas à la valeur stockée « Poésie d'amour ».
+- Changement : CATEGORIES (js/components/feed-categories.js) reprend exactement les 8 genres. La recherche d'un genre ignore la casse et les accents. Un cache de compteurs qui ne couvre pas tous les genres actuels est ignoré. La grille passe à 4 colonnes sur ordinateur. Les 9 visuels devenus inutiles sont supprimés.
+- Garde-fou : un test de contrat vérifie que les genres du fil, les options de publier.html et les clés de data/genres.json sont identiques.
+- Suite possible (décision produit) : des étiquettes de ton ou de forme, ou de nouveaux genres. Cela demande un nouveau champ, les firestore.rules, le formulaire, plus des textes genres.json et des pages SEO.
+- Captures : docs/pr/feed-categories-reclassification/.

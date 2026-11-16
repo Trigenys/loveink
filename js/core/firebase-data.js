@@ -1,11 +1,13 @@
 // firebase-data.js - Fonctions de donnees Firestore (SDK v9 modulaire)
 import { auth, db } from './firebase-config.js';
+import { getFreshDoc } from './fresh-doc.js';
 import {
     addDoc,
     collection,
     deleteDoc,
     doc,
     getDoc,
+    getCountFromServer,
     getDocs,
     increment,
     limit,
@@ -21,8 +23,32 @@ import {
 
 // ===== HISTOIRES =====
 
-async function publierHistoire(titre, categorie, contenu, auteur, auteurId) {
+// Normalise les references d'images ({ id, w, h, alt }) au format accepte par firestore.rules.
+function normaliserImages(images) {
+    if (!Array.isArray(images)) return [];
+    return images
+        .filter((it) => it && typeof it.id === 'string' && it.id.length === 36)
+        .slice(0, 4)
+        .map((it) => ({
+            id: it.id,
+            w: Math.max(1, Math.round(Number(it.w) || 1)),
+            h: Math.max(1, Math.round(Number(it.h) || 1)),
+            alt: String(it.alt || '').slice(0, 200)
+        }));
+}
+
+// Les images restent privees tant que l'histoire n'est pas publiee : on les rend publiques AVANT
+// de changer le statut, sinon une histoire publiee pointerait vers des images inaccessibles.
+async function rendreImagesPubliques(images) {
+    const liste = normaliserImages(images);
+    if (!liste.length) return;
+    const { setStoryImagesVisibility } = await import('./story-images.js');
+    await setStoryImagesVisibility(liste, 'public');
+}
+
+async function publierHistoire(titre, categorie, contenu, auteur, auteurId, images = []) {
     try {
+        const imagesHistoire = normaliserImages(images);
         const histoire = {
             titre,
             auteur,
@@ -36,6 +62,7 @@ async function publierHistoire(titre, categorie, contenu, auteur, auteurId) {
             image: getImageForCategory(categorie),
             statut: "en_attente"
         };
+        if (imagesHistoire.length) histoire.images = imagesHistoire;
 
         const docRef = await addDoc(collection(db, 'histoires'), histoire);
         console.log("Histoire publiee avec ID:", docRef.id);
@@ -135,6 +162,21 @@ async function getHistoireById(id) {
     }
 }
 
+// Nombre d'histoires publiees par categorie (requetes d'agregation : 1 lecture facturee par tranche
+// de 1000 entrees). Un echec isole donne null pour cette categorie, sans bloquer les autres.
+async function compterHistoiresParCategorie(noms = []) {
+    const results = await Promise.allSettled(noms.map((nom) => getCountFromServer(query(
+        collection(db, 'histoires'),
+        where('statut', '==', 'publie'),
+        where('categorie', '==', nom)
+    ))));
+    return Object.fromEntries(noms.map((nom, i) => {
+        const r = results[i];
+        if (r.status === 'rejected') console.warn('Comptage categorie impossible:', nom, r.reason?.code || r.reason);
+        return [nom, r.status === 'fulfilled' ? r.value.data().count : null];
+    }));
+}
+
 async function getHistoiresAuteur(auteurId, statut = null) {
     const uid = String(auteurId || '');
     if (!uid) return [];
@@ -171,12 +213,20 @@ async function getHistoiresEnAttente(limite = 50) {
     }
 }
 
+// Renvoie true/false comme avant ; leve une erreur explicite si les images n'ont pas pu etre
+// rendues publiques (l'histoire reste alors en attente).
 async function approuverHistoire(histoireId, moderateurId) {
+    const histoireRef = doc(db, 'histoires', String(histoireId));
+    let histoireSnap;
     try {
-        const histoireRef = doc(db, 'histoires', String(histoireId));
-        const histoireSnap = await getDoc(histoireRef);
-        const auteurId = histoireSnap.exists() ? String(histoireSnap.data()?.auteurId || '') : '';
-
+        histoireSnap = await getDoc(histoireRef);
+    } catch (error) {
+        console.error("Erreur approuverHistoire:", error);
+        return false;
+    }
+    const auteurId = histoireSnap.exists() ? String(histoireSnap.data()?.auteurId || '') : '';
+    await rendreImagesPubliques(histoireSnap.exists() ? histoireSnap.data()?.images : []);
+    try {
         await updateDoc(histoireRef, {
             statut: 'publie',
             moderateurId: String(moderateurId),
@@ -263,6 +313,8 @@ async function editerHistoireModeration(histoireId, moderateurId, edits = {}, op
         }
 
         const shouldApprove = Boolean(options.approuver);
+        const imagesActuelles = normaliserImages(current.images);
+        const imagesFinales = Array.isArray(edits.images) ? normaliserImages(edits.images) : imagesActuelles;
         const original = current.versionOriginale && typeof current.versionOriginale === 'object'
             ? current.versionOriginale
             : {
@@ -271,11 +323,23 @@ async function editerHistoireModeration(histoireId, moderateurId, edits = {}, op
                 contenu: String(current.contenu || ''),
                 extrait: String(current.extrait || ''),
                 image: String(current.image || ''),
+                ...(imagesActuelles.length ? { images: imagesActuelles } : {}),
                 dateSoumission: current.date || null,
                 captureParModerationLe: serverTimestamp()
             };
 
+        if (shouldApprove) {
+            try {
+                await rendreImagesPubliques(imagesFinales);
+            } catch (error) {
+                console.error("Erreur visibilite images:", error);
+                return { ok: false, error: error?.message || 'media-visibility-failed' };
+            }
+        }
+
+        const majImages = Array.isArray(edits.images) || 'images' in current ? { images: imagesFinales } : {};
         await updateDoc(doc(db, 'histoires', id), {
+            ...majImages,
             titre,
             categorie,
             contenu,
@@ -888,7 +952,7 @@ async function enregistrerUtilisateur(user) {
 
 async function getUtilisateur(userId) {
     try {
-        const snapshotDoc = await getDoc(doc(db, 'utilisateurs', userId));
+        const snapshotDoc = await getFreshDoc(doc(db, 'utilisateurs', userId));
         if (!snapshotDoc.exists()) {
             return null;
         }
@@ -1368,6 +1432,7 @@ async function marquerMessagesLus(conversationId, userId) {
 const firebaseAPI = {
     publierHistoire,
     getHistoires,
+    compterHistoiresParCategorie,
     getHistoireById,
     getHistoiresAuteur,
     getHistoiresEnAttente,

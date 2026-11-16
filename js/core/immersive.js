@@ -48,7 +48,7 @@
     function nameTransitions() {
         // Pages publiques : transition "page tournee" sur la racine, pas de morph nav/logo.
         if (document.documentElement.classList.contains('li-public')) return;
-        var nav = document.querySelector('.navbar, nav.nav');
+        var nav = document.querySelector('.li-appnav, .navbar, nav.nav');
         if (nav && !nav.style.viewTransitionName) nav.style.viewTransitionName = 'li-nav';
         var logo = document.querySelector('.logo-custom, .logo');
         if (logo && !logo.style.viewTransitionName) logo.style.viewTransitionName = 'li-logo';
@@ -88,7 +88,7 @@
         }
         function update() {
             ticking = false;
-            nav = nav || document.querySelector('.navbar, nav.nav');
+            nav = nav || document.querySelector('.li-appnav, .navbar, nav.nav');
             if (nav) nav.classList.toggle('li-scrolled', window.scrollY > 8);
             // Un saut (ancre, scroll rapide) peut depasser un bloc sans qu'il croise la vue : on le revele.
             document.querySelectorAll('.li-reveal:not(.is-in)').forEach(function (el) {

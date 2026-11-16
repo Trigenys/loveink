@@ -50,8 +50,3 @@ html[data-theme="dark"] .form-consent { color: #e0cfc9; }
 html[data-theme="dark"] .legal-card h2 { color: #e2bcbc; }
 html[data-theme="dark"] .auth-card p.legal-updated { color: #b9a19b; }
 
-.reset-box { border-top: 1px solid #e6d5cc; padding-top: 18px; display: flex; flex-direction: column; gap: 12px; }
-.reset-box[hidden] { display: none; }
-.reset-box h2 { font-size: 1.05rem; margin: 0; color: #5c3e35; font-weight: 500; }
-html[data-theme="dark"] .reset-box { border-color: #5a4545; }
-html[data-theme="dark"] .reset-box h2 { color: #f2e5e0; }

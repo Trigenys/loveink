@@ -40,8 +40,9 @@
                 </div>
                 <span class="logo-text">Love Ink</span>
             </a>
+            <section id="viewLogin" class="li-view" aria-labelledby="loginTitle">
             <span class="aa-kicker aa-in">Connexion</span>
-            <h1 class="aa-title aa-in">Bon retour <em>parmi nous</em></h1>
+            <h1 class="aa-title aa-in" id="loginTitle">Bon retour <em>parmi nous</em></h1>
             <p class="aa-text aa-in">Connectez-vous pour retrouver vos histoires, vos lectures et vos messages.</p>
             
             <form class="auth-form aa-in" id="loginForm" novalidate>
@@ -59,21 +60,42 @@
                 </div>
 
                 <div class="auth-links">
-                    <button type="button" id="forgotBtn" aria-expanded="false" aria-controls="resetBox">Mot de passe oublié ?</button>
+                    <a href="#mot-de-passe-oublie" id="forgotBtn">Mot de passe oublié ?</a>
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">Se connecter</button>
-            </form>
 
-            <form class="auth-form reset-box" id="resetBox" hidden novalidate>
-                <h2>Réinitialiser le mot de passe</h2>
-                <div class="form-group">
-                    <label for="resetEmail">Adresse e-mail du compte</label>
-                    <input type="email" id="resetEmail" name="email" autocomplete="email" inputmode="email" spellcheck="false" required>
-                    <p class="form-hint">Si un compte existe pour cette adresse, vous recevrez un lien pour choisir un nouveau mot de passe.</p>
+                <div id="verifyNotice" role="status" aria-live="polite" hidden style="margin-top: 14px; font-size: 0.9rem;">
+                    <p id="verifyText" style="margin: 0 0 6px;">Confirmez d'abord votre adresse e-mail : cliquez sur le lien reçu (pensez aux courriers indésirables), puis connectez-vous.</p>
+                    <div class="auth-links" style="margin-top: 0;"><button type="button" id="resendVerifyBtn">Renvoyer l'e-mail de confirmation</button></div>
                 </div>
-                <button type="submit" class="btn btn-primary" id="resetBtn" style="width: 100%;">Envoyer le lien</button>
             </form>
+            </section>
+
+            <section id="viewForgot" class="li-view" hidden aria-labelledby="forgotTitle">
+                <div class="aa-emblem aa-in" aria-hidden="true"><i class="fas fa-feather-pointed"></i></div>
+                <span class="aa-kicker aa-in">Mot de passe oublié</span>
+                <h1 class="aa-title aa-in" id="forgotTitle">Une page <em>à réécrire</em></h1>
+                <p class="aa-text aa-in">Cela arrive aux meilleures plumes. Indiquez l'adresse de votre compte : nous vous écrivons un lien pour choisir un nouveau mot de passe.</p>
+                <form class="auth-form aa-in" id="resetBox" novalidate>
+                    <div class="form-group">
+                        <label for="resetEmail">Adresse e-mail du compte</label>
+                        <input type="email" id="resetEmail" name="email" autocomplete="email" inputmode="email" spellcheck="false" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary aa-cta" id="resetBtn">Envoyer le lien <i class="fas fa-paper-plane" aria-hidden="true"></i></button>
+                </form>
+                <a href="#" class="li-back aa-in" data-view="login"><i class="fas fa-arrow-left" aria-hidden="true"></i> Retour à la connexion</a>
+            </section>
+
+            <section id="viewSent" class="li-view" hidden aria-labelledby="sentTitle" aria-live="polite">
+                <div class="aa-emblem aa-emblem--ok aa-in" aria-hidden="true"><i class="fas fa-envelope-open-text"></i></div>
+                <span class="aa-kicker aa-in">Lettre envoyée</span>
+                <h1 class="aa-title aa-in" id="sentTitle">Regardez <em>votre boîte</em></h1>
+                <div class="aa-stroke" aria-hidden="true"></div>
+                <p class="aa-text aa-in">Si un compte existe pour <strong id="sentEmail"></strong>, un lien vous y attend. Il est valable une heure. Pensez à jeter un œil aux courriers indésirables.</p>
+                <a href="#" class="btn btn-primary aa-cta aa-in" data-view="login">Retour à la connexion <i class="fas fa-arrow-right" aria-hidden="true"></i></a>
+                <a href="#mot-de-passe-oublie" class="li-back aa-in">Rien reçu ? Renvoyer le lien</a>
+            </section>
             
             <div class="auth-footer">
                 <p>Pas encore de compte ? <a href="register.html">Inscrivez-vous</a></p>
@@ -84,7 +106,8 @@
 
     <script src="js/components/modale.js"></script>
     <script type="module">
-    import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { isEmailVerified, sendVerification, VERIFY_PENDING_KEY } from './js/core/email-verification.js';
     import { auth } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
     import { requestPasswordReset } from './js/core/mailer-client.js';
@@ -101,13 +124,95 @@
     wirePasswordToggles(form);
     [form, resetBox].forEach((fm) => fm.querySelectorAll('input').forEach((el) => el.addEventListener('input', () => fieldError(el, null))));
 
-    forgotBtn.addEventListener('click', () => {
-        const open = resetBox.hidden;
-        resetBox.hidden = !open;
-        forgotBtn.setAttribute('aria-expanded', String(open));
-        if (open) {
-            if (!f('resetEmail').value) f('resetEmail').value = f('email').value.trim();
-            f('resetEmail').focus();
+    // Trois « pages » dans la même carte : connexion, mot de passe oublié, lettre envoyée.
+    // On tourne la page (rotation autour de la reliure) ; le hash rend le retour navigateur cohérent.
+    const card = document.querySelector('.aa-card');
+    const views = { login: 'viewLogin', forgot: 'viewForgot', sent: 'viewSent' };
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let current = 'login';
+    const once = (el, cls) => new Promise((resolve) => {
+        const done = () => { el.removeEventListener('animationend', done); clearTimeout(t); resolve(); };
+        const t = setTimeout(done, 700);
+        el.addEventListener('animationend', done);
+        el.classList.add(cls);
+    });
+    async function turnTo(name) {
+        if (name === current || !views[name]) return;
+        const back = name === 'login';
+        if (!reduceMotion.matches) await once(card, back ? 'li-turn-out-back' : 'li-turn-out');
+        Object.entries(views).forEach(([k, id]) => { document.getElementById(id).hidden = k !== name; });
+        card.classList.remove('li-turn-out', 'li-turn-out-back');
+        current = name;
+        if (name === 'forgot') { if (!f('resetEmail').value) f('resetEmail').value = f('email').value.trim(); f('resetEmail').focus(); }
+        else if (name === 'login') (f('email').value ? f('password') : f('email')).focus();
+        else document.getElementById('sentTitle').focus();
+        if (!reduceMotion.matches) await once(card, back ? 'li-turn-in-back' : 'li-turn-in');
+        card.classList.remove('li-turn-in', 'li-turn-in-back');
+    }
+    const viewFromHash = () => (location.hash === '#mot-de-passe-oublie' ? 'forgot' : 'login');
+    window.addEventListener('hashchange', () => turnTo(viewFromHash()));
+    document.addEventListener('click', (e) => {
+        const a = e.target.closest('[data-view="login"]');
+        if (!a) return;
+        e.preventDefault();
+        if (location.hash) history.pushState(null, '', location.pathname + location.search);
+        turnTo('login');
+    });
+    document.getElementById('sentTitle').tabIndex = -1;
+    if (viewFromHash() === 'forgot') {
+        Object.entries(views).forEach(([k, id]) => { document.getElementById(id).hidden = k !== 'forgot'; });
+        current = 'forgot';
+    }
+
+    // Arrivée depuis l'inscription : e-mail prérempli, curseur sur le mot de passe.
+    try {
+        const prefill = sessionStorage.getItem('loveInk_prefillEmail');
+        if (prefill) {
+            sessionStorage.removeItem('loveInk_prefillEmail');
+            f('email').value = prefill;
+            f('password').focus();
+        }
+    } catch { /* stockage indisponible */ }
+
+    // Connexion refusée tant que l'e-mail n'est pas confirmé ; renvoi du lien à la demande.
+    const verifyNotice = f('verifyNotice');
+    const verifyText = f('verifyText');
+    const resendVerifyBtn = f('resendVerifyBtn');
+    function showVerifyNotice(text) {
+        if (text) verifyText.textContent = text;
+        verifyNotice.hidden = false;
+    }
+    try {
+        if (sessionStorage.getItem(VERIFY_PENDING_KEY)) {
+            sessionStorage.removeItem(VERIFY_PENDING_KEY);
+            showVerifyNotice();
+        }
+    } catch { /* stockage indisponible */ }
+    resendVerifyBtn.addEventListener('click', async () => {
+        if (busy) return;
+        clearErrors(form);
+        const email = f('email').value.trim();
+        const password = f('password').value;
+        if (!isValidEmail(email)) fieldError(f('email'), 'Saisissez une adresse e-mail valide.');
+        if (!password) fieldError(f('password'), 'Saisissez votre mot de passe pour renvoyer le lien.');
+        if (focusFirstInvalid(form)) return;
+        busy = true;
+        setBusy(resendVerifyBtn, true, 'Envoi…');
+        try {
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            if (await isEmailVerified(user)) { window.location.href = 'feed.html'; return; }
+            const sent = await sendVerification(user);
+            await signOut(auth).catch(() => {});
+            showVerifyNotice(sent
+                ? `Un nouvel e-mail de confirmation vient d'être envoyé à ${email}. Cliquez sur le lien, puis connectez-vous.`
+                : "L'e-mail n'a pas pu être envoyé. Réessayez dans quelques minutes.");
+        } catch (error) {
+            const message = authErrorMessage(error, 'login');
+            if (message === "E-mail ou mot de passe incorrect.") { fieldError(f('password'), message); f('password').focus(); }
+            else await notify('error', message, { title: 'Confirmation de l’e-mail' });
+        } finally {
+            busy = false;
+            setBusy(resendVerifyBtn, false);
         }
     });
 
@@ -124,7 +229,12 @@
         busy = true;
         setBusy(submitBtn, true, 'Connexion…');
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            if (!(await isEmailVerified(user))) {
+                await signOut(auth).catch(() => {});
+                showVerifyNotice();
+                return;
+            }
             window.location.href = 'feed.html';
         } catch (error) {
             const message = authErrorMessage(error, 'login');
@@ -161,11 +271,10 @@
         }
         busy = false;
         setBusy(resetBtn, false);
-        await notify('success', `Si un compte existe pour ${email}, un lien de réinitialisation vient d'être envoyé. Pensez à vérifier vos courriers indésirables.`, { title: 'Mot de passe oublié' });
-        resetBox.hidden = true;
-        forgotBtn.setAttribute('aria-expanded', 'false');
+        document.getElementById('sentEmail').textContent = email;
         f('email').value = email;
-        f('password').focus();
+        history.replaceState(null, '', location.pathname + location.search);
+        turnTo('sent');
     });
     </script>
 </body>

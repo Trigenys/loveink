@@ -14,6 +14,24 @@ test.describe('Love Ink - smoke global pages', () => {
         await expect(page.locator('#registerForm')).toBeVisible();
     });
 
+    test('mot de passe oublie: la carte tourne vers sa propre page puis la lettre envoyee', async ({ page }) => {
+        // Le mailer est simule : aucun e-mail reel n'est envoye.
+        await page.route('**/v1/auth/password-reset', (route) => route.fulfill({ status: 200, contentType: 'application/json', body: '{"ok":true}' }));
+        await page.goto('/login.html');
+        await page.fill('#email', 'smoke-reset@example.com');
+        await page.click('#forgotBtn');
+        await expect(page.locator('#viewForgot')).toBeVisible();
+        await expect(page.locator('#viewLogin')).toBeHidden();
+        await expect(page).toHaveURL(/#mot-de-passe-oublie$/);
+        await expect(page.locator('#resetEmail')).toHaveValue('smoke-reset@example.com');
+        await page.click('#resetBtn');
+        await expect(page.locator('#viewSent')).toBeVisible();
+        await expect(page.locator('#sentEmail')).toHaveText('smoke-reset@example.com');
+        await page.click('#viewSent [data-view="login"]');
+        await expect(page.locator('#viewLogin')).toBeVisible();
+        await expect(page.locator('#email')).toHaveValue('smoke-reset@example.com');
+    });
+
     test('pages privees principales accessibles apres connexion', async ({ page }) => {
         const user = makeUser('smoke');
         await registerWithUi(page, user, { type: 'lesdeux', bio: 'Compte smoke suite' });

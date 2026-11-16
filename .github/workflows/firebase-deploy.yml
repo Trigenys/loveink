@@ -57,7 +57,7 @@ jobs:
       service_account: ${{ vars.GCP_DEPLOY_SERVICE_ACCOUNT }}
       targets: hosting
       checkout_ref: ${{ github.sha }}
-      build_command: ""
+      build_command: node scripts/fingerprint-assets.mjs
       github_environment: ${{ github.event_name == 'pull_request' && '' || 'production' }}
 
   firestore:

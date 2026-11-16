@@ -1,313 +1,121 @@
-// nav-component.js - Barre de navigation partagee pour les pages Love Ink
+// nav-component.js - Barre de navigation et pied de page partagés des pages connectées de Love Ink.
+// Styles : css/app.css (référencé statiquement par chaque page pour être versionné au déploiement).
 import { initTheme } from "../core/theme.js";
 import { applyInitialsAvatar, getAvatarInitials } from "./avatar-initials.js";
 
 initTheme();
 
-function injectSharedNavStyles() {
-    if (document.getElementById("li-shared-nav-style")) return;
+const NAV_LINKS = [
+    { key: "feed", href: "feed.html", label: "Accueil" },
+    { key: "categories", href: "feed.html#categories", label: "Catégories" },
+    { key: "messagerie", href: "messagerie.html", label: "Messagerie" }
+];
 
-    const style = document.createElement("style");
-    style.id = "li-shared-nav-style";
-    style.textContent = `
-        .nav-links a.is-active {
-            color: #b76e6e !important;
-            font-weight: 600;
-        }
-
-        .nav .nav-links a.is-active {
-            color: var(--rose-deep, #7a3e3e) !important;
-            font-weight: 600;
-        }
-
-        .li-nav-logout-separator {
-            border-top: 1px solid rgba(180,120,120,0.18);
-            margin-top: 4px;
-        }
-
-        .li-nav-notif-link {
-            display: inline-flex !important;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .li-nav-notif-badge {
-            min-width: 18px;
-            height: 18px;
-            border-radius: 999px;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            padding: 0 5px;
-            font-size: 10px;
-            font-weight: 700;
-            color: #fff;
-            background: #b76e6e;
-            line-height: 1;
-        }
-
-        .li-nav-bell {
-            position: relative;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            text-decoration: none;
-            color: var(--rose-mid, #b07070);
-            transition: background 0.15s;
-            flex-shrink: 0;
-        }
-
-        .li-nav-bell:hover {
-            background: rgba(180,120,120,0.12);
-            color: var(--rose-deep, #7a3e3e);
-        }
-
-        .li-nav-bell i {
-            font-size: 1.05rem;
-        }
-
-        .li-nav-bell-dot {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 9px;
-            height: 9px;
-            border-radius: 50%;
-            background: #b76e6e;
-            border: 2px solid #fff;
-            display: none;
-        }
-
-        html[data-theme="dark"] .li-nav-bell-dot {
-            border-color: #251c1c;
-        }
-
-        .li-nav-avatar-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-            display: none;
-        }
-
-        .li-nav-avatar-initials {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 700;
-            border: 1px solid transparent;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-        }
-
-        .nav .li-feed-logo {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .nav .li-feed-logo .logo-icon {
-            position: relative;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .nav .li-feed-logo .logo-heart {
-            position: absolute;
-            font-size: 2.5rem;
-            color: #b76e6e;
-            animation: li-logo-beat 1.5s ease-in-out infinite;
-        }
-
-        .nav .li-feed-logo .logo-hand {
-            position: relative;
-            font-size: 1.8rem;
-            color: #f4d1b9;
-            transform: rotate(-15deg);
-            margin-top: 5px;
-            z-index: 2;
-        }
-
-        .nav .li-feed-logo .logo-pen {
-            position: absolute;
-            font-size: 1.2rem;
-            color: #8b5a2b;
-            transform: rotate(30deg);
-            right: 8px;
-            bottom: 8px;
-            z-index: 3;
-        }
-
-        .nav .li-feed-logo .logo-text {
-            font-family: 'Baskerville', serif;
-            font-size: 2rem;
-            color: #b76e6e;
-            letter-spacing: 1px;
-        }
-
-        @keyframes li-logo-beat {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
-
-        html[data-theme="dark"] {
-            color-scheme: dark;
-            --rose-deep: #e2bcbc;
-            --rose-mid: #d1a3a3;
-            --rose-soft: #8e6767;
-            --rose-pale: #3c2e2e;
-            --rose-blush: #2e2323;
-            --cream: #1e1717;
-            --ink: #f2e5e0;
-            --ink-muted: #c8b0b0;
-            --ink-faint: #9f8484;
-            --border: rgba(214,176,176,0.18);
-        }
-
-        html[data-theme="dark"] body {
-            background: #1c1515;
-            color: #f2e5e0;
-        }
-
-        html[data-theme="dark"] .navbar,
-        html[data-theme="dark"] .nav {
-            background: rgba(37, 28, 28, 0.95) !important;
-            border-bottom-color: #473737 !important;
-        }
-    `;
-
-    document.head.appendChild(style);
-}
-
-function linkClass(isActive) {
-    return isActive ? "is-active" : "";
-}
-
-function renderLoveInkLogo(href, extraClass = "") {
+function renderLoveInkLogo(href) {
     return `
-        <a href="${href}" class="logo-custom ${extraClass}">
-            <div class="logo-icon">
+        <a href="${href}" class="logo-custom li-appnav__logo" aria-label="Love Ink, accueil">
+            <span class="logo-icon" aria-hidden="true">
                 <i class="fas fa-heart logo-heart"></i>
                 <i class="fas fa-hand-paper logo-hand"></i>
                 <i class="fas fa-pen-fancy logo-pen"></i>
-            </div>
+            </span>
             <span class="logo-text">Love Ink</span>
         </a>
     `;
 }
 
-function getNavBinding(variant) {
-    if (variant === "feed") {
-        return {
-            trigger: document.getElementById("navUser"),
-            dropdown: document.getElementById("navDropdown"),
-            openClass: "open"
-        };
-    }
-
+// Les deux variantes historiques ("classic", "feed") partagent désormais le même rendu et les mêmes ids.
+function getNavBinding() {
     return {
-        trigger: document.getElementById("userProfile"),
-        dropdown: document.getElementById("profileDropdown"),
-        openClass: "show"
+        trigger: document.getElementById("navUser"),
+        dropdown: document.getElementById("navDropdown"),
+        openClass: "open"
     };
 }
 
-function renderClassicNav({ active, showPublish, showUser }) {
+function renderNav({ active, showPublish, showUser }) {
+    const links = NAV_LINKS.map(({ key, href, label }) => {
+        const current = active === key ? ' class="is-active" aria-current="page"' : "";
+        return `<a href="${href}"${current}>${label}</a>`;
+    }).join("");
+
     return `
-        <nav class="navbar">
-            <div class="container">
+        <header class="li-appnav">
+            <div class="li-appnav__in">
                 ${renderLoveInkLogo("feed.html")}
-
-                <ul class="nav-links">
-                    <li><a class="${linkClass(active === "feed")}" href="feed.html">Accueil</a></li>
-                    <li><a class="${linkClass(active === "categories")}" href="feed.html#categories">Categories</a></li>
-                    <li><a class="${linkClass(active === "messagerie")}" href="messagerie.html">Messagerie</a></li>
-                    <li><a class="${linkClass(active === "decouvrir")}" href="feed.html#categories">Decouvrir</a></li>
-                    ${showPublish ? `<li><a class="${linkClass(active === "publier")}" href="publier.html">Publier</a></li>` : ""}
-                </ul>
-
-                ${showUser ? `
-                    <a href="notifications.html" class="li-nav-bell" id="navNotifBell" aria-label="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="li-nav-bell-dot" id="navNotifBellDot"></span>
-                    </a>
-                    <div class="user-profile" id="userProfile">
-                        <div class="avatar">
-                            <img id="navAvatarImg" class="li-nav-avatar-img" alt="Avatar utilisateur">
-                            <span id="navAvatarInitials" class="li-nav-avatar-initials" aria-hidden="true"></span>
-                            <i class="fas fa-user-circle" id="navAvatarIcon"></i>
-                            <span class="online-indicator"></span>
-                        </div>
-                        <span id="userPseudo">Chargement...</span>
-                        <i class="fas fa-chevron-down"></i>
-
-                        <div class="profile-dropdown" id="profileDropdown">
-                            <a href="profil.html"><i class="fas fa-user"></i> Mon profil</a>
-                            <a href="mes-histoires.html"><i class="fas fa-book"></i> Mes histoires</a>
-                            <a href="notifications.html" class="li-nav-notif-link"><i class="fas fa-bell"></i> Notifications <span id="navNotifBadge" class="li-nav-notif-badge">0</span></a>
-                            <a href="parametres.html"><i class="fas fa-cog"></i> Parametres</a>
-                            <a href="#" id="logoutBtn" class="li-nav-logout-separator"><i class="fas fa-sign-out-alt"></i> Deconnexion</a>
-                        </div>
-                    </div>
-                ` : ""}
+                <nav class="li-appnav__links" id="navLinks" aria-label="Navigation principale">${links}</nav>
+                <div class="li-appnav__actions">
+                    ${showPublish ? `
+                        <a href="publier.html" class="li-appnav__publish${active === "publier" ? " is-active" : ""}"${active === "publier" ? ' aria-current="page"' : ""}>
+                            <i class="fas fa-feather-pointed" aria-hidden="true"></i><span>Écrire</span>
+                        </a>` : ""}
+                    ${showUser ? `
+                        <a href="notifications.html" class="li-appnav__icon li-nav-bell${active === "notifications" ? " is-active" : ""}" id="navNotifBell" aria-label="Notifications">
+                            <i class="fas fa-bell" aria-hidden="true"></i>
+                            <span class="li-nav-bell-dot" id="navNotifBellDot"></span>
+                        </a>
+                        <div class="li-appnav__user" id="navUser" role="button" tabindex="0" aria-haspopup="menu" aria-expanded="false" aria-controls="navDropdown">
+                            <span class="li-appnav__avatar">
+                                <img id="navAvatarImg" class="li-nav-avatar-img" alt="">
+                                <span id="navAvatarInitials" class="li-nav-avatar-initials" aria-hidden="true"></span>
+                                <i class="fas fa-user" id="navAvatarIcon" aria-hidden="true"></i>
+                            </span>
+                            <span class="li-appnav__pseudo" id="userPseudo">Chargement…</span>
+                            <i class="fas fa-chevron-down li-appnav__chev" aria-hidden="true"></i>
+                            <div class="li-appnav__menu" id="navDropdown" role="menu">
+                                <a href="profil.html" role="menuitem"><i class="fas fa-user" aria-hidden="true"></i> Mon profil</a>
+                                <a href="mes-histoires.html" role="menuitem"><i class="fas fa-book-open" aria-hidden="true"></i> Mes histoires</a>
+                                <a href="notifications.html" role="menuitem" class="li-nav-notif-link"><i class="fas fa-bell" aria-hidden="true"></i> Notifications <span id="navNotifBadge" class="li-nav-notif-badge">0</span></a>
+                                <a href="parametres.html" role="menuitem"><i class="fas fa-sliders-h" aria-hidden="true"></i> Paramètres</a>
+                                <a href="#" id="logoutBtn" role="menuitem" class="li-appnav__logout"><i class="fas fa-arrow-right-from-bracket" aria-hidden="true"></i> Déconnexion</a>
+                            </div>
+                        </div>` : ""}
+                    <button type="button" class="li-appnav__burger" id="navBurger" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="navLinks">
+                        <span></span><span></span>
+                    </button>
+                </div>
             </div>
-        </nav>
+        </header>
     `;
 }
 
-function renderFeedNav({ active, showUser }) {
+function renderFooter() {
+    const year = new Date().getFullYear();
     return `
-        <nav class="nav">
-            ${renderLoveInkLogo("feed.html", "li-feed-logo")}
-
-            <ul class="nav-links">
-                <li><a class="${linkClass(active === "feed")}" href="feed.html">Accueil</a></li>
-                <li><a class="${linkClass(active === "categories")}" href="feed.html#categories">Categories</a></li>
-                <li><a class="${linkClass(active === "messagerie")}" href="messagerie.html">Messagerie</a></li>
-                <li><a class="${linkClass(active === "decouvrir")}" href="feed.html#categories">Decouvrir</a></li>
-                <li class="nav-publish">
-                    <a class="${linkClass(active === "publier")}" href="publier.html">
-                        <i class="fas fa-plus" style="font-size:11px;margin-right:6px"></i>Publier
-                    </a>
-                </li>
-            </ul>
-
-            ${showUser ? `
-                <a href="notifications.html" class="li-nav-bell" id="navNotifBell" aria-label="Notifications">
-                    <i class="fas fa-bell"></i>
-                    <span class="li-nav-bell-dot" id="navNotifBellDot"></span>
-                </a>
-                <div class="nav-user" id="navUser">
-                    <div class="nav-avatar">
-                        <img id="navAvatarImg" class="li-nav-avatar-img" alt="Avatar utilisateur">
-                        <span id="navAvatarInitials" class="li-nav-avatar-initials" aria-hidden="true"></span>
-                        <i class="fas fa-user-circle" id="navAvatarIcon"></i>
-                        <span class="online-dot"></span>
-                    </div>
-                    <span class="nav-username" id="userPseudo">Chargement...</span>
-                    <i class="fas fa-chevron-down nav-dropdown-arrow"></i>
-                    <div class="nav-dropdown" id="navDropdown">
-                        <a href="profil.html"><i class="fas fa-user"></i> Mon profil</a>
-                        <a href="mes-histoires.html"><i class="fas fa-book-open"></i> Mes histoires</a>
-                        <a href="notifications.html" class="li-nav-notif-link"><i class="fas fa-bell"></i> Notifications <span id="navNotifBadge" class="li-nav-notif-badge">0</span></a>
-                        <a href="parametres.html"><i class="fas fa-sliders-h"></i> Parametres</a>
-                        <a href="#" id="logoutBtn" class="li-nav-logout-separator"><i class="fas fa-sign-out-alt"></i> Deconnexion</a>
-                    </div>
-                </div>
-            ` : ""}
-        </nav>
+        <div class="li-appfoot__in">
+            <div class="li-appfoot__brand">
+                <span class="li-appfoot__logo">Love Ink</span>
+                <span>© ${year} · L'encre des cœurs</span>
+            </div>
+            <nav class="li-appfoot__links" aria-label="Liens de bas de page">
+                <a href="candidature-modo.html"><i class="fas fa-shield-halved" aria-hidden="true"></i> Devenir modérateur</a>
+                <a href="conditions.html">Conditions d'utilisation</a>
+                <a href="confidentialite.html">Confidentialité</a>
+            </nav>
+            <p class="li-made-by">Made <em>by</em> <a href="https://trigenys.com" rel="noopener">Trigenys Group</a></p>
+        </div>
     `;
+}
+
+function mountFooter() {
+    if (document.querySelector(".li-appfoot")) return;
+    const footer = document.createElement("footer");
+    footer.className = "li-appfoot";
+    footer.innerHTML = renderFooter();
+    document.body.appendChild(footer);
+}
+
+function wireBurger(header) {
+    const burger = header.querySelector("#navBurger");
+    if (!burger) return;
+    const setOpen = (open) => {
+        header.classList.toggle("is-open", open);
+        burger.setAttribute("aria-expanded", String(open));
+        burger.setAttribute("aria-label", open ? "Fermer le menu" : "Ouvrir le menu");
+    };
+    burger.addEventListener("click", () => setOpen(!header.classList.contains("is-open")));
+    header.querySelectorAll(".li-appnav__links a").forEach((a) => a.addEventListener("click", () => setOpen(false)));
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") setOpen(false); });
 }
 
 export function mountAppNav(options = {}) {
@@ -316,29 +124,22 @@ export function mountAppNav(options = {}) {
         variant = "classic",
         active = "feed",
         showPublish = true,
-        showUser = true
+        showUser = true,
+        footer = true
     } = options;
 
     const root = document.getElementById(rootId);
     if (!root) return null;
 
-    injectSharedNavStyles();
-
-    if (variant === "feed") {
-        root.innerHTML = renderFeedNav({ active, showUser });
-        if (showUser) {
-            bindNavSessionSnapshot();
-            bindNavNotificationsBadge();
-        }
-        return { variant: "feed" };
-    }
-
-    root.innerHTML = renderClassicNav({ active, showPublish, showUser });
+    document.body.classList.add("li-app");
+    root.innerHTML = renderNav({ active, showPublish, showUser });
+    wireBurger(root.querySelector(".li-appnav"));
+    if (footer) mountFooter();
     if (showUser) {
         bindNavSessionSnapshot();
         bindNavNotificationsBadge();
     }
-    return { variant: "classic" };
+    return { variant };
 }
 
 export function setNavPseudo(pseudo) {
@@ -466,23 +267,33 @@ async function bindNavNotificationsBadge() {
 
 export function wireNavInteractions(options = {}) {
     const {
-        variant = "classic",
         onLogout = null
     } = options;
 
-    const { trigger, dropdown, openClass } = getNavBinding(variant);
+    const { trigger, dropdown, openClass } = getNavBinding();
     const logoutBtn = document.getElementById("logoutBtn");
 
     function closeDropdown() {
         if (dropdown) {
             dropdown.classList.remove(openClass);
+            trigger?.setAttribute("aria-expanded", "false");
         }
     }
 
     function onTriggerClick(event) {
         if (!dropdown) return;
+        if (dropdown.contains(event.target)) return;
         event.stopPropagation();
-        dropdown.classList.toggle(openClass);
+        const open = dropdown.classList.toggle(openClass);
+        trigger?.setAttribute("aria-expanded", String(open));
+    }
+
+    function onTriggerKeydown(event) {
+        if (event.key !== "Enter" && event.key !== " ") return;
+        if (event.target !== trigger) return;
+        event.preventDefault();
+        onTriggerClick(event);
+        if (dropdown?.classList.contains(openClass)) dropdown.querySelector("a")?.focus();
     }
 
     function onDocumentClick(event) {
@@ -504,6 +315,7 @@ export function wireNavInteractions(options = {}) {
 
     if (trigger && dropdown) {
         trigger.addEventListener("click", onTriggerClick);
+        trigger.addEventListener("keydown", onTriggerKeydown);
         document.addEventListener("click", onDocumentClick);
         document.addEventListener("keydown", onDocumentKeydown);
     }
@@ -515,6 +327,7 @@ export function wireNavInteractions(options = {}) {
     return function cleanup() {
         if (trigger && dropdown) {
             trigger.removeEventListener("click", onTriggerClick);
+            trigger.removeEventListener("keydown", onTriggerKeydown);
             document.removeEventListener("click", onDocumentClick);
             document.removeEventListener("keydown", onDocumentKeydown);
         }
