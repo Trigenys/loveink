@@ -616,3 +616,10 @@
 - Non vérifié : parcours navigateur réel (sélecteur, WebP Safari, galerie privée), e2e non lancé (baseURL prod ; il écrirait une histoire).
 - Pas de suppression d'histoire unitaire dans l'app : seules les suppressions de compte nettoient les images.
 - Reste : og:image depuis images[0] (optionnel), confirmation cliente minImages=1, test réel après déploiement avec un compte cliente.
+
+## 2026-11-16 12:26 — Images histoires : mergé et déployé
+
+- PR #35 squash-mergée (b9be392), branche supprimée. Run Firebase Deploy 43857498810 : hosting + firestore (règles) OK.
+- Smoke prod : /publier et /histoire servent le nouveau code, media-storage.js 200, CSP connect-src contient le Worker, Worker /health 200.
+- Non vérifié : upload réel de bout en bout (nécessite un compte cliente ; interdit de créer un compte en prod). À faire par la cliente : publier une histoire avec 1 image, l'approuver en modo, vérifier l'affichage.
+- Reste : og:image depuis images[0], confirmation minImages=1, indexation des 5 genres restants (Search Console).
