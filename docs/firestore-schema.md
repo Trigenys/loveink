@@ -19,7 +19,7 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 | `genres` | string | ≤ 300 chars, optionnel |
 | `avatar` | string\|null | URL ou null (Storage Blaze / initiales en mode Spark) |
 | `type` | string | `lecteur` \| `auteur` \| `lesdeux` |
-| `role` | string | `user` (défaut) \| `moderateur` \| `censeur`. Seul un censeur peut modifier ce champ via `promouvoirUtilisateurRole`. |
+| `role` | string | `user` (défaut) \| `moderateur` \| `censeur` \| `admin`. Un censeur promeut (`user → moderateur`, `moderateur → censeur`) via `promouvoirUtilisateurRole` ; un admin attribue ou retire tout rôle via `changerRoleUtilisateur`. Personne ne modifie son propre rôle ; le premier admin est posé dans la console Firebase. |
 | `statut` | string | `actif` (défaut) \| `suspendu` \| `banni`. Positionné par un censeur via `creerSanction`. |
 | `suspensionJusqua` | timestamp\|null | Fin de suspension temporaire. |
 | `dateInscription` | timestamp | Posé à la création. |
@@ -188,6 +188,22 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 | `promotionRole` | string\|null | Rôle accordé si approuvée |
 
 **Règles :** Création par tout utilisateur connecté + actif. Lecture/update/delete : interdits côté client (traitement exclusivement par censeur via `getCandidaturesModerateur` + `traiteCandidatureModerateur`).
+
+---
+
+### `comptes_prives/{uid}` *(données personnelles)*
+
+| Champ | Type | Notes |
+|---|---|---|
+| `uid` | string | = id du document |
+| `email` | string | E-mail du compte Auth ; la règle impose qu'il soit égal à `request.auth.token.email` |
+| `dateMaj` | timestamp | `request.time` à l'écriture |
+
+**Règles :** lecture par le titulaire et les admins uniquement ; création/mise à jour par le titulaire seul
+(champs `uid`, `email`, `dateMaj` exclusivement) ; suppression par le titulaire (suppression de compte).
+Synchronisé à la connexion (`js/core/account-contact.js`, sans écriture si inchangé) ; rattrapage des comptes
+existants par `scripts/admin-bootstrap.mjs --backfill-emails`. L'e-mail n'est jamais copié dans `utilisateurs`,
+lisible par tout membre connecté.
 
 ---
 

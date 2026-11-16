@@ -1,4 +1,6 @@
 const { expect } = require('@playwright/test');
+const { assertEmulatorTarget, prodAllowed } = require('./target-guard');
+const { verifyEmailOnEmulator } = require('./auth-emulator');
 
 const DEFAULT_PASSWORD = process.env.E2E_PASSWORD || 'LoveInkTest@2026';
 
@@ -26,7 +28,10 @@ async function closeModalIfPresent(page) {
     }
 }
 
+const LOGIN_URL = /\/login(\.html)?($|\?)/;
+
 function urlMatches(page, pattern) {
+    if (Array.isArray(pattern)) return pattern.some((item) => urlMatches(page, item));
     const current = page.url();
     if (pattern instanceof RegExp) return pattern.test(current);
     return current.includes(String(pattern));
@@ -60,11 +65,12 @@ async function registerWithUi(page, user, options = {}) {
     const {
         type = 'lecteur',
         bio = 'Compte test e2e',
-        expectRedirectTo = /\/(feed|login)(\.html)?($|\?)/
+        expectRedirectTo = /\/feed(\.html)?($|\?)/
     } = options;
 
     await page.goto('/register.html');
     await expect(page.locator('#registerForm')).toBeVisible();
+    await assertEmulatorTarget(page);
 
     await page.fill('#pseudo', user.pseudo);
     await page.fill('#email', user.email);
@@ -74,24 +80,32 @@ async function registerWithUi(page, user, options = {}) {
     await page.fill('#bio', bio);
     await page.check('#consent');
     await page.click('#registerForm button[type="submit"]');
-    await waitForRedirectWithModalHandling(page, expectRedirectTo, 60000);
+    // Selon que la connexion exige ou non un e-mail confirmé, l'inscription mène à l'application ou à la connexion.
+    await waitForRedirectWithModalHandling(page, [expectRedirectTo, LOGIN_URL], 60000);
 
-    // Après l'e-mail de confirmation, l'inscription renvoie vers la connexion (e-mail prérempli).
-    if (/\/login(\.html)?($|\?)/.test(page.url())) {
+    // Après l'e-mail de confirmation, l'inscription renvoie vers la connexion (e-mail prérempli) : on s'y connecte.
+    if (!urlMatches(page, expectRedirectTo) && urlMatches(page, LOGIN_URL)) {
         await expect(page.locator('#email')).toHaveValue(user.email);
-        await page.fill('#password', user.password);
-        await page.click('#loginForm button[type="submit"]');
-        await waitForRedirectWithModalHandling(page, /\/feed(\.html)?($|\?)/, 45000);
+        const session = await loginWithUi(page, user, { expectRedirectTo });
+        return { ...user, uid: session?.uid || '', session };
     }
-
     const session = await readSession(page);
     return { ...user, uid: session?.uid || '', session };
+}
+
+// La connexion exige un e-mail confirmé : sur émulateur, le compte de test est confirmé via l'API admin.
+// Hors émulateur (E2E_ALLOW_PROD=1), aucun lien ne peut être cliqué automatiquement : le compte doit déjà l'être.
+async function ensureEmailVerified(page, email) {
+    if (prodAllowed()) return 'skipped';
+    return verifyEmailOnEmulator(page.request, email);
 }
 
 async function loginWithUi(page, user, options = {}) {
     const { expectRedirectTo = /\/feed(\.html)?($|\?)/ } = options;
     await page.goto('/login.html');
     await expect(page.locator('#loginForm')).toBeVisible();
+    await assertEmulatorTarget(page);
+    await ensureEmailVerified(page, user.email);
     await page.fill('#email', user.email);
     await page.fill('#password', user.password);
     await page.click('#loginForm button[type="submit"]');
@@ -104,7 +118,10 @@ async function logoutFromNav(page) {
     await trigger.waitFor({ state: 'visible', timeout: 15000 });
     await trigger.click();
     await page.locator('#logoutBtn').click();
-    await page.waitForURL(/\/($|index(?:\.html)?(?:\?|$))/, { timeout: 20000 });
+    // La déconnexion et la garde d'auth de la page redirigent toutes deux vers l'accueil : la seconde
+    // navigation interrompt la première (ERR_ABORTED). On attend donc l'URL finale, pas une navigation.
+    await expect.poll(() => page.url(), { timeout: 20000 }).toMatch(/\/($|index(?:\.html)?(?:\?|$))/);
+    await page.waitForLoadState('domcontentloaded');
 }
 
 async function ensureFeedLoaded(page) {
@@ -229,6 +246,7 @@ module.exports = {
     readSession,
     registerWithUi,
     loginWithUi,
+    ensureEmailVerified,
     logoutFromNav,
     ensureFeedLoaded,
     waitForAuthReady,

@@ -1,6 +1,9 @@
 const { defineConfig, devices } = require('@playwright/test');
 
-const baseURL = process.env.E2E_BASE_URL || 'https://loveink.site';
+const { resolveE2eBaseUrl } = require('./tests/e2e/helpers/target-guard');
+
+// Émulateurs locaux par défaut ; tout hôte distant exige E2E_ALLOW_PROD=1 (échec immédiat sinon).
+const baseURL = resolveE2eBaseUrl();
 
 module.exports = defineConfig({
     testDir: './tests/e2e',

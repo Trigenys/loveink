@@ -1,7 +1,9 @@
 # Déploiement Firebase sans clé : OIDC GitHub + Workload Identity Federation (workflow réutilisable AppFactory).
 # Pull request : mode plan (build + contrat, aucun identifiant). Push sur la branche par défaut : production,
 # limité à cette branche par le contrat, le workflow réutilisable et l'environnement GitHub "production".
-# Change-scoped : l'analyse d'impact (.github/appfactory-impact.json) décide des gates seo-tests / hosting / firestore.
+# Change-scoped : l'analyse d'impact (.github/appfactory-impact.json) décide des gates seo-tests / rules-tests / e2e /
+# hosting / firestore. Les e2e et les tests de règles tournent sur la Firebase Emulator Suite (projet demo-*),
+# jamais contre la production.
 # Tant que les variables GCP_WORKLOAD_IDENTITY_PROVIDER / GCP_DEPLOY_SERVICE_ACCOUNT ne sont pas définies
 # (bootstrap humain : docs/gcp-wif-one-time-bootstrap.md du dépôt AppFactory), tout reste en mode plan.
 # Épinglage : le SHA ci-dessous est le commit de merge de la PR AppFactory #152 (inclut #149 à #151).
@@ -42,9 +44,60 @@ jobs:
           node-version: 24.18.0
       - run: node --test tests/seo/*.test.mjs
 
+  rules-tests:
+    needs: impact
+    if: ${{ contains(fromJSON(needs.impact.outputs.gates), 'rules-tests') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --no-audit --no-fund
+      - run: npm run test:rules
+
+  e2e:
+    needs: impact
+    if: ${{ contains(fromJSON(needs.impact.outputs.gates), 'e2e') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Garde-fou : la configuration Playwright refuse tout hôte distant sans E2E_ALLOW_PROD=1.
+      E2E_ALLOW_PROD: '0'
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+      - uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - if: ${{ failure() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
   hosting:
-    needs: [impact, seo-tests]
-    if: ${{ !cancelled() && needs.seo-tests.result != 'failure' && contains(fromJSON(needs.impact.outputs.gates), 'hosting') }}
+    needs: [impact, seo-tests, e2e]
+    if: ${{ !cancelled() && needs.seo-tests.result != 'failure' && needs.e2e.result != 'failure' && contains(fromJSON(needs.impact.outputs.gates), 'hosting') }}
     permissions:
       contents: read
       id-token: write
@@ -61,8 +114,8 @@ jobs:
       github_environment: ${{ github.event_name == 'pull_request' && '' || 'production' }}
 
   firestore:
-    needs: [impact, hosting]
-    if: ${{ !cancelled() && (needs.hosting.result == 'success' || needs.hosting.result == 'skipped') && github.event_name != 'pull_request' && contains(fromJSON(needs.impact.outputs.gates), 'firestore') }}
+    needs: [impact, hosting, rules-tests, e2e]
+    if: ${{ !cancelled() && (needs.hosting.result == 'success' || needs.hosting.result == 'skipped') && needs.rules-tests.result != 'failure' && needs.e2e.result != 'failure' && github.event_name != 'pull_request' && contains(fromJSON(needs.impact.outputs.gates), 'firestore') }}
     permissions:
       contents: read
       id-token: write

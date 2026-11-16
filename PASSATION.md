@@ -655,3 +655,25 @@
 - Garde-fou : un test de contrat vérifie que les genres du fil, les options de publier.html et les clés de data/genres.json sont identiques.
 - Suite possible (décision produit) : des étiquettes de ton ou de forme, ou de nouveaux genres. Cela demande un nouveau champ, les firestore.rules, le formulaire, plus des textes genres.json et des pages SEO.
 - Captures : docs/pr/feed-categories-reclassification/.
+
+## 2026-11-16 18:09 — Rôle admin + e2e isolés de la prod (branche feat/admin-role-e2e-isolation)
+
+- Rôle `admin` au-dessus de `censeur` : règles (`validAdminRoleUpdate`, pas d'auto-changement), panneau « Comptes » dans profil.html (onglet modération), `changerRoleUtilisateur` idempotent + ops log `role_change`. Premier admin : à la main dans la console (docs/runbook-admin.md).
+- Corrigé au passage : les profils créés par register.html n'ont pas de champ `role` ; `changedKeys()` ne voit pas une clé ajoutée → la promotion échouait (admin et censeur). Leçon ajoutée.
+- E2E sur émulateurs (projet `demo-love-ink`) : `npm run test:e2e` ; prod bloquée sauf `E2E_ALLOW_PROD=1` (`npm run test:e2e:remote`). Jobs CI `rules-tests` et `e2e` ajoutés au workflow de déploiement.
+- Nettoyage prod : `scripts/e2e-prod-cleanup-plan.mjs` (lecture seule) à lancer par l'utilisatrice ; aucune suppression faite.
+- trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
+- Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.
+
+## 2026-11-16 19:27 — Tableau de bord admin + amorçage du premier admin (branche feat/admin-dashboard, empilée sur #40)
+- `admin.html` (rôle `admin` seulement) : KPI (comptes, actifs/nouveaux 7 et 30 j, par rôle, par statut, histoires par statut), liste (pseudo, e-mail, inscription, dernière connexion, statut, rôle, nb d'histoires), filtres, tri, changement de rôle confirmé. Calculs purs dans `js/core/admin-metrics.js`.
+- E-mail : collection `comptes_prives/{uid}` lisible par titulaire + admins, écrite par le titulaire avec l'e-mail du jeton (synchro à la connexion). Jamais dans `utilisateurs`.
+- `scripts/admin-bootstrap.mjs` (plan par défaut, `--apply`, `--backfill-emails`) : ne crée ni compte ni mot de passe ; à lancer par l'utilisatrice (runbook-admin.md). Non exécuté en prod.
+- Reste : PR à relire, fusion sur accord, puis exécution du script par l'utilisatrice.
+
+## 2026-11-16 19:47 — E2E : e-mail confirmé sur l’émulateur Auth (préparation de #44)
+
+- Helpers e2e (`tests/e2e/helpers/auth-emulator.js`, `app.js`) : avant chaque connexion, `emailVerified=true` via l’API admin de l’émulateur (`Bearer owner`, idempotent) ; si l’inscription renvoie vers la connexion, le helper s’y connecte. Ignoré avec `E2E_ALLOW_PROD=1` (le compte doit déjà être confirmé).
+- `main` fusionné dans `feat/admin-role-e2e-isolation` (conflit helper avec #34 résolu en gardant les deux comportements).
+- Vérifié en local : e2e 6 réussis / 3 ignorés, sans #44 et avec #44 fusionnée dans un worktree jetable.
+- PR #40 et #42 (empilée) ouvertes, fusion sur accord uniquement.

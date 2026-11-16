@@ -431,7 +431,7 @@
             const editId = getEditStoryIdFromUrl();
             if (!editId) return;
 
-            if (!['moderateur', 'censeur'].includes(currentUserRole)) {
+            if (!['moderateur', 'censeur', 'admin'].includes(currentUserRole)) {
                 await notify('error', "Acces refuse: edition reservee aux moderateurs/censeurs.", { title: 'Moderation' });
                 window.location.href = 'profil.html?tab=moderation';
                 return;
