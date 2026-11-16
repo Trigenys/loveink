@@ -1,27 +1,19 @@
 // feed-categories.js - Tuiles « Explorez par catégorie » du fil (feed.html).
 // Données et rendu séparés : `nom` est la valeur exacte du champ `categorie` des histoires
-// (utilisée pour la recherche et le comptage) ; `label` n'est que l'affichage accentué.
+// (utilisée pour la recherche et le comptage) ; `label` (facultatif) n'est que l'affichage.
+// Contrat : la liste des `nom` est identique aux options de publier.html et aux clés de
+// data/genres.json (pages /histoires/genre/*) ; le test de non-régression le vérifie.
 // Les fonctions pures sont testées sous Node (tests/seo/feed-categories.test.mjs).
 
 export const CATEGORIES = Object.freeze([
     { nom: 'Premier amour', icon: 'fa-heart', image: 'images/landing/cat-premier-amour.webp' },
-    { nom: 'Amour des hommes illustres', icon: 'fa-crown', image: 'images/landing/cat-hommes-illustres.webp' },
-    { nom: 'Amour farfelu', icon: 'fa-hat-wizard', image: 'images/landing/cat-farfelu.webp' },
-    { nom: 'Amour heureux', icon: 'fa-smile', image: 'images/landing/cat-heureux.webp' },
-    { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles', image: 'images/landing/cat-magique.webp' },
-    { nom: 'Amour virtuel', icon: 'fa-globe', image: 'images/landing/cat-distance.webp' },
-    { nom: 'Aventure estivale', icon: 'fa-sun', image: 'images/landing/cat-estivale.webp' },
-    { nom: 'Belles histoires', icon: 'fa-star', image: 'images/landing/cat-belles-histoires.webp' },
-    { nom: "De l'amitie a l'amour", label: "De l'amitié à l'amour", icon: 'fa-handshake', image: 'images/landing/cat-amitie-amour.webp' },
-    { nom: 'Histoires de couples', icon: 'fa-people-arrows', image: 'images/landing/cat-couples.webp' },
-    { nom: 'Histoires tristes', icon: 'fa-cloud-rain', image: 'images/landing/cat-tristes.webp' },
-    { nom: 'Interessant', label: 'Intéressant', icon: 'fa-lightbulb', image: 'images/landing/cat-interessant.webp' },
-    { nom: "Lettres d'amour", icon: 'fa-envelope', image: 'images/landing/cat-lettres.webp' },
-    { nom: 'Nos conseils', icon: 'fa-comment-dots', image: 'images/landing/cat-conseils.webp' },
-    { nom: "Poesie d'amour", label: "Poésie d'amour", icon: 'fa-feather', image: 'images/landing/cat-poesie.webp' },
-    { nom: 'Rapport occasionnel', icon: 'fa-calendar-check', image: 'images/landing/cat-occasionnel.webp' },
     { nom: 'Rencontres', icon: 'fa-user-group', image: 'images/landing/cat-seconde-chance.webp' },
-    { nom: 'Divers', icon: 'fa-ellipsis', image: 'images/landing/cat-divers.webp' }
+    { nom: 'Amour heureux', icon: 'fa-smile', image: 'images/landing/cat-heureux.webp' },
+    { nom: 'Aventure estivale', icon: 'fa-sun', image: 'images/landing/cat-estivale.webp' },
+    { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles', image: 'images/landing/cat-magique.webp' },
+    { nom: 'Histoires tristes', icon: 'fa-cloud-rain', image: 'images/landing/cat-tristes.webp' },
+    { nom: "Lettres d'amour", icon: 'fa-envelope', image: 'images/landing/cat-lettres.webp' },
+    { nom: "Poésie d'amour", icon: 'fa-feather', image: 'images/landing/cat-poesie.webp' }
 ].map((c) => Object.freeze({ label: c.nom, ...c })));
 
 const COUNT_CACHE_KEY = 'loveInk_catCounts';
@@ -47,11 +39,13 @@ export function ledeText(counts, categories = CATEGORIES) {
     return `${genres}, ${total} histoire${total > 1 ? 's' : ''} publiée${total > 1 ? 's' : ''}. Choisissez un genre pour filtrer.`;
 }
 
-// Catégorie correspondant exactement à la recherche (insensible à la casse), sinon null.
+// Catégorie correspondant exactement à la recherche (insensible à la casse et aux accents), sinon null.
+const fold = (value) => String(value || '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+
 export function categoryForQuery(query, categories = CATEGORIES) {
-    const q = String(query || '').trim().toLowerCase();
+    const q = fold(query);
     if (!q) return null;
-    return categories.find((c) => c.nom.toLowerCase() === q || c.label.toLowerCase() === q) || null;
+    return categories.find((c) => fold(c.nom) === q || fold(c.label) === q) || null;
 }
 
 function tileHtml(cat) {
@@ -119,11 +113,13 @@ export function markActiveCategory(root, query) {
     return active;
 }
 
-// Compteurs mis en cache de session (10 min) : 18 requêtes d'agrégation par visite sinon.
+// Compteurs mis en cache de session (10 min) : une requête d'agrégation par genre et par visite sinon.
+// Un cache qui ne couvre pas tous les genres actuels (liste modifiée) est ignoré.
 export async function loadCategoryCounts(fetchCounts, { storage = globalThis.sessionStorage, now = Date.now() } = {}) {
     try {
         const cached = JSON.parse(storage?.getItem(COUNT_CACHE_KEY) || 'null');
-        if (cached && now - cached.at < COUNT_CACHE_TTL_MS && cached.counts) return cached.counts;
+        const covers = cached?.counts && CATEGORIES.every((c) => Number.isFinite(cached.counts[c.nom]));
+        if (covers && now - cached.at < COUNT_CACHE_TTL_MS) return cached.counts;
     } catch { /* cache illisible : on recompte */ }
     const counts = await fetchCounts(CATEGORIES.map((c) => c.nom));
     const complete = counts && CATEGORIES.every((c) => Number.isFinite(counts[c.nom]));

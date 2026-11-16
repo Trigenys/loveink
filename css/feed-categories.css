@@ -50,7 +50,7 @@
 /* ---------- Tuiles illustrées ---------- */
 .li-cats__spot {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(12px, 1.6vw, 18px);
     margin-bottom: clamp(14px, 2vw, 20px);
 }
@@ -203,7 +203,6 @@
 
 /* ---------- Responsive ---------- */
 @media (max-width: 1024px) {
-    .li-cats__spot { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .cat-card--photo { aspect-ratio: 5 / 4; }
 }
 @media (max-width: 720px) {

@@ -648,3 +648,10 @@
 - Smoke prod : /publier et /histoire servent le nouveau code, media-storage.js 200, CSP connect-src contient le Worker, Worker /health 200.
 - Non vérifié : upload réel de bout en bout (nécessite un compte cliente ; interdit de créer un compte en prod). À faire par la cliente : publier une histoire avec 1 image, l'approuver en modo, vérifier l'affichage.
 - Reste : og:image depuis images[0], confirmation minImages=1, indexation des 5 genres restants (Search Console).
+
+## 2026-11-16 19:39 — Genres du fil alignés sur les 8 genres publiables (/feed)
+- Constat : le fil affichait 18 genres, mais le formulaire de publication (publier.html) n'en propose que 8. Les 10 autres ne pouvaient donc jamais contenir d'histoire. En plus, la tuile « Poesie d'amour » (sans accent) ne correspondait pas à la valeur stockée « Poésie d'amour ».
+- Changement : CATEGORIES (js/components/feed-categories.js) reprend exactement les 8 genres. La recherche d'un genre ignore la casse et les accents. Un cache de compteurs qui ne couvre pas tous les genres actuels est ignoré. La grille passe à 4 colonnes sur ordinateur. Les 9 visuels devenus inutiles sont supprimés.
+- Garde-fou : un test de contrat vérifie que les genres du fil, les options de publier.html et les clés de data/genres.json sont identiques.
+- Suite possible (décision produit) : des étiquettes de ton ou de forme, ou de nouveaux genres. Cela demande un nouveau champ, les firestore.rules, le formulaire, plus des textes genres.json et des pages SEO.
+- Captures : docs/pr/feed-categories-reclassification/.
