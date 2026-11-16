@@ -158,6 +158,16 @@
         current = 'forgot';
     }
 
+    // Arrivée depuis l'inscription : e-mail prérempli, curseur sur le mot de passe.
+    try {
+        const prefill = sessionStorage.getItem('loveInk_prefillEmail');
+        if (prefill) {
+            sessionStorage.removeItem('loveInk_prefillEmail');
+            f('email').value = prefill;
+            f('password').focus();
+        }
+    } catch { /* stockage indisponible */ }
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (busy) return;
