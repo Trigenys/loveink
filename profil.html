@@ -568,6 +568,13 @@
         .ops-section { margin-top: 40px; padding-top: 28px; border-top: 1px solid var(--border); }
         .ops-section h4 { font-family: var(--font-serif); font-size: 18px; font-weight: 400; color: var(--rose-deep); margin-bottom: 14px; }
         .ops-list { display: flex; flex-direction: column; gap: 10px; }
+        .modo-admin-link { display: inline-flex; align-items: center; gap: 8px; margin-bottom: 20px; font-size: 13px; color: var(--rose-deep); text-decoration: none; }
+        .modo-admin-link:hover { text-decoration: underline; }
+        .modo-subnav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 24px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+        .modo-subnav button { font: inherit; font-size: 13px; padding: 6px 14px; border-radius: 999px; border: 1px solid var(--border); background: transparent; color: var(--ink-muted); cursor: pointer; }
+        .modo-subnav button[aria-selected="true"] { background: var(--rose-deep); border-color: var(--rose-deep); color: #fff; }
+        .modo-subnav button:focus-visible { outline: 2px solid var(--rose-mid); outline-offset: 2px; }
+        #censeurOpsRoot .ops-section { margin-top: 0; padding-top: 0; border-top: 0; }
         .ops-item {
             display: flex;
             align-items: flex-start;
@@ -839,9 +846,18 @@
 
     <div class="tab-panel" id="panel-moderation">
         <div class="apropos-tab">
-            <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:8px;">Histoires en attente de validation</h3>
-            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace modération actif pour les rôles <strong>modérateur</strong>, <strong>censeur</strong> et <strong>admin</strong>.</p>
-            <div class="modo-list" id="moderationList"></div>
+            <a href="admin.html" id="adminDashboardLink" class="modo-admin-link" hidden><i class="fas fa-users-gear" aria-hidden="true"></i> Comptes et rôles : tableau de bord administrateur</a>
+            <div class="modo-subnav" id="modoSubnav" role="tablist" aria-label="Sections de modération" hidden>
+                <button type="button" role="tab" data-modo="file" aria-selected="true">À valider</button>
+                <button type="button" role="tab" data-modo="sanctions" aria-selected="false">Sanctions</button>
+                <button type="button" role="tab" data-modo="candidatures" aria-selected="false">Candidatures</button>
+                <button type="button" role="tab" data-modo="promotions" aria-selected="false">Promotions</button>
+                <button type="button" role="tab" data-modo="journal" aria-selected="false">Journal</button>
+            </div>
+            <section data-modo-panel="file">
+                <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:16px;">Histoires en attente de validation</h3>
+                <div class="modo-list" id="moderationList"></div>
+            </section>
             <div id="censeurOpsRoot"></div>
         </div>
     </div>
@@ -961,7 +977,7 @@
         import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { auth, db } from './js/core/firebase-config.js';
         import { firebaseAPI } from './js/core/firebase-data.js';
-        import { ROLES, ROLE_LABELS, isAdminRole, isCenseurRole, isModoRole } from './js/core/roles.js';
+        import { isAdminRole, isCenseurRole, isModoRole } from './js/core/roles.js';
         import { notify } from './js/components/ui-notify.js';
         import { logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
         import { applyInitialsAvatar } from './js/components/avatar-initials.js';
@@ -1158,30 +1174,39 @@
         function ensureCenseurOpsLayout() {
             if (!censeurOpsRoot) return;
             censeurOpsRoot.innerHTML = `
-                <div class="ops-section">
+                <div class="ops-section" data-modo-panel="sanctions">
                     <h4><i class="fas fa-gavel" style="margin-right:8px;color:var(--rose-mid)"></i>Historique des sanctions</h4>
                     <div id="sanctionHistory" class="ops-list"></div>
                 </div>
-                <div class="ops-section">
+                <div class="ops-section" data-modo-panel="candidatures">
                     <h4><i class="fas fa-user-shield" style="margin-right:8px;color:var(--rose-mid)"></i>Candidatures moderateur</h4>
                     <div id="candidaturesList" class="ops-list"></div>
                 </div>
-                <div class="ops-section">
+                <div class="ops-section" data-modo-panel="promotions">
                     <h4><i class="fas fa-arrow-up-right-dots" style="margin-right:8px;color:var(--rose-mid)"></i>Promotions vers censeur</h4>
                     <div id="promotionsList" class="ops-list"></div>
                 </div>
-                <div class="ops-section">
+                <div class="ops-section" data-modo-panel="journal">
                     <h4><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--rose-mid)"></i>Journal ops</h4>
                     <div id="opsLogsList" class="ops-list"></div>
-                </div>${isAdminRole(currentUser?.role) ? `
-                <div class="ops-section" id="adminComptesSection">
-                    <h4><i class="fas fa-users-gear" style="margin-right:8px;color:var(--rose-mid)"></i>Comptes et rôles (admin)</h4>
-                    <p style="margin:0 0 12px"><a href="admin.html" id="adminDashboardLink" class="btn btn-secondary"><i class="fas fa-chart-line" aria-hidden="true"></i> Tableau de bord administrateur</a></p>
-                    <input type="search" id="adminComptesFiltre" placeholder="Filtrer par pseudo, rôle ou UID" aria-label="Filtrer les comptes" style="width:100%;max-width:360px;margin-bottom:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--ink)">
-                    <div id="adminComptesList" class="ops-list"></div>
-                </div>` : ''}
+                </div>
             `;
+            showModoSection(currentModoSection);
         }
+
+        // Une seule section visible à la fois ; les modérateurs simples n'ont que la file d'attente.
+        let currentModoSection = 'file';
+        function showModoSection(key) {
+            const panel = document.getElementById('panel-moderation');
+            if (!panel) return;
+            currentModoSection = panel.querySelector(`[data-modo-panel="${key}"]`) ? key : 'file';
+            panel.querySelectorAll('[data-modo-panel]').forEach((el) => { el.hidden = el.dataset.modoPanel !== currentModoSection; });
+            panel.querySelectorAll('#modoSubnav [data-modo]').forEach((btn) => btn.setAttribute('aria-selected', String(btn.dataset.modo === currentModoSection)));
+        }
+        document.getElementById('modoSubnav')?.addEventListener('click', (event) => {
+            const btn = event.target.closest('[data-modo]');
+            if (btn) showModoSection(btn.dataset.modo);
+        });
 
         async function refreshCenseurOpsSections() {
             if (!currentUser || !isCenseurRole(currentUser.role)) return;
@@ -1190,8 +1215,7 @@
                 renderSanctionHistory(),
                 renderCandidaturesModerateur(),
                 renderPromotionsRole(),
-                renderOpsLogsPanel(),
-                isAdminRole(currentUser.role) ? renderComptesAdmin() : null
+                renderOpsLogsPanel()
             ]);
         }
 
@@ -1201,9 +1225,10 @@
             list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
 
             const isCenseur = isCenseurRole(currentUser.role);
-            if (censeurOpsRoot) {
-                censeurOpsRoot.innerHTML = isCenseur ? '<div class="ops-section"><div style="font-size:13px;color:var(--ink-faint)">Chargement des operations censeur...</div></div>' : '';
-            }
+            document.getElementById('modoSubnav')?.toggleAttribute('hidden', !isCenseur);
+            document.getElementById('adminDashboardLink')?.toggleAttribute('hidden', !isAdminRole(currentUser.role));
+            if (censeurOpsRoot && !isCenseur) censeurOpsRoot.innerHTML = '';
+            if (isCenseur) ensureCenseurOpsLayout(); else showModoSection('file');
             const histoires = await firebaseAPI.getHistoiresEnAttente();
             list.innerHTML = '';
 
@@ -1346,63 +1371,6 @@
             } catch (error) {
                 console.error('Erreur renderPromotionsRole:', error);
                 list.innerHTML = '<p style="font-size:13px;color:#b76e6e">Erreur de chargement des promotions.</p>';
-            }
-        }
-
-        // Admin : liste des comptes et changement de rôle (règle validAdminRoleUpdate).
-        // Le compte connecté n'est pas modifiable ici : les règles interdisent de changer son propre rôle.
-        async function renderComptesAdmin() {
-            const list = document.getElementById('adminComptesList');
-            if (!list) return;
-            list.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
-            const comptes = await firebaseAPI.getComptes(300);
-            if (!comptes.length) {
-                list.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucun compte lisible.</p>';
-                return;
-            }
-            const rang = (r) => ROLES.indexOf(ROLES.includes(r) ? r : 'user');
-            comptes.sort((a, b) => rang(b.role) - rang(a.role) || String(a.pseudo || '').localeCompare(String(b.pseudo || ''), 'fr'));
-            list.innerHTML = '';
-            comptes.forEach((user) => {
-                const uid = String(user.uid || user.id || '');
-                const role = ROLES.includes(user.role) ? user.role : 'user';
-                const estMoi = uid === String(currentUser.uid || '');
-                const item = document.createElement('div');
-                item.className = 'ops-item admin-compte';
-                item.dataset.filtre = `${user.pseudo || ''} ${role} ${ROLE_LABELS[role]} ${uid}`.toLowerCase();
-                item.innerHTML = `
-                    <div class="ops-item-main">
-                        <div class="ops-item-title"><strong>${escapeHtml(user.pseudo || uid)}</strong>${estMoi ? ' (vous)' : ''}</div>
-                        <div class="ops-item-meta">Rôle : ${escapeHtml(ROLE_LABELS[role])} · Statut : ${escapeHtml(user.statut || 'actif')} · UID : ${escapeHtml(uid)}</div>
-                    </div>
-                    <div class="ops-item-actions">
-                        <select class="admin-role-select" aria-label="Rôle de ${escapeHtml(user.pseudo || uid)}" ${estMoi ? 'disabled' : ''}>
-                            ${ROLES.map((r) => `<option value="${r}" ${r === role ? 'selected' : ''}>${ROLE_LABELS[r]}</option>`).join('')}
-                        </select>
-                        <button class="btn-secondary admin-role-apply" style="font-size:12px;padding:6px 14px" ${estMoi ? 'disabled' : ''}>Appliquer</button>
-                    </div>
-                `;
-                item.querySelector('.admin-role-apply')?.addEventListener('click', async () => {
-                    const cible = item.querySelector('.admin-role-select')?.value;
-                    if (!cible || cible === role) return;
-                    const result = await firebaseAPI.changerRoleUtilisateur(uid, cible, 'admin_panel');
-                    if (!result.ok) {
-                        await notify('error', "Impossible de changer ce rôle.", { title: 'Administration' });
-                        return;
-                    }
-                    await notify('success', `${user.pseudo || uid} : ${ROLE_LABELS[result.from] || result.from} → ${ROLE_LABELS[result.to] || result.to}.`, { title: 'Administration' });
-                    await refreshCenseurOpsSections();
-                });
-                list.appendChild(item);
-            });
-            const filtre = document.getElementById('adminComptesFiltre');
-            if (filtre) {
-                // Affectation (et non addEventListener) : un seul écouteur malgré les rafraîchissements.
-                filtre.oninput = () => {
-                    const q = filtre.value.trim().toLowerCase();
-                    list.querySelectorAll('.admin-compte').forEach((el) => { el.hidden = Boolean(q) && !el.dataset.filtre.includes(q); });
-                };
-                filtre.oninput();
             }
         }
 
