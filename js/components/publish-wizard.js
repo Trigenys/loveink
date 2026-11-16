@@ -49,15 +49,16 @@ export function storyParagraphs(text) {
     return value.split(/\n{2,}/).map((p) => p.split('\n'));
 }
 
-// Validation d'une étape. `state` = { categorie, titre, contenu, imagesCount } ; `minImages` = 0 en modération.
-export function validateStep(stepId, state = {}, { minImages = 1 } = {}) {
+// Validation d'une étape. `state` = { categorie, titre, contenu, imagesCount } ; `minImages` = 0 en modération
+// et à partir du chapitre 2 ; `titreOptional` : titre vide accepté (un chapitre devient « Chapitre N »).
+export function validateStep(stepId, state = {}, { minImages = 1, titreOptional = false } = {}) {
     const ok = { ok: true, error: '' };
     switch (stepId) {
     case 'categorie':
         return String(state.categorie || '').trim() ? ok : { ok: false, error: 'Choisissez le genre de votre histoire.' };
     case 'titre': {
         const titre = String(state.titre || '').trim();
-        if (!titre) return { ok: false, error: 'Donnez un titre à votre histoire.' };
+        if (!titre) return titreOptional ? ok : { ok: false, error: 'Donnez un titre à votre histoire.' };
         if (titre.length > LIMITS.titre) return { ok: false, error: `Le titre dépasse ${LIMITS.titre} caractères.` };
         return ok;
     }
@@ -78,8 +79,11 @@ export function validateStep(stepId, state = {}, { minImages = 1 } = {}) {
 }
 
 // Index de la première étape invalide avant `upTo` (exclu), ou -1 si tout est valide.
+// `options.skip` : identifiants d'étapes sautées (ex. le genre, hérité pour un chapitre), jamais validées.
 export function firstInvalidStep(state, options, upTo = STEPS.length) {
+    const skip = new Set(options?.skip || []);
     for (let i = 0; i < Math.min(upTo, STEPS.length); i += 1) {
+        if (skip.has(STEPS[i].id)) continue;
         if (!validateStep(STEPS[i].id, state, options).ok) return i;
     }
     return -1;
@@ -92,9 +96,15 @@ export function draftKey(uid) {
     return id ? `${DRAFT_PREFIX}${id}` : '';
 }
 
+// `suite` (optionnel) : id de la série ou de l'histoire dont le brouillon est le chapitre suivant.
+// Absent pour une histoire seule : le format v1 reste identique pour les brouillons existants.
+const SUITE_MAX = 128;
+
 export function serializeDraft(state = {}, step = 0, now = Date.now()) {
+    const suite = String(state.suite || '').slice(0, SUITE_MAX);
     return JSON.stringify({
         v: DRAFT_VERSION,
+        ...(suite ? { suite } : {}),
         categorie: String(state.categorie || '').slice(0, LIMITS.categorie),
         titre: String(state.titre || '').slice(0, LIMITS.titre),
         contenu: String(state.contenu || '').slice(0, LIMITS.contenu),
@@ -118,6 +128,7 @@ export function parseDraft(raw, now = Date.now()) {
         step: Math.max(0, Math.min(STEPS.length - 1, Math.trunc(Number(data.step) || 0))),
         savedAt
     };
+    if (typeof data.suite === 'string' && data.suite) draft.suite = data.suite.slice(0, SUITE_MAX);
     return draft.categorie || draft.titre.trim() || draft.contenu.trim() ? draft : null;
 }
 
@@ -168,7 +179,8 @@ function prefersReducedMotion() {
 //   [data-step="<id>"] (une section par étape, dans l'ordre de STEPS), [data-goto="<index>"] (repères),
 //   [data-wizard-prev], [data-wizard-next], [data-wizard-final] (zone d'envoi), [data-wizard-fill],
 //   [data-wizard-announce] (aria-live), [data-step-error] dans chaque section.
-// options : getState() -> état ; validationOptions() -> { minImages } ; onEnter(stepId) ; onChange(index).
+// options : getState() -> état ; validationOptions() -> { minImages, titreOptional, skip } ; onEnter(stepId) ; onChange(index).
+// Les étapes de `skip` ne sont ni affichées, ni validées, ni comptées (repères, « Étape X sur N », progression).
 export function mountPublishWizard(root, { getState, validationOptions = () => ({}), onEnter, onChange } = {}) {
     const sections = STEPS.map((s) => root.querySelector(`[data-step="${s.id}"]`));
     const markers = Array.from(root.querySelectorAll('[data-goto]'));
@@ -182,6 +194,20 @@ export function mountPublishWizard(root, { getState, validationOptions = () => (
     let furthest = 0;
 
     const errorBox = (index) => sections[index]?.querySelector('[data-step-error]');
+    const skipped = () => new Set(validationOptions()?.skip || []);
+    const clamp = (i) => Math.max(0, Math.min(last, i));
+    const visible = () => { const skip = skipped(); return STEPS.map((s, i) => i).filter((i) => !skip.has(STEPS[i].id)); };
+
+    // Étape affichable la plus proche dans le sens du déplacement (sinon dans l'autre sens).
+    function resolve(index, direction) {
+        const skip = skipped();
+        const isSkipped = (i) => skip.has(STEPS[i].id);
+        const step = direction === 'back' ? -1 : 1;
+        for (const dir of [step, -step]) {
+            for (let i = clamp(index); i >= 0 && i <= last; i += dir) if (!isSkipped(i)) return i;
+        }
+        return clamp(index);
+    }
 
     function showError(index, message) {
         const box = errorBox(index);
@@ -191,28 +217,36 @@ export function mountPublishWizard(root, { getState, validationOptions = () => (
     }
 
     function render() {
+        const shown = visible();
+        const rank = (i) => shown.indexOf(i) + 1;
         sections.forEach((section, i) => {
             if (!section) return;
             section.hidden = i !== current;
+            const kicker = section.querySelector('.li-step__kicker');
+            if (kicker && rank(i)) kicker.textContent = `Étape ${rank(i)} sur ${shown.length}`;
         });
         markers.forEach((marker) => {
             const i = Number(marker.dataset.goto);
+            const item = marker.closest('li') || marker;
+            item.hidden = !rank(i);
+            const num = marker.querySelector('.li-steps__num span');
+            if (num && rank(i)) num.textContent = String(rank(i));
             marker.classList.toggle('is-done', i < current);
             marker.classList.toggle('is-current', i === current);
             marker.disabled = i > furthest;
             if (i === current) marker.setAttribute('aria-current', 'step');
             else marker.removeAttribute('aria-current');
         });
-        if (fill) fill.style.setProperty('--progress', String(current / last));
+        if (fill) fill.style.setProperty('--progress', String(shown.length > 1 ? (rank(current) - 1) / (shown.length - 1) : 1));
         root.style.setProperty('--li-step', String(current));
         root.dataset.currentStep = STEPS[current].id;
-        if (prevBtn) prevBtn.hidden = current === 0;
+        if (prevBtn) prevBtn.hidden = current === shown[0];
         if (nextBtn) nextBtn.hidden = current === last;
         if (finalZone) finalZone.hidden = current !== last;
     }
 
     function go(index, { direction = index >= current ? 'forward' : 'back', focus = true } = {}) {
-        const target = Math.max(0, Math.min(last, index));
+        const target = resolve(index, direction);
         if (target > current) {
             // On ne saute jamais une étape invalide : on s'arrête sur la première à corriger.
             const invalid = firstInvalidStep(getState(), validationOptions(), target);
@@ -236,7 +270,10 @@ export function mountPublishWizard(root, { getState, validationOptions = () => (
         }
         onEnter?.(STEPS[current].id);
         onChange?.(current);
-        if (announce) announce.textContent = `Étape ${current + 1} sur ${STEPS.length} : ${STEPS[current].label}`;
+        if (announce) {
+            const shown = visible();
+            announce.textContent = `Étape ${shown.indexOf(current) + 1} sur ${shown.length} : ${STEPS[current].label}`;
+        }
         if (focus) {
             const top = root.getBoundingClientRect().top;
             if (top < 0) root.scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
@@ -292,6 +329,16 @@ export function mountPublishWizard(root, { getState, validationOptions = () => (
         prev,
         // Après restauration d'un brouillon : repères accessibles jusqu'à l'étape atteinte.
         reach(index) { furthest = Math.max(furthest, Math.min(last, index)); render(); },
+        // Après un changement des étapes sautées (ex. choix « nouveau chapitre ») : quitter une étape
+        // devenue sautée et redessiner repères et compteurs.
+        refresh() {
+            if (skipped().has(STEPS[current].id)) {
+                current = resolve(current, 'forward');
+                furthest = Math.max(furthest, current);
+            }
+            render();
+            onChange?.(current);
+        },
         showError
     };
 }

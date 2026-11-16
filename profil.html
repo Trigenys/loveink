@@ -312,6 +312,25 @@
             color: var(--rose-deep);
         }
 
+        /* Mes séries (histoires en plusieurs chapitres) */
+        .series-block { margin: 0 0 32px; }
+        .series-block[hidden] { display: none; }
+        .series-block h3 { font-family: var(--font-serif); font-size: 20px; font-weight: 400; color: var(--rose-deep); margin: 0 0 14px; }
+        .series-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+        .serie-item {
+            display: grid; gap: 10px; padding: 16px 18px; border-radius: 16px;
+            background: var(--rose-pale, #f5e6e6); border: 1px solid var(--border);
+        }
+        .serie-item__title { margin: 0; font-family: var(--font-serif); font-size: 19px; font-weight: 500; color: var(--ink, #2a1a1a); overflow-wrap: anywhere; }
+        .serie-item__meta { margin: 0; font-size: 13px; color: var(--ink-muted, #7a5f5f); }
+        .serie-item__actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .serie-item__actions a {
+            display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 14px;
+            border-radius: 999px; font-size: 13px; text-decoration: none; border: 1px solid var(--border); color: var(--rose-deep);
+        }
+        .serie-item__actions a.is-primary { background: var(--rose-deep); color: #fff; border-color: transparent; }
+        .story-add-chapter { font-size: 12px; color: var(--rose-deep); text-decoration: none; white-space: nowrap; }
+
         .stories-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -765,6 +784,10 @@
 
     <div class="tab-panel active" id="panel-histoires">
         <div class="stories-tab">
+            <section class="series-block" id="mesSeries" aria-labelledby="mesSeriesTitle" hidden>
+                <h3 id="mesSeriesTitle">Mes séries</h3>
+                <div class="series-list" id="mesSeriesList"></div>
+            </section>
             <div class="stories-tab-header">
                 <h3>Mes publications</h3>
                 <div class="status-filters">
@@ -943,6 +966,7 @@
         import { logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
         import { applyInitialsAvatar } from './js/components/avatar-initials.js';
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { chapterTitle, isChapter, serieBadge } from './js/core/series.js';
 
         let currentUser = null;
         const PROFILE_COVERS = ['rose', 'aurore', 'crepuscule', 'encre', 'jardin', 'papier'];
@@ -1022,8 +1046,37 @@
         const STATUS_LABELS = { publie: 'Publiee', en_attente: 'En revision', rejete: 'Rejetee' };
         const STATUS_COLORS = { publie: '#4caf7d', en_attente: '#e0a030', rejete: '#b76e6e' };
 
+        // ── Mes séries : chaque série de l'auteur, avec « + Ajouter un chapitre » ──
+        let seriesRendered = false;
+        async function renderSeries() {
+            if (seriesRendered || typeof firebaseAPI.getSeriesAuteur !== 'function') return;
+            seriesRendered = true;
+            const block = document.getElementById('mesSeries');
+            const list = document.getElementById('mesSeriesList');
+            const series = await firebaseAPI.getSeriesAuteur(currentUser.uid);
+            list.replaceChildren();
+            series
+                .slice()
+                .sort((a, b) => (b.dateMaj?.seconds || 0) - (a.dateMaj?.seconds || 0))
+                .forEach((s) => {
+                    const item = document.createElement('article');
+                    item.className = 'serie-item';
+                    item.dataset.serieId = s.id;
+                    item.innerHTML = `
+                        <h4 class="serie-item__title">${escapeHtml(s.titre)}</h4>
+                        <p class="serie-item__meta">${escapeHtml(s.genre || '')} · ${escapeHtml(serieBadge(s.dernierChapitre, s.statut))}</p>
+                        <div class="serie-item__actions">
+                            <a href="publier.html?suite=${encodeURIComponent(s.id)}" class="is-primary"><i class="fas fa-plus"></i> Ajouter un chapitre</a>
+                            <a href="histoire.html?id=${encodeURIComponent(s.id)}"><i class="fas fa-book-open"></i> Chapitre 1</a>
+                        </div>`;
+                    list.appendChild(item);
+                });
+            block.hidden = !series.length;
+        }
+
         // ── Render stories ───────────────────────────────────────────────────────
         async function renderStories(statut) {
+            renderSeries().catch((error) => console.warn('Series indisponibles:', error?.message || error));
             const grid = document.getElementById('mesHistoires');
             grid.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
 
@@ -1048,7 +1101,7 @@
                 card.innerHTML = `
                     <div class="story-cat-bar"></div>
                     <div class="story-body">
-                        <div class="story-cat-badge">${escapeHtml(h.categorie)}</div>
+                        <div class="story-cat-badge">${escapeHtml(h.categorie)}${isChapter(h) ? ` · ${escapeHtml(chapterTitle(h.chapitre))}` : ''}</div>
                         <h3 class="story-title">${escapeHtml(h.titre)}</h3>
                         <p class="story-excerpt">${escapeHtml(h.extrait || '')}</p>
                         ${motif}
@@ -1058,6 +1111,7 @@
                                 <span><i class="fas fa-comment"></i> ${Number(h.commentaires || 0)}</span>
                                 ${badge}
                             </div>
+                            ${h.statut === 'publie' && !h.serieId ? `<a href="publier.html?suite=${encodeURIComponent(h.id)}" class="story-add-chapter"><i class="fas fa-plus"></i> Chapitre 2</a>` : ''}
                             <a href="histoire.html?id=${encodeURIComponent(h.id)}" class="story-edit-btn"><i class="fas fa-eye"></i> ${h.statut === 'publie' ? 'Voir' : 'Relire'}</a>
                         </div>
                     </div>

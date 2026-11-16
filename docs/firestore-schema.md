@@ -61,6 +61,8 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 | `dateModeration` | timestamp | Date de la décision |
 | `dateEditionModeration` | timestamp | Date de l'édition éditoriale (T15) |
 | `versionOriginale` | map\|null | Snapshot avant première édition modo : `{ titre, categorie, contenu, extrait, image, dateSoumission, captureParModerationLe }` |
+| `serieId` | string | *Optionnel.* Id de la série (`series/{serieId}`) ; absent = histoire en un seul chapitre |
+| `chapitre` | int | *Optionnel, avec `serieId`.* 1 pour l'histoire d'origine, ≥ 2 pour les suivants |
 
 **Règles Firestore :**
 - Lecture : histoires publiées (ou sans statut) = publiques. L'auteur lit toujours ses propres histoires. Les modos lisent tout.
@@ -70,6 +72,31 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 - Mise à jour (modo) : uniquement `statut`/`motifRejet`/`moderateurId`/`dateModeration` (approbation/rejet).
 - Mise à jour éditoriale (modo) : champs contenu + champs modération + `versionOriginale`, uniquement si `statut == en_attente`.
 - Suppression : auteur uniquement.
+- Chapitres : une histoire sans `serieId` ni `chapitre` suit le contrat ci-dessus, inchangé. Un chapitre N ≥ 2 n'est créé que dans le même batch que l'avancement de sa série (même auteur, même genre, `dernierChapitre` passe de N-1 à N) ; l'histoire publiée d'origine reçoit `serieId`/`chapitre: 1` dans le batch qui crée la série. Chaque chapitre est modéré séparément ; un chapitre rejeté laisse un trou toléré dans la numérotation.
+
+---
+
+### `series/{serieId}`
+
+Histoire en plusieurs chapitres. `serieId` = id de l'histoire publiée qui devient le chapitre 1 (une seule série possible par histoire).
+
+| Champ | Type | Notes |
+|---|---|---|
+| `titre` | string | Recopié du chapitre 1 publié |
+| `auteurId` | string | UID de l'auteur |
+| `genre` | string | Recopié de la catégorie du chapitre 1 ; hérité par les chapitres |
+| `couverture` | map\|null | Première image du chapitre 1 (`{ id, w, h, alt }`) ou `null` |
+| `statut` | string | `en_cours` \| `terminee` |
+| `dernierChapitre` | int | Dernier numéro attribué (≥ 2) |
+| `dateCreation` | timestamp | Heure serveur |
+| `dateMaj` | timestamp | Heure serveur, à chaque nouveau chapitre |
+
+**Règles Firestore :**
+- Lecture : publique (titre et genre viennent d'un chapitre déjà modéré et publié).
+- Création : l'auteur, à partir de sa propre histoire publiée qui n'est pas déjà en série, dans le batch qui la rattache comme chapitre 1 ; `dernierChapitre == 2`.
+- Mise à jour : l'auteur, uniquement `dernierChapitre` (inchangé ou +1), `statut`, `dateMaj`.
+- Suppression : interdite (lot 1).
+- Requêtes de chapitres : `serieId ==` + `statut == 'publie'` (égalités seules, sans index composite ; tri par `chapitre` côté client).
 
 ---
 

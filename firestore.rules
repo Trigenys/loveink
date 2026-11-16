@@ -301,7 +301,89 @@ service cloud.firestore {
         request.resource.data.date is timestamp &&
         validImages(request.resource.data) &&
         // Toute nouvelle histoire passe par la moderation.
-        request.resource.data.statut == 'en_attente';
+        request.resource.data.statut == 'en_attente' &&
+        validChapterLink();
+    }
+
+    // ===== Series (histoires en plusieurs chapitres) =====
+    // series/{id} porte l'id de l'histoire publiee qui devient le chapitre 1.
+    function seriePath(serieId) {
+      return /databases/$(database)/documents/series/$(serieId);
+    }
+
+    function histoirePath(histoireId) {
+      return /databases/$(database)/documents/histoires/$(histoireId);
+    }
+
+    // Histoire sans serieId ni chapitre : contrat historique inchange.
+    // Chapitre N >= 2 : serie du meme auteur, meme genre, numero = dernierChapitre
+    // de la serie apres le batch et dernierChapitre + 1 avant (pas de doublon concurrent).
+    function validChapterLink() {
+      let d = request.resource.data;
+      return (!('serieId' in d) && !('chapitre' in d)) || (
+        d.serieId is string &&
+        d.chapitre is int &&
+        d.chapitre >= 2 &&
+        existsAfter(seriePath(d.serieId)) &&
+        getAfter(seriePath(d.serieId)).data.auteurId == request.auth.uid &&
+        getAfter(seriePath(d.serieId)).data.dernierChapitre == d.chapitre &&
+        d.categorie == getAfter(seriePath(d.serieId)).data.genre &&
+        (
+          (!exists(seriePath(d.serieId)) && d.chapitre == 2) ||
+          (exists(seriePath(d.serieId)) && get(seriePath(d.serieId)).data.dernierChapitre == d.chapitre - 1)
+        )
+      );
+    }
+
+    // L'histoire publiee devient le chapitre 1 de sa serie, dans le meme batch que la creation de la serie.
+    function validChapterOneAttach(histoireId) {
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['serieId', 'chapitre']) &&
+        !('serieId' in resource.data) &&
+        request.resource.data.serieId == histoireId &&
+        request.resource.data.chapitre == 1 &&
+        existsAfter(seriePath(histoireId)) &&
+        getAfter(seriePath(histoireId)).data.auteurId == request.auth.uid;
+    }
+
+    function validSerieStatut(d) {
+      return d.statut in ['en_cours', 'terminee'];
+    }
+
+    // Creation : uniquement a partir d'une histoire publiee de l'auteur, pas encore en serie ;
+    // titre, genre et couverture recopies de cette histoire (donc deja moderes).
+    function validSerieCreate(serieId) {
+      let d = request.resource.data;
+      let premier = get(histoirePath(serieId)).data;
+      let premierImages = premier.get('images', []);
+      return d.keys().hasOnly(['titre', 'auteurId', 'genre', 'couverture', 'statut', 'dernierChapitre', 'dateCreation', 'dateMaj']) &&
+        d.auteurId == request.auth.uid &&
+        exists(histoirePath(serieId)) &&
+        premier.auteurId == request.auth.uid &&
+        premier.get('statut', '') == 'publie' &&
+        !('serieId' in premier) &&
+        getAfter(histoirePath(serieId)).data.get('serieId', '') == serieId &&
+        d.titre is string && d.titre.size() > 0 && d.titre.size() <= 140 &&
+        d.titre == premier.titre &&
+        d.genre is string && d.genre.size() > 0 && d.genre.size() <= 80 &&
+        d.genre == premier.categorie &&
+        (
+          (premierImages.size() == 0 && d.couverture == null) ||
+          (premierImages.size() > 0 && d.couverture == premierImages[0])
+        ) &&
+        validSerieStatut(d) &&
+        d.dernierChapitre == 2 &&
+        d.dateCreation == request.time &&
+        d.dateMaj == request.time;
+    }
+
+    // Mise a jour par l'auteur : avancement (+1) et statut seulement.
+    function validSerieUpdate() {
+      let d = request.resource.data;
+      return d.diff(resource.data).affectedKeys().hasOnly(['dernierChapitre', 'statut', 'dateMaj']) &&
+        validSerieStatut(d) &&
+        d.dernierChapitre is int &&
+        (d.dernierChapitre == resource.data.dernierChapitre || d.dernierChapitre == resource.data.dernierChapitre + 1) &&
+        d.dateMaj == request.time;
     }
 
     // L'auteur ne peut modifier le contenu que tant que l'histoire n'est pas publiee,
@@ -525,11 +607,19 @@ service cloud.firestore {
         (signedIn() && resource.data.auteurId == request.auth.uid);
       allow create: if signedIn() && isActif() && validStoryCreate();
       allow update: if signedIn() && (
-        (resource.data.auteurId == request.auth.uid && isActif() && validStoryOwnerUpdate()) ||
+        (resource.data.auteurId == request.auth.uid && isActif() && (validStoryOwnerUpdate() || validChapterOneAttach(histoireId))) ||
         (isActif() && storyCountersOnly(histoireId)) ||
         (isModo() && (validModoStoryUpdate() || validModoEditorialUpdate() || validModoCoupDeCoeurUpdate()))
       );
       allow delete: if signedIn() && resource.data.auteurId == request.auth.uid;
+    }
+
+    // Series : lecture publique (titre et genre viennent d'un chapitre 1 deja publie).
+    match /series/{serieId} {
+      allow read: if true;
+      allow create: if signedIn() && isActif() && validSerieCreate(serieId);
+      allow update: if signedIn() && isActif() && resource.data.auteurId == request.auth.uid && validSerieUpdate();
+      allow delete: if false;
     }
 
     match /commentaires/{commentaireId} {
