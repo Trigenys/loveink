@@ -141,3 +141,35 @@ test('coup de coeur : refuse aux non-modos, aux dates forgees, aux autres champs
   await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'histoires', 'h1'), { statut: 'en_attente' }));
   await assertFails(updateDoc(doc(db(MODO), 'histoires', 'h1'), { coupDeCoeur: serverTimestamp(), coupDeCoeurPar: MODO }));
 });
+
+// --- Images d'histoire : 0 a 4 references { id, w, h, alt } ---
+const img = (n) => ({ id: `00000000-0000-4000-8000-00000000000${n}`, w: 1600, h: 1200, alt: `photo ${n}` });
+test('images : creation avec 1 et 4 images acceptee, 5 refusee', async () => {
+  await assertSucceeds(setDoc(doc(db(B), 'histoires', 'i1'), { ...story(B, 'en_attente'), images: [img(1)] }));
+  await assertSucceeds(setDoc(doc(db(B), 'histoires', 'i4'), { ...story(B, 'en_attente'), images: [img(1), img(2), img(3), img(4)] }));
+  await assertFails(setDoc(doc(db(B), 'histoires', 'i5'), { ...story(B, 'en_attente'), images: [img(1), img(2), img(3), img(4), img(5)] }));
+});
+test('images : forme d\'item invalide refusee', async () => {
+  const create = (id, images) => setDoc(doc(db(B), 'histoires', id), { ...story(B, 'en_attente'), images });
+  await assertFails(create('b1', [{ ...img(1), id: 'court' }]));
+  await assertFails(create('b2', [{ ...img(1), w: 1.5 }]));
+  await assertFails(create('b3', [{ ...img(1), alt: 'x'.repeat(201) }]));
+  await assertFails(create('b4', [{ ...img(1), url: 'https://evil.example' }]));
+  await assertFails(create('b5', [{ id: img(1).id, w: 1, h: 1 }]));
+  await assertFails(create('b6', [img(1), 'pas-une-map']));
+  await assertFails(create('b7', 'pas-une-liste'));
+});
+test('images : l\'auteur met a jour les images d\'une histoire en attente', async () => {
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'histoires', 'p1'), { ...story(B, 'en_attente'), date: new Date(), images: [img(1)] }));
+  await assertSucceeds(updateDoc(doc(db(B), 'histoires', 'p1'), { images: [img(1), img(2)] }));
+  await assertFails(updateDoc(doc(db(B), 'histoires', 'p1'), { images: [img(1), { ...img(2), id: 'x' }] }));
+});
+test('images : un modo edite les images avant publication', async () => {
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'histoires', 'p2'), { ...story(B, 'en_attente'), date: new Date(), images: [img(1), img(2)] }));
+  const edit = (images) => updateDoc(doc(db(MODO), 'histoires', 'p2'), {
+    titre: 't2', contenu: 'x2', extrait: 'x2', image: 'images/a.jpg', images,
+    moderateurId: MODO, dateModeration: serverTimestamp(), dateEditionModeration: serverTimestamp()
+  });
+  await assertFails(edit([img(1), { ...img(2), alt: 3 }]));
+  await assertSucceeds(edit([img(2)]));
+});

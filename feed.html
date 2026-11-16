@@ -273,63 +273,6 @@
 
         .section-title em { font-style: italic; }
 
-        .categories-section { padding: 60px 5vw 80px; }
-
-        .categories-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-            gap: 16px;
-        }
-
-        .cat-card {
-            background: white;
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 24px 16px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
-            text-decoration: none;
-            display: block;
-            color: inherit;
-        }
-
-        .cat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 28px rgba(122,62,62,0.1);
-            border-color: var(--rose-soft);
-        }
-
-        .cat-icon {
-            width: 48px;
-            height: 48px;
-            background: var(--rose-pale);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 12px;
-            transition: background var(--transition);
-        }
-
-        .cat-card:hover .cat-icon { background: var(--rose-soft); }
-        .cat-icon i { color: var(--rose-deep); font-size: 18px; }
-
-        .cat-name {
-            font-family: var(--font-serif);
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--rose-deep);
-            line-height: 1.3;
-            margin-bottom: 6px;
-        }
-
-        .cat-count {
-            font-size: 12px;
-            color: var(--ink-faint);
-            letter-spacing: 0.03em;
-        }
-
         .stories-section {
             background: var(--rose-blush);
             padding: 60px 5vw 80px;
@@ -585,6 +528,10 @@
 
         .animate.visible { animation: fadeUp 0.5s ease forwards; }
 
+        @media (prefers-reduced-motion: reduce) {
+            .animate, .animate.visible { opacity: 1; animation: none; }
+        }
+
         footer {
             background: var(--rose-deep);
             color: rgba(255,255,255,0.7);
@@ -643,6 +590,7 @@
     <link rel="stylesheet" href="css/feed-extras.css">
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/feed-categories.css">
     <script type="module" src="js/components/feed-extras.js"></script>
     <script src="js/core/immersive.js" defer></script>
 </head>
@@ -665,9 +613,13 @@
         <section class="li-continue" id="liContinue" aria-label="Continuer a lire" hidden></section>
     </div>
 
-    <section class="categories-section" id="categories">
-        <h2 class="section-title">Explorez par <em>catégorie</em></h2>
-        <div class="categories-grid" id="categoriesGrid"></div>
+    <section class="categories-section li-cats" id="categories" aria-labelledby="categoriesTitle">
+        <div class="li-cats__head">
+            <p class="li-cats__eyebrow">Genres</p>
+            <h2 class="section-title" id="categoriesTitle">Explorez par <em>catégorie</em></h2>
+            <p class="li-cats__lede" id="categoriesLede">18 genres à explorer. Choisissez-en un pour filtrer les histoires.</p>
+        </div>
+        <nav class="categories-grid" id="categoriesGrid" aria-label="Genres d'histoires"></nav>
     </section>
 
     <section class="stories-section" id="storiesSection">
@@ -700,30 +652,12 @@
     <script type="module">
     import { auth } from './js/core/firebase-config.js';
     import { firebaseAPI } from './js/core/firebase-data.js';
+    import { storyImages, storyImageUrl } from './js/core/story-images.js';
     import { notify } from './js/components/ui-notify.js';
     import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
     import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+    import { renderCategoryTiles, applyCategoryCounts, markActiveCategory, loadCategoryCounts } from './js/components/feed-categories.js';
 
-    const CATEGORIES = [
-        { nom: 'Premier amour', icon: 'fa-heart' },
-        { nom: 'Amour des hommes illustres', icon: 'fa-crown' },
-        { nom: 'Amour farfelu', icon: 'fa-hat-wizard' },
-        { nom: 'Amour heureux', icon: 'fa-smile' },
-        { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles' },
-        { nom: 'Amour virtuel', icon: 'fa-globe' },
-        { nom: 'Aventure estivale', icon: 'fa-sun' },
-        { nom: 'Belles histoires', icon: 'fa-star' },
-        { nom: "De l'amitie a l'amour", icon: 'fa-handshake' },
-        { nom: 'Histoires de couples', icon: 'fa-people-arrows' },
-        { nom: 'Histoires tristes', icon: 'fa-cloud-rain' },
-        { nom: 'Interessant', icon: 'fa-lightbulb' },
-        { nom: "Lettres d'amour", icon: 'fa-envelope' },
-        { nom: 'Nos conseils', icon: 'fa-comment-dots' },
-        { nom: "Poesie d'amour", icon: 'fa-feather' },
-        { nom: 'Rapport occasionnel', icon: 'fa-calendar-check' },
-        { nom: 'Rencontres', icon: 'fa-user-group' },
-        { nom: 'Divers', icon: 'fa-ellipsis' }
-    ];
 
     const categoriesGrid = document.getElementById('categoriesGrid');
     const storiesGrid = document.getElementById('storiesGrid');
@@ -764,31 +698,29 @@
     }
 
     function renderCategories() {
-        categoriesGrid.innerHTML = '';
-
-        CATEGORIES.forEach((cat, idx) => {
-            const card = document.createElement('a');
-            card.href = '#storiesSection';
-            card.className = 'cat-card animate';
-            card.style.animationDelay = `${idx * 0.04}s`;
-            card.innerHTML = `
-                <div class="cat-icon"><i class="fas ${cat.icon}"></i></div>
-                <div class="cat-name">${escapeHtml(cat.nom)}</div>
-            `;
-            card.addEventListener('click', () => {
+        renderCategoryTiles(categoriesGrid, {
+            onSelect: (cat) => {
                 searchInput.value = cat.nom;
                 applySearch();
-            });
-            categoriesGrid.appendChild(card);
+            }
         });
+        markActiveCategory(categoriesGrid, searchInput.value);
 
         // Les categories sont injectees dynamiquement: il faut rattacher l'animation apres rendu.
         observeAnimations();
+
+        // Compteurs par genre : facultatifs, la grille reste utilisable s'ils echouent.
+        loadCategoryCounts(firebaseAPI.compterHistoiresParCategorie)
+            .then((counts) => applyCategoryCounts(categoriesGrid, counts, document.getElementById('categoriesLede')))
+            .catch((error) => console.warn('Compteurs de categories indisponibles:', error));
     }
 
     function createStoryCard(story, index) {
         const href = `histoire.html?id=${encodeURIComponent(story.id || '')}`;
-        const hasImage = isValidUrl(story.image || '');
+        // Vignette : premiere image de l'histoire (variante w320) sinon illustration de categorie.
+        const [firstImage] = storyImages(story);
+        const thumbSrc = firstImage ? storyImageUrl(firstImage.id, 320) : String(story.image || '');
+        const hasImage = isValidUrl(thumbSrc);
         const card = document.createElement('a');
         card.href = href;
         card.className = 'story-card animate';
@@ -805,7 +737,7 @@
         card.innerHTML = `
             <div class="story-img">
                 ${hasImage
-                    ? `<img src="${escapeHtml(story.image)}" alt="Illustration de ${titre}">`
+                    ? `<img src="${escapeHtml(thumbSrc)}" alt="${firstImage?.alt ? escapeHtml(firstImage.alt) : `Illustration de ${titre}`}" loading="lazy">`
                     : `<div class="story-img-placeholder"><i class="fas fa-heart"></i></div>`}
                 <span class="story-badge">${categorie}</span>
             </div>
@@ -851,6 +783,7 @@
 
     function applySearch() {
         const query = searchInput.value.trim().toLowerCase();
+        markActiveCategory(categoriesGrid, query);
         if (!query) {
             renderStories(allStories);
             return;

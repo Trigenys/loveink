@@ -246,3 +246,14 @@ html.li-focus .story-page { padding-top: 24px; }
     .li-reader-bar, .li-reader-panel, .li-resume, .li-story-end { display: none !important; }
 }
 .story-page .story-rights { margin: 18px 0 0; font-size: 0.82rem; opacity: 0.75; }
+/* Galerie d'images d'une histoire (1 a 4) */
+.story-gallery { display: grid; gap: 10px; margin: 0 0 28px; grid-template-columns: 1fr; }
+.story-gallery[data-count="2"], .story-gallery[data-count="4"] { grid-template-columns: repeat(2, 1fr); }
+.story-gallery[data-count="3"] { grid-template-columns: repeat(2, 1fr); }
+.story-gallery[data-count="3"] .story-gallery-item:first-child { grid-column: 1 / -1; }
+.story-gallery-item { margin: 0; border-radius: 12px; overflow: hidden; background: rgba(183, 110, 110, 0.08); }
+.story-gallery-item img { display: block; width: 100%; height: auto; max-height: 70vh; object-fit: cover; }
+.story-gallery[data-count="2"] .story-gallery-item img,
+.story-gallery[data-count="3"] .story-gallery-item img,
+.story-gallery[data-count="4"] .story-gallery-item img { aspect-ratio: 4 / 3; height: 100%; }
+@media print { .story-gallery { display: none; } }

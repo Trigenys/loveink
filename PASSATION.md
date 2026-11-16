@@ -569,6 +569,25 @@
 - Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
 - Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
 
+## 2026-11-16 12:49 — Refonte de « Explorez par catégorie » (/feed)
+- Branche feat/feed-categories-redesign (depuis origin/main b9be392), PR ouverte, non fusionnée (en attente d'accord).
+- Nouveau composant js/components/feed-categories.js (données + rendu + fonctions pures) et css/feed-categories.css. Le CSS inline de l'ancienne grille est retiré de feed.html.
+- Les 6 genres qui ont un visuel de la landing sont affichés en tuiles photo (carrousel à accroche sur mobile), les 12 autres en liste compacte. Animations au survol et au focus, état actif (aria-current) synchronisé avec la recherche, prefers-reduced-motion respecté.
+- Les clés de données (`nom`) sont inchangées et servent toujours à la recherche ; seuls les libellés affichés sont accentués (« De l'amitié à l'amour », « Intéressant », « Poésie d'amour »).
+- Compteurs par genre : firebaseAPI.compterHistoiresParCategorie (getCountFromServer, statut=='publie' + categorie==nom, sans index composite), mis en cache 10 min dans sessionStorage (clé loveInk_catCounts). En cas d'échec, rien n'est affiché.
+- Vérifié :
+  - test:seo 79/79 sur une copie en LF.
+  - Sur ce checkout Windows, 2 tests robots.txt échouent déjà sur la base, à cause du CRLF dû à core.autocrlf (voir lessons-learned).
+  - Harnais Playwright avec Firebase stubbé, sans appel prod : clic catégorie → recherche + filtre + vignette w320 conservés ; captures dans docs/pr/feed-categories/.
+- Non vérifié : comptage réel contre Firestore prod (règles publiques en lecture sur statut publie ; à observer après déploiement).
+
+## 2026-11-16 14:32 — /feed catégories en prod + chapeau à 0 histoire
+- La PR #36 est fusionnée (02a58e8) et déployée. Vérifié sur loveink.site : le CSS et le JS de feed-categories sont servis en 200.
+- Le comptage par genre (requête d'agrégation statut publie + categorie) fonctionne sans connexion. Il renvoie 0 partout : la prod n'a encore aucune histoire publiée.
+- Correctif (fix/feed-categories-empty-lede) : quand le total vaut 0, le chapeau garde le texte par défaut au lieu de « 0 histoire publiée ».
+- Reste :
+  - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
+  - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).
 ## 2026-11-16 10:43 — Inscription : retour à la connexion après l'e-mail de confirmation
 - Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
 - Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).

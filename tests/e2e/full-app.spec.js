@@ -10,6 +10,7 @@ const {
     ensureMessagingConversationOpen,
     waitForRedirectWithModalHandling
 } = require('./helpers/app');
+const { mockMediaStorage, tinyImageFile } = require('./helpers/media-mock');
 
 test.describe('Love Ink - E2E global', () => {
     test('garde d auth: un visiteur est redirige des pages privees', async ({ page }) => {
@@ -25,6 +26,7 @@ test.describe('Love Ink - E2E global', () => {
 
     test('parcours complet utilisateur: inscription -> feed -> publication -> profil -> parametres -> notifications -> relogin', async ({ page }) => {
         const user = makeUser('flow');
+        const mediaCalls = await mockMediaStorage(page);
         await registerWithUi(page, user, { type: 'lesdeux', bio: 'Bio e2e initiale' });
         await ensureFeedLoaded(page);
 
@@ -40,6 +42,8 @@ test.describe('Love Ink - E2E global', () => {
             await page.fill('#titre', `Histoire e2e ${Date.now()}`);
             await page.selectOption('#categorie', 'Rencontres');
             await page.fill('#contenu', 'Contenu automatique e2e. '.repeat(40));
+            await page.setInputFiles('#imagesInput', tinyImageFile());
+            await expect(page.locator('#imagePreviews .image-preview')).toHaveCount(1);
             await page.click('#publishSubmitBtn');
             await waitForRedirectWithModalHandling(
                 page,
@@ -59,6 +63,8 @@ test.describe('Love Ink - E2E global', () => {
             await submitStory();
         }
         await expect(page.locator('#panel-histoires')).toBeVisible();
+        expect(mediaCalls.some((c) => c.method === 'POST' && c.path === '/v1/uploads/authorize')).toBe(true);
+        expect(mediaCalls.some((c) => c.method === 'PUT')).toBe(true);
 
         // L'auteur peut relire une histoire encore en revision depuis son profil.
         await page.locator('#panel-histoires .story-card .story-edit-btn').first().click();

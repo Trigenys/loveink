@@ -59,3 +59,14 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Reste ouvert** : `publier.html` remplit `auteur` avec `email.split('@')[0]` quand le compte n'a pas de
   `displayName` ; cette partie locale n'est pas détectable par le générateur. Correctif côté saisie suivi
   en issue (pseudonyme obligatoire avant publication).
+
+## 2026-11-16 — `test:seo` rouge en local Windows à cause du CRLF
+
+- **Contexte** : refonte des catégories du fil ; `npm run test:seo` lancé sur un worktree Windows.
+- **Cause** : `core.autocrlf=true` et aucun `.gitattributes`, donc `robots.txt` est extrait en CRLF. Les tests
+  `seo.test.mjs` cherchent `Disallow: /feed\n`. Deux tests échouent sans aucun changement (faux rouge), alors
+  que la CI Linux est verte.
+- **Classification** : near miss d'outillage / environnement ; risque de masquer une vraie régression.
+- **Résolution** : vérification de la suite sur une copie en LF (`git -c core.autocrlf=false worktree add`).
+- **Prévention proposée** : ajouter un `.gitattributes` (`* text=auto eol=lf`) ou normaliser `\r\n` dans les tests
+  qui lisent des fichiers texte. Ce changement est transversal et fait l'objet d'une PR dédiée.

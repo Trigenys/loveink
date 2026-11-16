@@ -126,6 +126,65 @@
         .btn-approve:hover {
             background: #3f855f;
         }
+
+        .images-hint {
+            margin: 0 0 10px;
+            color: #8a6f66;
+            font-size: 0.85rem;
+            line-height: 1.5;
+        }
+
+        .image-previews {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .image-preview {
+            margin: 0;
+            border: 2px solid #f0e4e0;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #fffaf8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .image-preview img {
+            width: 100%;
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            display: block;
+            background: #f6ece8;
+        }
+
+        .image-preview .form-group-inline {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .image-preview input[type="text"] {
+            padding: 8px 10px;
+            font-size: 0.85rem;
+        }
+
+        .image-preview .btn-remove-image {
+            background: none;
+            border: 1px solid #b76e6e;
+            color: #b76e6e;
+            border-radius: 8px;
+            padding: 6px 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+        }
+
+        .image-preview .btn-remove-image:hover {
+            background: #b76e6e;
+            color: white;
+        }
     </style>
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
@@ -173,7 +232,15 @@
                     <textarea id="contenu" placeholder="Il était une fois..." required></textarea>
                     <div class="char-counter" id="charCount">0 caractères</div>
                 </div>
-                
+
+                <div class="form-group" id="imagesGroup">
+                    <label for="imagesInput">Images de l'histoire <span id="imagesRequiredMark">*</span></label>
+                    <p class="images-hint" id="imagesHint">De 1 à 4 images. Elles restent privées jusqu'à la validation par la modération. Décrivez chaque image en quelques mots pour les lecteurs malvoyants.</p>
+                    <input type="file" id="imagesInput" accept="image/*" multiple>
+                    <div class="image-previews" id="imagePreviews" aria-live="polite"></div>
+                    <div class="char-counter" id="imagesCount">0 / 4 image</div>
+                </div>
+
                 <button type="submit" class="btn-publish" id="publishSubmitBtn" data-action="publish">Publier mon histoire</button>
 
                 <div class="moderation-actions" id="moderationActions">
@@ -191,6 +258,10 @@
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { MEDIA_CONFIG } from './js/core/media-config.js';
+        import {
+            checkStoryFiles, cleanAlt, deleteStoryImages, getMediaClient, publishStoryImages, storyImages
+        } from './js/core/story-images.js';
 
         const contenu = document.getElementById('contenu');
         const charCount = document.getElementById('charCount');
@@ -205,6 +276,110 @@
         let currentUserRole = 'user';
         let moderationStoryId = '';
         let moderationStory = null;
+
+        // ===== Images (1 a 4, privees jusqu'a la validation) =====
+        const imagesInput = document.getElementById('imagesInput');
+        const imagePreviews = document.getElementById('imagePreviews');
+        const imagesCount = document.getElementById('imagesCount');
+        const imagesHint = document.getElementById('imagesHint');
+        const imagesRequiredMark = document.getElementById('imagesRequiredMark');
+        // { key, file?, existing?, alt, previewUrl, revoke }
+        let selectedImages = [];
+        let removedExistingIds = [];
+        let imageKey = 0;
+
+        function renderImagePreviews() {
+            imagePreviews.replaceChildren();
+            selectedImages.forEach((entry, index) => {
+                const figure = document.createElement('figure');
+                figure.className = 'image-preview';
+                figure.dataset.key = String(entry.key);
+
+                const img = document.createElement('img');
+                img.alt = `Aperçu de l'image ${index + 1}`;
+                if (entry.previewUrl) img.src = entry.previewUrl;
+                figure.appendChild(img);
+
+                const box = document.createElement('div');
+                box.className = 'form-group-inline';
+                const altInput = document.createElement('input');
+                altInput.type = 'text';
+                altInput.maxLength = MEDIA_CONFIG.altMaxLength;
+                altInput.placeholder = "Description de l'image";
+                altInput.setAttribute('aria-label', `Description de l'image ${index + 1}`);
+                altInput.value = entry.alt || '';
+                altInput.addEventListener('input', () => { entry.alt = altInput.value; });
+                box.appendChild(altInput);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn-remove-image';
+                removeBtn.textContent = 'Retirer';
+                removeBtn.setAttribute('aria-label', `Retirer l'image ${index + 1}`);
+                removeBtn.addEventListener('click', () => removeImage(entry.key));
+                box.appendChild(removeBtn);
+
+                figure.appendChild(box);
+                imagePreviews.appendChild(figure);
+            });
+
+            const n = selectedImages.length;
+            imagesCount.textContent = `${n} / ${MEDIA_CONFIG.maxImages} image${n > 1 ? 's' : ''}`;
+            imagesInput.disabled = n >= MEDIA_CONFIG.maxImages;
+        }
+
+        function removeImage(key) {
+            const entry = selectedImages.find((e) => e.key === key);
+            if (!entry) return;
+            if (entry.revoke && entry.previewUrl) URL.revokeObjectURL(entry.previewUrl);
+            if (entry.existing) removedExistingIds.push(entry.existing.id);
+            selectedImages = selectedImages.filter((e) => e.key !== key);
+            renderImagePreviews();
+        }
+
+        imagesInput.addEventListener('change', async () => {
+            const files = Array.from(imagesInput.files || []);
+            imagesInput.value = '';
+            if (!files.length) return;
+            const room = MEDIA_CONFIG.maxImages - selectedImages.length;
+            const accepted = files.slice(0, Math.max(0, room));
+            const check = checkStoryFiles(accepted, { min: 0 });
+            if (!check.ok) {
+                await notify('warning', check.error, { title: 'Images' });
+                return;
+            }
+            accepted.forEach((file) => {
+                selectedImages.push({ key: ++imageKey, file, alt: '', previewUrl: URL.createObjectURL(file), revoke: true });
+            });
+            renderImagePreviews();
+            if (files.length > accepted.length) {
+                await notify('warning', `${MEDIA_CONFIG.maxImages} images maximum : ${files.length - accepted.length} image(s) ignoree(s).`, { title: 'Images' });
+            }
+        });
+
+        // Mode moderation : images existantes (privees) affichees via URLs blob authentifiees.
+        async function loadExistingImages(story) {
+            const media = getMediaClient();
+            const existing = storyImages(story);
+            selectedImages = existing.map((image) => ({ key: ++imageKey, existing: image, alt: image.alt || '', previewUrl: '', revoke: false }));
+            removedExistingIds = [];
+            renderImagePreviews();
+            await Promise.all(selectedImages.map(async (entry) => {
+                try {
+                    entry.previewUrl = await media.resolveSrc(entry.existing.id, { isPublic: false, variant: 320 });
+                    entry.revoke = true;
+                } catch (error) {
+                    console.warn('Apercu indisponible:', entry.existing.id, error?.message || error);
+                }
+            }));
+            renderImagePreviews();
+        }
+
+        window.addEventListener('pagehide', () => {
+            selectedImages.forEach((e) => { if (e.revoke && e.previewUrl) URL.revokeObjectURL(e.previewUrl); });
+        });
+
+        renderImagePreviews();
 
         function getEditStoryIdFromUrl() {
             return new URLSearchParams(window.location.search).get('edit') || '';
@@ -246,6 +421,10 @@
             moderationBanner.innerHTML = hasOriginal
                 ? 'Mode moderation actif. Version originale deja conservee. Vos modifications resteront tracables.'
                 : 'Mode moderation actif. La version originale sera sauvegardee automatiquement a la premiere correction.';
+
+            imagesInput.hidden = true;
+            imagesRequiredMark.hidden = true;
+            imagesHint.textContent = "Images privees soumises par l'auteur. Vous pouvez en retirer ou corriger leur description ; elles deviennent publiques a l'approbation.";
         }
 
         async function loadModerationStory() {
@@ -276,6 +455,7 @@
             contenu.value = story.contenu || '';
             charCount.textContent = `${contenu.value.length} caractères`;
             enableModerationMode(story);
+            await loadExistingImages(story);
         }
 
         wireNavInteractions({
@@ -329,15 +509,24 @@
 
                 if (moderationStoryId) {
                     const approveNow = action === 'approve';
+                    const keptImages = selectedImages
+                        .filter((e) => e.existing)
+                        .map((e) => ({ ...e.existing, alt: cleanAlt(e.alt) }));
                     const result = await firebaseAPI.editerHistoireModeration(
                         moderationStoryId,
                         currentUser.uid,
-                        { titre, categorie, contenu: contenuTexte },
+                        { titre, categorie, contenu: contenuTexte, images: keptImages },
                         { approuver: approveNow }
                     );
 
                     if (!result?.ok) {
                         throw new Error(result?.error || 'edit-failed');
+                    }
+
+                    // Suppression des images retirees seulement une fois la mise a jour enregistree.
+                    if (removedExistingIds.length) {
+                        await deleteStoryImages(removedExistingIds);
+                        removedExistingIds = [];
                     }
 
                     if (approveNow) {
@@ -349,10 +538,32 @@
                     return;
                 }
 
-                const auteur = currentUser.displayName || currentUser.email.split('@')[0];
-                const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid);
+                const newImages = selectedImages.filter((e) => e.file);
+                const check = checkStoryFiles(newImages.map((e) => e.file));
+                if (!check.ok) {
+                    await notify('warning', check.error, { title: 'Images' });
+                    setSubmittingState(action, false);
+                    return;
+                }
 
-                if (!histoireId) throw new Error('ID null');
+                const images = await publishStoryImages(
+                    newImages.map((e) => ({ file: e.file, alt: e.alt })),
+                    {
+                        onProgress: ({ index, total, step }) => {
+                            publishSubmitBtn.textContent = `Image ${index + 1}/${total} : ${step === 'compress' ? 'compression' : 'envoi'}...`;
+                        }
+                    }
+                );
+                publishSubmitBtn.textContent = 'Envoi en cours...';
+
+                const auteur = currentUser.displayName || currentUser.email.split('@')[0];
+                const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid, images);
+
+                if (!histoireId) {
+                    // L'histoire n'a pas ete creee : on ne laisse pas d'images orphelines.
+                    await deleteStoryImages(images.map((i) => i.id));
+                    throw new Error("l'histoire n'a pas pu etre enregistree");
+                }
 
                 await notify('success', 'Histoire soumise ! Elle sera visible apres validation par un moderateur.', { title: 'Publication' });
                 window.location.href = 'profil.html?tab=histoires&status=en_attente';
