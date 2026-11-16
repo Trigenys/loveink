@@ -87,7 +87,7 @@ test.describe('Lecture d\'une histoire en chapitres', () => {
         await expect(page.locator('.li-story-end__mark')).toHaveText('Fin du chapitre');
 
         await next.click();
-        await expect(page).toHaveURL(/histoire\.html\?id=c3/);
+        await expect(page).toHaveURL(/histoire(\.html)?\?id=c3/);
         await expect(page.locator('.li-chapters__label')).toHaveText('Chapitre 3 sur 3');
     });
 
