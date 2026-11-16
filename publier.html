@@ -43,6 +43,10 @@
         <p class="li-sr-only" aria-live="polite" data-wizard-announce></p>
 
         <form class="li-write__card publish-form" id="publishForm" novalidate>
+            <div class="author-pseudo-notice" id="authorPseudoNotice" role="alert">
+                <span id="authorPseudoNoticeText"></span>
+                <a href="parametres.html" id="authorPseudoNoticeLink">Choisir mon pseudonyme</a>
+            </div>
             <!-- Étape 1 : genre. La liste des valeurs fait foi pour data/genres.json (tests/seo/generator.test.mjs). -->
             <section class="li-step" data-step="categorie" aria-labelledby="stepTitleCategorie">
                 <p class="li-step__kicker">Étape 1 sur 5</p>
@@ -202,6 +206,7 @@
         import { firebaseAPI } from './js/core/firebase-data.js';
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
+        import { resolvePublicAuthorName, authorNameErrorMessage, PSEUDO_SETTINGS_URL } from './js/core/public-author.js';
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
         import { MEDIA_CONFIG } from './js/core/media-config.js';
         import {
@@ -228,6 +233,7 @@
 
         let currentUser = null;
         let currentUserRole = 'user';
+        let currentUserProfile = null;
         let moderationStoryId = '';
         let moderationStory = null;
 
@@ -402,7 +408,16 @@
         function auteurPublic() {
             if (moderationStory) return moderationStory.auteur || '';
             if (!currentUser) return '';
-            return currentUser.displayName || currentUser.email.split('@')[0];
+            // Pseudonyme du profil uniquement, jamais dérivé de l'e-mail.
+            const authorName = resolvePublicAuthorName(currentUserProfile, currentUser);
+            return authorName.ok ? authorName.auteur : '';
+        }
+
+        function showAuthorPseudoNotice(reason) {
+            const notice = document.getElementById('authorPseudoNotice');
+            document.getElementById('authorPseudoNoticeText').textContent = authorNameErrorMessage(reason) + ' ';
+            document.getElementById('authorPseudoNoticeLink').href = PSEUDO_SETTINGS_URL;
+            notice.style.display = 'block';
         }
 
         function renderPreview() {
@@ -615,8 +630,13 @@
                 currentUser = user;
                 setNavPseudo(pseudo);
                 const profile = await firebaseAPI.getUtilisateur(user.uid);
+                currentUserProfile = profile || null;
                 currentUserRole = String(profile?.role || 'user');
                 await loadModerationStory();
+                if (!moderationStoryId) {
+                    const authorName = resolvePublicAuthorName(currentUserProfile, user);
+                    if (!authorName.ok) showAuthorPseudoNotice(authorName.reason);
+                }
                 if (!moderationStoryId) restoreDraft(user.uid);
             }
         });
@@ -679,6 +699,18 @@
                     return;
                 }
 
+                // Nom public = pseudonyme du profil uniquement, jamais dérivé de l'e-mail.
+                // Relu au moment de publier : le pseudo a pu changer dans un autre onglet.
+                currentUserProfile = (await firebaseAPI.getUtilisateur(currentUser.uid)) || currentUserProfile;
+                const authorName = resolvePublicAuthorName(currentUserProfile, currentUser);
+                if (!authorName.ok) {
+                    showAuthorPseudoNotice(authorName.reason);
+                    await notify('warning', authorNameErrorMessage(authorName.reason), { title: 'Publication' });
+                    setSubmittingState(action, false);
+                    return;
+                }
+                document.getElementById('authorPseudoNotice').style.display = 'none';
+                const auteur = authorName.auteur;
                 const newImages = selectedImages.filter((e) => e.file);
                 const check = checkStoryFiles(newImages.map((e) => e.file));
                 if (!check.ok) {
@@ -697,7 +729,6 @@
                 );
                 publishSubmitBtn.textContent = 'Envoi en cours...';
 
-                const auteur = auteurPublic();
                 const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid, images);
 
                 if (!histoireId) {
