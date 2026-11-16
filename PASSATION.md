@@ -441,6 +441,19 @@
 - À faire : relecture des textes par Lee (`data/genres.json`, `data/ressources.json`) ; vérifier que `https://www.trigenys.com/#org` est bien l'`@id` publié par trigenys.com ; Rich Results Test après déploiement ; corriger le repli e-mail de `publier.html` (issue).
 - Verrous : aucun.
 
+## 2026-11-07 15:54 — Issue #7 : nom d'auteur public jamais dérivé de l'e-mail
+
+- Branche `fix/publier-auteur-pseudo` (depuis `main`), PR vers `main`, non fusionnée, aucun déploiement.
+- `publier.html` : nom d'auteur = pseudo du profil Firestore uniquement (`js/core/public-author.js`) ; sans pseudo
+  valide (vide, avec `@`, ou égal à l'identifiant de l'e-mail) → publication bloquée, bandeau + lien `parametres.html`.
+- `parametres.html` : pré-remplissage du pseudo sans repli sur l'e-mail (champ obligatoire laissé vide).
+- Test : `tests/seo/author-name.test.mjs` ; `node --test tests/seo/*.test.mjs` → 51/51.
+- Piège local Windows : avec `core.autocrlf=true`, `robots.txt` en CRLF fait échouer 2 tests de `hosting.test.mjs`
+  (déjà le cas sur `main`, la CI Linux est en LF). Recharger : `rm robots.txt && git -c core.autocrlf=false checkout -- robots.txt`.
+- Reste (issue #7) : recenser les histoires existantes dont `auteur` provient de l'ancien repli ; `getUserPseudo()`
+  (`js/core/auth-session.js`) et `profil.html` gardent un repli e-mail pour l'affichage privé (nav, profil).
+- Conflit attendu en fin de `lessons-learned.md` avec la PR #2 (deux ajouts en fin de fichier) : garder les deux.
+
 ## 2026-11-09 08:02 — PR 1 prête à merger
 
 - PR 2 avait été mergée sur main le 07/11 ; main garde l'ancien workflow à clé → Firebase Deploy et SEO refresh en échec (secret JSON absent) jusqu'au merge de PR 1.
@@ -569,6 +582,11 @@
 - Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
 - Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
 
+## 2026-11-09 22:19 — Recette e2e prod (rôles + interactions)
+- Branche test/e2e-prod-roles : tests/e2e/prod/ (accounts, setup.spec, scenario.spec, teardown, run). Scripts : e2e:prod:setup, e2e:prod (nettoie toujours), e2e:prod:keep, e2e:prod:teardown.
+- Comptes jetables + mots de passe générés dans .env.e2e.json (ignoré par git). npm test n'inclut jamais tests/e2e/prod (testIgnore sauf E2E_PROD=1).
+- Déroulé : l'utilisateur lance setup → rôles modo/censeur posés via console Firestore (uids affichés) → l'utilisateur lance e2e:prod → nettoyage console des notifications/conversations/messages/ops_logs listés.
+- Anciennes données de test encore à nettoyer : histoire 454vUtYCNABRZlWH9xvU, claude_test, « Plume 1448 », flow-1794245289333-63693, comptes smoke/msgA/msgB.
 ## 2026-11-16 12:49 — Refonte de « Explorez par catégorie » (/feed)
 - Branche feat/feed-categories-redesign (depuis origin/main b9be392), PR ouverte, non fusionnée (en attente d'accord).
 - Nouveau composant js/components/feed-categories.js (données + rendu + fonctions pures) et css/feed-categories.css. Le CSS inline de l'ancienne grille est retiré de feed.html.
@@ -597,6 +615,102 @@
 - 4 visuels ajoutés dans images/landing/ (320×400 WebP) : cat-heureux, cat-lettres, cat-poesie, cat-rencontres. Les 8 tuiles de l'étape « genre » ont maintenant une photo ; Rencontres n'emprunte plus cat-seconde-chance.
 - Dégradés de secours .li-genre--happy/--letter/--poem retirés (plus utilisés) ; l'icône reste pour une catégorie héritée.
 - PR #38 toujours ouverte, ne pas fusionner ni déployer sans accord explicite.
+## 2026-11-16 14:32 — /feed catégories en prod + chapeau à 0 histoire
+- La PR #36 est fusionnée (02a58e8) et déployée. Vérifié sur loveink.site : le CSS et le JS de feed-categories sont servis en 200.
+- Le comptage par genre (requête d'agrégation statut publie + categorie) fonctionne sans connexion. Il renvoie 0 partout : la prod n'a encore aucune histoire publiée.
+- Correctif (fix/feed-categories-empty-lede) : quand le total vaut 0, le chapeau garde le texte par défaut au lieu de « 0 histoire publiée ».
+- Reste :
+  - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
+  - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).
+
+## 2026-11-16 19:22 — Visuels pour les 12 genres sans image (/feed)
+- Branche feat/feed-categories-visuels : 12 nouveaux visuels (images/landing/cat-*.webp, 320×400, ~5 Ko chacun), dans le style des 6 existants (nature morte, rose/bordeaux, sans personnage).
+- Les 18 genres sont désormais des tuiles photo (6 colonnes × 3 rangées sur ordinateur). Sur mobile : carrousel horizontal sur deux rangées. La liste compacte n'est plus rendue que s'il reste des genres sans visuel.
+- Le test d'intégrité exige un visuel distinct et présent pour chaque genre.
+- Captures avant/après : docs/pr/feed-categories-visuels/.
+## 2026-11-16 10:43 — Inscription : retour à la connexion après l'e-mail de confirmation
+- Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
+- Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).
+- En parallèle : PR #33 (recette e2e prod) ouverte, en attente de npm run e2e:prod:setup. Transcription locale (faster-whisper medium) du vocal cliente du 2026-11-15 en cours → scratchpad vocal.txt ; premiers éléments : 1 à 4 images par histoire, espace modérateurs séparé où le modérateur peut corriger le texte.
+
+## 2026-11-16 10:54 — Piste images d'histoires (demande cliente)
+- Besoin : 1 à 4 images par histoire. Firebase Storage indisponible (plan Spark). Piste proposée : Cloudflare R2 + Worker qui vérifie le jeton Firebase. Pas de décision prise ni de code écrit.
+- PR #34 (redirection vers la connexion après inscription) et PR #33 (recette e2e prod) toujours ouvertes, fusion sur accord.
+
+## 2026-11-16 11:14 — Images via trigenys-storage + idées communauté
+- Projet existant : Trigenys/trigenys-storage (Worker Cloudflare + R2 privé + D1, WebP, variantes w320/w800, cache immuable). Prototype ; mise en prod (#5) non prouvée.
+- Écarts pour Love Ink : l'autorisation d'envoi exige un backend de confiance qui détient le secret du tenant (Love Ink n'en a pas, plan Spark) ; v1 = images publiques immuables seulement, sans retrait ni état « en attente ». À ajouter dans trigenys-storage : vérification du jeton Firebase par tenant, état non public jusqu'à approbation, suppression avec purge du cache.
+- Idées cliente (communauté) : défis d'écriture, salons thématiques, lectures partagées, badge « membre fondateur », noyau de 50 à 100 membres actifs. Rien de codé.
+- PR #33 et #34 toujours en attente d'accord.
+
+## 2026-11-16 11:32 — trigenys-storage : support Firebase pour les images Love Ink
+
+- PR Trigenys/trigenys-storage#13 (branche `feat/firebase-tenant-auth`) : tenants authentifiés par jeton Firebase, upload privé jusqu'à publication par un modérateur (rôle lu dans `utilisateurs/{uid}` avec le jeton de l'utilisateur), lecture privée propriétaire/modérateur, `POST .../visibility`, `DELETE` idempotent, plafond d'images en attente par utilisateur. `npm run check` : 20/20.
+- Pas encore fait (actions utilisateur) : merge de la PR, migration D1 0004, déploiement du Worker, ajout de l'entrée `loveink` au secret `TENANT_CONFIG_JSON` (forme dans `backend/README.md` du dépôt storage).
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP côté navigateur, publication/suppression des images depuis l'espace modérateur.
+
+## 2026-11-16 11:53 — Stockage images en prod + Search Console
+
+- trigenys-storage : PR #13 mergée ; migrations D1 0003 (no-op, objets déjà présents) et 0004 appliquées en prod ; Worker déployé (version d97d3e98, rollback 4eeb9aab). `TENANT_CONFIG_JSON` non touché (secret Xeption illisible).
+- PR Trigenys/trigenys-storage#14 (ouverte) : tenant `loveink` déclaré dans la variable non secrète `END_USER_TENANTS_JSON`. Le tenant n'est actif qu'après merge + `npx wrangler deploy --config wrangler.production.jsonc --keep-vars` depuis main.
+- Search Console (propriété préfixe https://loveink.site/) : sitemap relu (14 URL) ; indexation demandée pour 3 pages ressources, /ressources/, /histoires/, /, et genres premier-amour, lettres-d-amour, poesie-d-amour. Demain : genres amour-heureux, amour-magique, histoires-tristes, aventure-estivale, rencontres.
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP navigateur, publication/suppression des images dans l'espace modérateur.
+
+## 2026-11-16 11:56 — Tenant loveink actif sur trigenys-storage
+
+- PR Trigenys/trigenys-storage#14 mergée (8348f93) ; Worker redéployé depuis main avec `--keep-vars` : version 85770195 (rollback d97d3e98). Binding `END_USER_TENANTS_JSON` (tenant `loveink`) présent ; /health OK ; tests 21/21.
+- Non vérifié de bout en bout : un upload réel exige un jeton Firebase d'un compte Love Ink (à faire depuis le client une fois l'intégration écrite).
+- Prochaine étape : intégration client (sélecteur 1 à 4 images, WebP, publication/suppression par modérateur). Search Console : 5 genres restants demain.
+
+## 2026-11-16 12:07 — Intégration images (1 à 4 par histoire) : démarrage
+
+- Plan architecte retenu : ids seuls dans `histoires.images [{id,w,h,alt}]` (règles 0–4, UI impose minImages=1 sur les nouvelles soumissions, à confirmer avec la cliente) ; upload privé avant création ; le modo passe les images en public AVANT `statut: publie` ; rejet = images conservées (privées) ; suppression au retrait par le modo et à la suppression du compte.
+- Fichiers : js/core/media-config.js, js/core/media-storage.js (générique), js/core/story-images.js, publier.html, histoire.html, feed.html, js/core/firebase-data.js (approuver/éditer), parametres.html, firestore.rules (+ tests), firebase.json (CSP connect-src), scripts/build-seo-pages.mjs (og:image, optionnel).
+- Implémentation en cours sur une branche dédiée depuis origin/main (feat/story-images).
+
+## 2026-11-16 12:22 — Images histoires : PR #35 ouverte
+
+- Branche feat/story-images (6 commits, worktree .claude/worktrees/agent-acf9b11d9d09b4ae2), PR https://github.com/Trigenys/loveink/pull/35, non mergée (accord requis).
+- Tests : media 20/20, rules 20/20, seo 70/72 (2 échecs robots.txt dus au CRLF local, fichier non touché).
+- Non vérifié : parcours navigateur réel (sélecteur, WebP Safari, galerie privée), e2e non lancé (baseURL prod ; il écrirait une histoire).
+- Pas de suppression d'histoire unitaire dans l'app : seules les suppressions de compte nettoient les images.
+- Reste : og:image depuis images[0] (optionnel), confirmation cliente minImages=1, test réel après déploiement avec un compte cliente.
+
+## 2026-11-16 12:26 — Images histoires : mergé et déployé
+
+- PR #35 squash-mergée (b9be392), branche supprimée. Run Firebase Deploy 43857498810 : hosting + firestore (règles) OK.
+- Smoke prod : /publier et /histoire servent le nouveau code, media-storage.js 200, CSP connect-src contient le Worker, Worker /health 200.
+- Non vérifié : upload réel de bout en bout (nécessite un compte cliente ; interdit de créer un compte en prod). À faire par la cliente : publier une histoire avec 1 image, l'approuver en modo, vérifier l'affichage.
+- Reste : og:image depuis images[0], confirmation minImages=1, indexation des 5 genres restants (Search Console).
+
+## 2026-11-16 19:39 — Genres du fil alignés sur les 8 genres publiables (/feed)
+- Constat : le fil affichait 18 genres, mais le formulaire de publication (publier.html) n'en propose que 8. Les 10 autres ne pouvaient donc jamais contenir d'histoire. En plus, la tuile « Poesie d'amour » (sans accent) ne correspondait pas à la valeur stockée « Poésie d'amour ».
+- Changement : CATEGORIES (js/components/feed-categories.js) reprend exactement les 8 genres. La recherche d'un genre ignore la casse et les accents. Un cache de compteurs qui ne couvre pas tous les genres actuels est ignoré. La grille passe à 4 colonnes sur ordinateur. Les 9 visuels devenus inutiles sont supprimés.
+- Garde-fou : un test de contrat vérifie que les genres du fil, les options de publier.html et les clés de data/genres.json sont identiques.
+- Suite possible (décision produit) : des étiquettes de ton ou de forme, ou de nouveaux genres. Cela demande un nouveau champ, les firestore.rules, le formulaire, plus des textes genres.json et des pages SEO.
+- Captures : docs/pr/feed-categories-reclassification/.
+
+## 2026-11-16 18:09 — Rôle admin + e2e isolés de la prod (branche feat/admin-role-e2e-isolation)
+
+- Rôle `admin` au-dessus de `censeur` : règles (`validAdminRoleUpdate`, pas d'auto-changement), panneau « Comptes » dans profil.html (onglet modération), `changerRoleUtilisateur` idempotent + ops log `role_change`. Premier admin : à la main dans la console (docs/runbook-admin.md).
+- Corrigé au passage : les profils créés par register.html n'ont pas de champ `role` ; `changedKeys()` ne voit pas une clé ajoutée → la promotion échouait (admin et censeur). Leçon ajoutée.
+- E2E sur émulateurs (projet `demo-love-ink`) : `npm run test:e2e` ; prod bloquée sauf `E2E_ALLOW_PROD=1` (`npm run test:e2e:remote`). Jobs CI `rules-tests` et `e2e` ajoutés au workflow de déploiement.
+- Nettoyage prod : `scripts/e2e-prod-cleanup-plan.mjs` (lecture seule) à lancer par l'utilisatrice ; aucune suppression faite.
+- trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
+- Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.
+
+## 2026-11-16 19:27 — Tableau de bord admin + amorçage du premier admin (branche feat/admin-dashboard, empilée sur #40)
+- `admin.html` (rôle `admin` seulement) : KPI (comptes, actifs/nouveaux 7 et 30 j, par rôle, par statut, histoires par statut), liste (pseudo, e-mail, inscription, dernière connexion, statut, rôle, nb d'histoires), filtres, tri, changement de rôle confirmé. Calculs purs dans `js/core/admin-metrics.js`.
+- E-mail : collection `comptes_prives/{uid}` lisible par titulaire + admins, écrite par le titulaire avec l'e-mail du jeton (synchro à la connexion). Jamais dans `utilisateurs`.
+- `scripts/admin-bootstrap.mjs` (plan par défaut, `--apply`, `--backfill-emails`) : ne crée ni compte ni mot de passe ; à lancer par l'utilisatrice (runbook-admin.md). Non exécuté en prod.
+- Reste : PR à relire, fusion sur accord, puis exécution du script par l'utilisatrice.
+
+## 2026-11-16 19:47 — E2E : e-mail confirmé sur l’émulateur Auth (préparation de #44)
+
+- Helpers e2e (`tests/e2e/helpers/auth-emulator.js`, `app.js`) : avant chaque connexion, `emailVerified=true` via l’API admin de l’émulateur (`Bearer owner`, idempotent) ; si l’inscription renvoie vers la connexion, le helper s’y connecte. Ignoré avec `E2E_ALLOW_PROD=1` (le compte doit déjà être confirmé).
+- `main` fusionné dans `feat/admin-role-e2e-isolation` (conflit helper avec #34 résolu en gardant les deux comportements).
+- Vérifié en local : e2e 6 réussis / 3 ignorés, sans #44 et avec #44 fusionnée dans un worktree jetable.
+- PR #40 et #42 (empilée) ouvertes, fusion sur accord uniquement.
 
 ## 2026-11-16 17:26 — Histoires en plusieurs chapitres, lot 1 (branche feat/chapitres)
 - Modèle : chapitre = doc `histoires` avec `serieId` + `chapitre` ; `series/{id}` (id du chapitre 1) porte titre, genre, statut, dernierChapitre. Règles Firestore + tests (29/29).

@@ -395,3 +395,21 @@ html[data-theme="dark"] .moderation-banner { background: #3a3020; border-color: 
     }
     .li-genre:hover, .li-genre:hover img, .li-btn--primary:hover:not(:disabled) { transform: none; }
 }
+
+/* Pseudonyme manquant : la publication est bloquée tant qu'il n'est pas choisi. */
+.author-pseudo-notice {
+    display: none;
+    margin: 0 0 20px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    border: 1px solid #ecd8a2;
+    background: #fff8e6;
+    color: #6d5225;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.author-pseudo-notice a {
+    color: inherit;
+    font-weight: 600;
+}

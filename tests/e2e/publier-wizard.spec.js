@@ -24,7 +24,7 @@ const log = (name, args) => {
     sessionStorage.setItem('__calls', JSON.stringify(calls));
 };
 export const firebaseAPI = {
-    getUtilisateur: async () => ({ role: cfg.role || 'user', statut: 'actif' }),
+    getUtilisateur: async () => ({ role: cfg.role || 'user', statut: 'actif', pseudo: 'Plume Test' }),
     publierHistoire: async (...args) => { log('publierHistoire', args); return 'story-e2e-1'; },
     getHistoireById: async (id) => (cfg.story ? { id, ...cfg.story } : null),
     editerHistoireModeration: async (...args) => { log('editerHistoireModeration', args); return { ok: true }; },

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administration - Love Ink</title>
+    <meta name="robots" content="noindex, nofollow">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="css/immersive.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
+    <link rel="stylesheet" href="css/app.css">
+    <script src="js/core/immersive.js" defer></script>
+    <style>
+        .admin-page { max-width: 1180px; }
+        .admin-status { color: var(--ink-muted); margin: 0 0 20px; }
+        .admin-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .admin-kpi { background: var(--paper); border: 1px solid var(--border); border-radius: var(--li-radius); padding: 14px 16px; }
+        .admin-kpi__value { display: block; font-family: var(--font-serif); font-size: 2rem; color: var(--rose-deep); line-height: 1.1; }
+        .admin-kpi__label { font-size: 0.82rem; color: var(--ink-muted); }
+        .admin-breakdowns { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 24px; }
+        .admin-breakdown { background: var(--paper); border: 1px solid var(--border); border-radius: var(--li-radius); padding: 14px 16px; }
+        .admin-breakdown h2 { font-size: 1rem; margin: 0 0 8px; font-family: var(--font-sans); font-weight: 600; color: var(--ink); }
+        .admin-breakdown ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+        .admin-breakdown li { background: var(--rose-pale); color: var(--ink); border-radius: 999px; padding: 4px 12px; font-size: 0.85rem; }
+        .admin-filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 12px; }
+        .admin-filters input, .admin-filters select, .admin-table select { padding: 8px 10px; border: 1px solid var(--border); border-radius: 10px; background: var(--paper); color: var(--ink); font: inherit; }
+        .admin-filters input { flex: 1 1 220px; }
+        .admin-count { color: var(--ink-muted); font-size: 0.9rem; margin-left: auto; }
+        .admin-table-wrap { overflow-x: auto; background: var(--paper); border: 1px solid var(--border); border-radius: var(--li-radius); }
+        .admin-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .admin-table th, .admin-table td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap; }
+        .admin-table th button { background: none; border: 0; padding: 0; font: inherit; font-weight: 600; color: var(--ink); cursor: pointer; }
+        .admin-table th button[aria-sort]::after { content: attr(data-arrow); margin-left: 4px; color: var(--rose-deep); }
+        .admin-table td.admin-muted { color: var(--ink-muted); }
+        .admin-badge { border-radius: 999px; padding: 2px 10px; font-size: 0.8rem; background: var(--rose-pale); color: var(--ink); }
+        .admin-badge--suspendu, .admin-badge--banni { background: #f3d9d0; color: #7a2e1e; }
+        .admin-role-cell { display: flex; gap: 6px; align-items: center; }
+        .admin-role-apply { padding: 6px 10px; font-size: 0.8rem; }
+    </style>
+</head>
+<body class="li-app">
+    <div id="appNavRoot"></div>
+    <script type="module">
+    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    mountAppNav({ variant: 'classic', active: 'admin', showUser: true, showPublish: true });
+    </script>
+
+    <main class="li-page admin-page">
+        <header class="page-header">
+            <span class="li-eyebrow">Administration</span>
+            <h1>Comptes et activité</h1>
+            <p>Vue réservée aux administrateurs : comptes, activité, rôles et histoires.</p>
+        </header>
+
+        <p id="adminStatus" class="admin-status" role="status">Chargement…</p>
+
+        <div id="adminDenied" class="li-empty" hidden>
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            <p>Accès réservé aux administrateurs.</p>
+            <div class="li-empty__actions"><a href="profil.html" class="btn btn-primary">Retour au profil</a></div>
+        </div>
+
+        <section id="adminDashboard" hidden aria-label="Tableau de bord administrateur">
+            <div class="admin-kpis" id="adminKpis">
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="total">–</span><span class="admin-kpi__label">Comptes</span></div>
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="actifs7">–</span><span class="admin-kpi__label">Actifs 7 jours</span></div>
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="actifs30">–</span><span class="admin-kpi__label">Actifs 30 jours</span></div>
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="nouveaux7">–</span><span class="admin-kpi__label">Nouveaux 7 jours</span></div>
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="nouveaux30">–</span><span class="admin-kpi__label">Nouveaux 30 jours</span></div>
+                <div class="admin-kpi"><span class="admin-kpi__value" data-kpi="histoires">–</span><span class="admin-kpi__label">Histoires</span></div>
+            </div>
+            <div class="admin-breakdowns">
+                <div class="admin-breakdown"><h2>Comptes par rôle</h2><ul id="adminParRole"></ul></div>
+                <div class="admin-breakdown"><h2>Comptes par statut</h2><ul id="adminParStatut"></ul></div>
+                <div class="admin-breakdown"><h2>Histoires par statut</h2><ul id="adminHistoiresStatut"></ul></div>
+            </div>
+
+            <div class="admin-filters">
+                <input type="search" id="filtreTexte" placeholder="Pseudo, e-mail ou identifiant" aria-label="Rechercher un compte">
+                <select id="filtreRole" aria-label="Filtrer par rôle"><option value="">Tous les rôles</option></select>
+                <select id="filtreStatut" aria-label="Filtrer par statut">
+                    <option value="">Tous les statuts</option>
+                    <option value="actif">Actif</option>
+                    <option value="suspendu">Suspendu</option>
+                    <option value="banni">Banni</option>
+                </select>
+                <select id="filtreActivite" aria-label="Filtrer par activité">
+                    <option value="">Toute activité</option>
+                    <option value="7j">Actifs 7 jours</option>
+                    <option value="30j">Actifs 30 jours</option>
+                    <option value="inactif30">Inactifs depuis 30 jours</option>
+                </select>
+                <span id="adminCount" class="admin-count"></span>
+            </div>
+
+            <div class="admin-table-wrap">
+                <table class="admin-table" id="adminComptesTable">
+                    <thead>
+                        <tr>
+                            <th scope="col"><button type="button" data-sort="pseudo">Pseudo</button></th>
+                            <th scope="col"><button type="button" data-sort="email">E-mail</button></th>
+                            <th scope="col"><button type="button" data-sort="inscription">Inscription</button></th>
+                            <th scope="col"><button type="button" data-sort="derniereActivite">Dernière connexion</button></th>
+                            <th scope="col"><button type="button" data-sort="statut">Statut</button></th>
+                            <th scope="col"><button type="button" data-sort="role">Rôle</button></th>
+                            <th scope="col"><button type="button" data-sort="nbHistoires">Histoires</button></th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminComptesBody"></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <script src="js/components/modale.js"></script>
+    <script type="module">
+        import { auth } from './js/core/firebase-config.js';
+        import { firebaseAPI } from './js/core/firebase-data.js';
+        import { logoutAndRedirect, requireAuth } from './js/core/auth-session.js';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { notifyConfirm, notifyError, notifySuccess } from './js/components/ui-notify.js';
+        import { ROLES, ROLE_LABELS, isAdminRole } from './js/core/roles.js';
+        import { toAccountRow, computeAccountKpis, filterRows, sortRows } from './js/core/admin-metrics.js';
+
+        const $ = (id) => document.getElementById(id);
+        const STATUT_HISTOIRE_LABELS = { publie: 'Publiées', en_attente: 'En attente', rejete: 'Rejetées' };
+        const state = { rows: [], sortKey: 'inscription', sortDir: 'desc', myUid: '' };
+
+        const fmtDate = (ms) => (ms === null ? '—' : new Date(ms).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' }));
+        const el = (tag, props = {}, children = []) => {
+            const node = Object.assign(document.createElement(tag), props);
+            for (const child of [].concat(children)) node.append(child);
+            return node;
+        };
+
+        function setStatus(text) {
+            $('adminStatus').textContent = text;
+            $('adminStatus').hidden = !text;
+        }
+
+        function renderBreakdown(listId, entries) {
+            $(listId).replaceChildren(...entries.map(([label, value]) => el('li', { textContent: `${label} : ${value ?? '?'}` })));
+        }
+
+        function renderKpis(histoiresParStatut) {
+            const kpis = computeAccountKpis(state.rows);
+            for (const key of ['total', 'actifs7', 'actifs30', 'nouveaux7', 'nouveaux30']) {
+                document.querySelector(`[data-kpi="${key}"]`).textContent = String(kpis[key]);
+            }
+            renderBreakdown('adminParRole', ROLES.map((role) => [ROLE_LABELS[role] || role, kpis.parRole[role]]));
+            renderBreakdown('adminParStatut', Object.entries(kpis.parStatut));
+            if (histoiresParStatut) {
+                const values = Object.values(histoiresParStatut);
+                const total = values.every(Number.isFinite) ? values.reduce((a, b) => a + b, 0) : '?';
+                document.querySelector('[data-kpi="histoires"]').textContent = String(total);
+                renderBreakdown('adminHistoiresStatut', Object.entries(histoiresParStatut)
+                    .map(([statut, n]) => [STATUT_HISTOIRE_LABELS[statut] || statut, n]));
+            }
+        }
+
+        function roleCell(row) {
+            const select = el('select', { className: 'admin-role-select' },
+                ROLES.map((role) => el('option', { value: role, textContent: ROLE_LABELS[role] || role, selected: role === row.role })));
+            select.setAttribute('aria-label', `Rôle de ${row.pseudo || row.uid}`);
+            const apply = el('button', { type: 'button', className: 'btn btn-secondary admin-role-apply', textContent: 'Appliquer', disabled: true });
+            if (row.uid === state.myUid) {
+                select.disabled = true;
+                select.title = 'Vous ne pouvez pas changer votre propre rôle.';
+            }
+            select.addEventListener('change', () => { apply.disabled = select.value === row.role; });
+            apply.addEventListener('click', () => changeRole(row, select, apply));
+            return el('td', {}, el('div', { className: 'admin-role-cell' }, [select, apply]));
+        }
+
+        function renderTable() {
+            const filters = {
+                texte: $('filtreTexte').value,
+                role: $('filtreRole').value,
+                statut: $('filtreStatut').value,
+                activite: $('filtreActivite').value
+            };
+            const rows = sortRows(filterRows(state.rows, filters), state.sortKey, state.sortDir);
+            $('adminComptesBody').replaceChildren(...rows.map((row) => {
+                const tr = el('tr', {}, [
+                    el('td', { textContent: row.pseudo || '(sans pseudo)' }),
+                    el('td', { textContent: row.email || 'inconnu', className: row.email ? '' : 'admin-muted' }),
+                    el('td', { textContent: fmtDate(row.inscription) }),
+                    el('td', { textContent: fmtDate(row.derniereActivite) }),
+                    el('td', {}, el('span', { className: `admin-badge admin-badge--${row.statut}`, textContent: row.statut })),
+                    roleCell(row),
+                    el('td', { className: 'admin-histoires', textContent: row.nbHistoires === null ? '…' : String(row.nbHistoires) })
+                ]);
+                tr.dataset.uid = row.uid;
+                return tr;
+            }));
+            $('adminCount').textContent = `${rows.length} / ${state.rows.length} comptes`;
+            document.querySelectorAll('#adminComptesTable th button').forEach((btn) => {
+                const active = btn.dataset.sort === state.sortKey;
+                if (active) {
+                    btn.setAttribute('aria-sort', state.sortDir === 'asc' ? 'ascending' : 'descending');
+                    btn.dataset.arrow = state.sortDir === 'asc' ? '▲' : '▼';
+                } else {
+                    btn.removeAttribute('aria-sort');
+                }
+            });
+        }
+
+        async function changeRole(row, select, apply) {
+            const target = select.value;
+            const name = row.pseudo || row.email || row.uid;
+            const ok = await notifyConfirm(
+                `Changer le rôle de « ${name} » : ${ROLE_LABELS[row.role] || row.role} → ${ROLE_LABELS[target] || target} ?`,
+                { title: 'Changement de rôle', confirmText: 'Changer le rôle' }
+            );
+            if (!ok) {
+                select.value = row.role;
+                apply.disabled = true;
+                return;
+            }
+            apply.disabled = true;
+            const result = await firebaseAPI.changerRoleUtilisateur(row.uid, target, 'admin_dashboard');
+            if (!result?.ok) {
+                notifyError(`Changement refusé (${result?.error || 'erreur inconnue'}).`);
+                select.value = row.role;
+                return;
+            }
+            row.role = target;
+            renderKpis(null);
+            renderTable();
+            notifySuccess(`Rôle de « ${name} » : ${ROLE_LABELS[target] || target}.`);
+        }
+
+        async function loadDashboard() {
+            setStatus('Chargement des comptes…');
+            const [comptes, contacts] = await Promise.all([firebaseAPI.getComptes(500), firebaseAPI.getContactsPrives()]);
+            state.rows = comptes.map((compte) => toAccountRow({ ...compte, email: contacts.get(compte.id) || compte.email || '' }));
+            $('filtreRole').append(...ROLES.map((role) => el('option', { value: role, textContent: ROLE_LABELS[role] || role })));
+            $('adminDashboard').hidden = false;
+            renderKpis(null);
+            renderTable();
+            setStatus(comptes.length >= 500 ? 'Affichage limité aux 500 premiers comptes.' : '');
+
+            const [parStatut, parAuteur] = await Promise.all([
+                firebaseAPI.compterHistoiresParStatut(),
+                firebaseAPI.compterHistoiresParAuteur(state.rows.map((row) => row.uid))
+            ]);
+            for (const row of state.rows) {
+                const n = parAuteur.get(row.uid);
+                row.nbHistoires = Number.isFinite(n) ? n : null;
+            }
+            renderKpis(parStatut);
+            renderTable();
+            document.documentElement.dataset.adminReady = '1';
+        }
+
+        for (const id of ['filtreTexte', 'filtreRole', 'filtreStatut', 'filtreActivite']) {
+            $(id).addEventListener(id === 'filtreTexte' ? 'input' : 'change', renderTable);
+        }
+        document.querySelectorAll('#adminComptesTable th button').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const key = btn.dataset.sort;
+                state.sortDir = state.sortKey === key && state.sortDir === 'asc' ? 'desc' : 'asc';
+                state.sortKey = key;
+                renderTable();
+            });
+        });
+
+        wireNavInteractions({
+            variant: 'classic',
+            onLogout: async () => {
+                await logoutAndRedirect({ auth, redirectTo: 'index.html' });
+            }
+        });
+
+        requireAuth({
+            auth,
+            redirectTo: 'login.html',
+            onReady: async (firebaseUser, { pseudo, session }) => {
+                setNavPseudo(pseudo);
+                state.myUid = firebaseUser.uid;
+                // L'interface masque la page ; les règles Firestore refusent de toute façon
+                // la lecture de comptes_prives et les changements de rôle aux non-admins.
+                if (!isAdminRole(session?.role)) {
+                    setStatus('');
+                    $('adminDenied').hidden = false;
+                    document.documentElement.dataset.adminReady = 'denied';
+                    return;
+                }
+                try {
+                    await loadDashboard();
+                } catch (error) {
+                    console.error('Tableau de bord admin :', error);
+                    setStatus('Impossible de charger le tableau de bord.');
+                }
+            }
+        });
+    </script>
+</body>
+</html>

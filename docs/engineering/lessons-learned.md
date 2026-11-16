@@ -60,6 +60,23 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
   `displayName` ; cette partie locale n'est pas détectable par le générateur. Correctif côté saisie suivi
   en issue (pseudonyme obligatoire avant publication).
 
+## 2026-11-07 — Nom d'auteur public dérivé de l'e-mail à la saisie (issue #7)
+
+- **Contexte** : suite de l'entrée « Pages auteurs : risque de publier un e-mail ou un uid » (PR #2).
+  `publier.html` remplissait `auteur` avec `displayName || email.split('@')[0]`.
+- **Cause racine** : un repli « pratique » à la saisie transformait une donnée privée (identifiant d'e-mail) en
+  nom public ; le générateur SEO ne peut pas reconnaître une partie locale d'e-mail (pas de `@`), donc la
+  défense en aval était insuffisante. Même repli dans le pré-remplissage du pseudo de `parametres.html`.
+- **Classification** : vie privée / donnée personnelle, near miss (corrigé avant fusion des pages auteurs).
+- **Résolution** : `js/core/public-author.js` → `resolvePublicAuthorName(profile, user)` : seul le pseudo du
+  profil Firestore devient public ; vide, contenant `@` ou égal à l'identifiant de l'e-mail → publication
+  bloquée avec un message et un lien vers `parametres.html`. Pré-remplissage de `parametres.html` sans e-mail.
+- **Prévention** : `tests/seo/author-name.test.mjs` (exécuté par la CI `tests/seo/*.test.mjs`) échoue si
+  `publier.html` ou `parametres.html` découpent l'e-mail, ou si la résolution renvoie un nom issu de l'e-mail.
+- **Leçon** : une donnée rendue publique se valide à la source (saisie), pas seulement à la sortie ; aucun nom
+  public n'est jamais dérivé d'un identifiant privé, même en repli.
+- **Reste à faire** : histoires déjà enregistrées avec ce repli (recensement + invitation des auteurs à choisir
+  un pseudo), suivi dans l'issue #7.
 ## 2026-11-16 — `test:seo` rouge en local Windows à cause du CRLF
 
 - **Contexte** : refonte des catégories du fil ; `npm run test:seo` lancé sur un worktree Windows.
@@ -85,6 +102,43 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Prévention** : un attribut de sélection (`data-step`) n'est jamais réutilisé comme attribut d'état sur un
   ancêtre ; tout composant posé dans `body.li-app` qui fixe une couleur de `label` le fait avec le préfixe
   `body.li-app`. Revue visuelle sur captures desktop + mobile avant PR.
+## 2026-11-16 — Les e2e écrivaient dans la production
+
+- **Contexte** : `playwright.config.js` prenait `https://loveink.site` par défaut et le code servi en local
+  parlait au vrai projet Firebase `love-ink`. Chaque lancement de `npm test` créait des comptes
+  `*@loveink-e2e.test`, des profils et des histoires en production.
+- **Cause** : la cible des tests et celle du client n'étaient pas des décisions explicites. La valeur par défaut
+  était la prod, aucun environnement isolé n'existait et la CI ne lançait pas les e2e.
+- **Classification** : incident de données (pollution de la production) ; défaut de garde-fou, pas de bug applicatif.
+- **Résolution** : e2e sur la Firebase Emulator Suite (Auth, Firestore, Hosting) sous le projet `demo-love-ink`
+  (`npm run test:e2e`). Le client vise les émulateurs sur tout hôte local (`js/core/firebase-target.js`).
+  Comptes déjà créés : inventaire en lecture seule (`scripts/e2e-prod-cleanup-plan.mjs`) ; la suppression
+  reste une décision de l'utilisatrice.
+- **Prévention vérifiable** :
+  - `playwright.config.js` échoue immédiatement sur un hôte non local sans `E2E_ALLOW_PROD=1` ;
+  - `registerWithUi` / `loginWithUi` vérifient dans la page que le client vise les émulateurs avant d'écrire ;
+  - tests `tests/seo/e2e-isolation.test.mjs` sur ces deux garde-fous ;
+  - jobs CI `rules-tests` et `e2e` sur émulateurs, qui conditionnent les déploiements.
+- **Leçon généralisée** : un test qui écrit ne doit jamais avoir la production comme cible par défaut. La cible
+  s'exprime explicitement, l'environnement isolé est le chemin par défaut, et viser la prod demande une
+  dérogation nommée et visible.
+
+## 2026-11-16 — Règle de rôle refusant les profils sans champ `role` (near miss)
+
+- **Contexte** : le nouvel e2e « admin attribue un rôle » échouait sur les émulateurs avec « Impossible de changer
+  ce rôle », alors que les tests de règles passaient.
+- **Cause** : `register.html` crée le profil sans champ `role` (rôle implicite `user`). Les règles exigeaient
+  `diff().changedKeys().hasAny(['role'])` ; or une clé **ajoutée** n'apparaît que dans `addedKeys()` /
+  `affectedKeys()`, jamais dans `changedKeys()`. Les tests de règles semaient des profils avec `role` déjà posé.
+  Même défaut, déjà en production, sur la promotion par un censeur (`validRolePromotionUpdate`).
+- **Classification** : bug de règle Firestore masqué par des données de test non représentatives (near miss,
+  détecté avant fusion par l'e2e sur émulateurs).
+- **Résolution** : comparaison explicite au rôle implicite (`request.resource.data.role != resource.data.get('role', 'user')`)
+  pour l'admin, `affectedKeys().hasAny(['role'])` pour la promotion censeur.
+- **Prévention vérifiable** : test de règles « profil sans champ role (créé par register.html) » ; e2e
+  `tests/e2e/admin-role.spec.js` qui passe par le vrai parcours d'inscription.
+- **Leçon généralisée** : pour détecter qu'un champ change, ne pas utiliser `changedKeys()` seul quand le champ
+  peut être absent ; et semer les tests avec les documents tels que l'application les crée réellement.
 
 ## 2026-11-16 — E2E : port local déjà servi par une autre copie du site
 

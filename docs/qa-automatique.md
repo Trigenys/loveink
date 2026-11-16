@@ -28,15 +28,25 @@ npm run test:e2e:install
 
 ## Lancer tous les tests
 
-```bash
-npm test
-```
-
-## Cibler un autre environnement
+Les e2e creent des comptes et des histoires : ils tournent sur la Firebase Emulator Suite (Auth, Firestore,
+Hosting) sous le projet `demo-love-ink`, sans aucune ressource reelle. Prerequis : Java 21 dans le PATH.
 
 ```bash
-E2E_BASE_URL="https://votre-staging.web.app" npm test
+npm test            # = npm run test:e2e : demarre les emulateurs, lance Playwright, arrete tout
 ```
+
+Sur un hote local (`localhost`, `127.0.0.1`), le client Firebase vise automatiquement les emulateurs. Pour
+deboguer a la main : `npm run emulators`, puis `npx playwright test --headed` dans un autre terminal.
+
+Viser un hote distant (prod, canal de previsualisation, staging du projet `love-ink`) cree de vrais comptes :
+la configuration Playwright echoue immediatement sauf derogation explicite.
+
+```bash
+E2E_ALLOW_PROD=1 E2E_BASE_URL="https://votre-staging.web.app" npm run test:e2e:remote
+```
+
+Comptes de test deja crees en production : inventaire en lecture seule avec
+`node scripts/e2e-prod-cleanup-plan.mjs` (voir `docs/engineering/lessons-learned.md`).
 
 ## Activer les tests roles (facultatif)
 

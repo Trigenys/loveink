@@ -10,21 +10,35 @@ service cloud.firestore {
       return signedIn() && request.auth.uid == userId;
     }
 
+    // Hierarchie des roles : user < moderateur < censeur < admin.
+    // Chaque niveau herite des droits du niveau inferieur.
     // Utilise .get('key', default) pour la compatibilite avec les documents
     // existants qui n'ont pas encore les champs role/statut.
-    function isModo() {
+    function myRole() {
+      return get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('role', 'user');
+    }
+
+    function hasRoleIn(roles) {
       return signedIn() &&
         exists(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('role', 'user') in ['moderateur', 'censeur'];
+        myRole() in roles;
+    }
+
+    function isModo() {
+      return hasRoleIn(['moderateur', 'censeur', 'admin']);
     }
 
     function isCenseur() {
-      return signedIn() &&
-        exists(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/utilisateurs/$(request.auth.uid)).data.get('role', 'user') == 'censeur';
+      return hasRoleIn(['censeur', 'admin']);
     }
 
-    // Censeurs = ops/admin de moderation dans le contexte Spark (sans backend privileged).
+    // Admin : seul role pouvant attribuer ou retirer n'importe quel role.
+    // Le premier admin est pose a la main dans la console Firebase (docs/runbook-admin.md).
+    function isAdmin() {
+      return hasRoleIn(['admin']);
+    }
+
+    // Censeurs et admins = ops de moderation dans le contexte Spark (sans backend privilegie).
     function isOpsAdmin() {
       return isCenseur();
     }
@@ -196,8 +210,10 @@ service cloud.firestore {
         !request.resource.data.diff(resource.data).affectedKeys().hasAny(['role', 'statut', 'suspensionJusqua', 'admin', 'isAdmin', 'roles']);
     }
 
+    // Un censeur ne sanctionne pas un admin ; seul un admin le peut.
     function validCenseurStatusUpdate(userId) {
       return request.resource.data.uid == userId &&
+        (resource.data.get('role', 'user') != 'admin' || isAdmin()) &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['statut', 'suspensionJusqua']) &&
         request.resource.data.statut in ['actif', 'suspendu', 'banni'] &&
         (
@@ -214,13 +230,30 @@ service cloud.firestore {
     function validRolePromotionUpdate(userId) {
       return request.resource.data.uid == userId &&
         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'dateRoleUpdate', 'roleUpdatedBy', 'roleUpdateSource']) &&
-        request.resource.data.diff(resource.data).changedKeys().hasAny(['role']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['role']) &&
         resource.data.get('role', 'user') in ['user', 'moderateur', 'censeur'] &&
         request.resource.data.get('role', 'user') in ['moderateur', 'censeur'] &&
         (
           (resource.data.get('role', 'user') == 'user' && request.resource.data.get('role', 'user') == 'moderateur') ||
           (resource.data.get('role', 'user') == 'moderateur' && request.resource.data.get('role', 'user') == 'censeur')
         ) &&
+        request.resource.data.roleUpdatedBy == request.auth.uid &&
+        request.resource.data.dateRoleUpdate is timestamp &&
+        (
+          !('roleUpdateSource' in request.resource.data) ||
+          (request.resource.data.roleUpdateSource is string && request.resource.data.roleUpdateSource.size() <= 80)
+        );
+    }
+
+    // Admin : attribue ou retire n'importe quel role (y compris admin), dans les deux sens.
+    // Jamais sur son propre compte : ni auto-promotion, ni auto-retrogradation qui laisserait
+    // le site sans admin. Seuls le role et sa tracabilite changent.
+    function validAdminRoleUpdate(userId) {
+      return request.auth.uid != userId &&
+        request.resource.data.uid == userId &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['role', 'dateRoleUpdate', 'roleUpdatedBy', 'roleUpdateSource']) &&
+        request.resource.data.role != resource.data.get('role', 'user') &&
+        request.resource.data.role in ['user', 'moderateur', 'censeur', 'admin'] &&
         request.resource.data.roleUpdatedBy == request.auth.uid &&
         request.resource.data.dateRoleUpdate is timestamp &&
         (
@@ -533,6 +566,7 @@ service cloud.firestore {
           'candidature_approuvee',
           'candidature_refusee',
           'role_promotion',
+          'role_change',
           'story_coup_de_coeur'
         ] &&
         request.resource.data.date is timestamp &&
@@ -559,7 +593,8 @@ service cloud.firestore {
       allow create: if isOwner(userId) && validUserDataCreate(userId);
       allow update: if signedIn() && (
         (isOwner(userId) && validUserDataUpdate(userId)) ||
-        (isOpsAdmin() && (validCenseurStatusUpdate(userId) || validRolePromotionUpdate(userId)))
+        (isOpsAdmin() && (validCenseurStatusUpdate(userId) || validRolePromotionUpdate(userId))) ||
+        (isAdmin() && validAdminRoleUpdate(userId))
       );
       // Un compte suspendu/banni ne peut pas effacer son profil pour lever la sanction.
       allow delete: if isOwner(userId) && resource.data.get('statut', 'actif') == 'actif';
@@ -691,6 +726,19 @@ service cloud.firestore {
       allow read: if isOpsAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
       allow update: if isOpsAdmin() && validCandidatureDecisionUpdate();
       allow delete: if false;
+    }
+
+    // Contact privé (e-mail) : hors du profil public. Lecture par le titulaire et les admins uniquement.
+    // L'e-mail écrit doit être celui du jeton : personne ne peut s'attribuer ou attribuer une autre adresse.
+    match /comptes_prives/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'dateMaj']) &&
+        request.resource.data.uid == userId &&
+        request.auth.token.email is string &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.dateMaj == request.time;
+      allow delete: if isOwner(userId);
     }
 
     match /ops_logs/{logId} {

@@ -34,6 +34,7 @@
       ],
       "gates": [
         "seo-tests",
+        "e2e",
         "hosting"
       ]
     },
@@ -44,7 +45,19 @@
         "tests/rules/**"
       ],
       "gates": [
+        "rules-tests",
+        "e2e",
         "firestore"
+      ]
+    },
+    "e2e": {
+      "paths": [
+        "tests/e2e/**",
+        "playwright.config.js",
+        "package-lock.json"
+      ],
+      "gates": [
+        "e2e"
       ]
     }
   }

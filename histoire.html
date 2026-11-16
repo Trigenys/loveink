@@ -158,7 +158,7 @@
             const statut = currentStory.statut;
             const isPublie = !statut || statut === 'publie';
             const isAuteur = currentUser && currentUser.uid === currentStory.auteurId;
-            const isModo = ['moderateur', 'censeur'].includes(currentUserRole);
+            const isModo = ['moderateur', 'censeur', 'admin'].includes(currentUserRole);
 
             if (!isPublie && !isAuteur && !(isModo && isPreview)) {
                 showStoryNotFound();

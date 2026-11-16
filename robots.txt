@@ -11,6 +11,7 @@ Disallow: /parametres
 Disallow: /publier
 Disallow: /mes-histoires
 Disallow: /auth-action
+Disallow: /admin
 
 # Robots de recherche IA (citation dans les réponses) : accès explicite au contenu public.
 User-agent: OAI-SearchBot
@@ -25,5 +26,6 @@ Disallow: /parametres
 Disallow: /publier
 Disallow: /mes-histoires
 Disallow: /auth-action
+Disallow: /admin
 
 Sitemap: https://loveink.site/sitemap.xml
