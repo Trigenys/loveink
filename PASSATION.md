@@ -596,3 +596,9 @@
 - PR Trigenys/trigenys-storage#14 (ouverte) : tenant `loveink` déclaré dans la variable non secrète `END_USER_TENANTS_JSON`. Le tenant n'est actif qu'après merge + `npx wrangler deploy --config wrangler.production.jsonc --keep-vars` depuis main.
 - Search Console (propriété préfixe https://loveink.site/) : sitemap relu (14 URL) ; indexation demandée pour 3 pages ressources, /ressources/, /histoires/, /, et genres premier-amour, lettres-d-amour, poesie-d-amour. Demain : genres amour-heureux, amour-magique, histoires-tristes, aventure-estivale, rencontres.
 - Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP navigateur, publication/suppression des images dans l'espace modérateur.
+
+## 2026-11-16 11:56 — Tenant loveink actif sur trigenys-storage
+
+- PR Trigenys/trigenys-storage#14 mergée (8348f93) ; Worker redéployé depuis main avec `--keep-vars` : version 85770195 (rollback d97d3e98). Binding `END_USER_TENANTS_JSON` (tenant `loveink`) présent ; /health OK ; tests 21/21.
+- Non vérifié de bout en bout : un upload réel exige un jeton Firebase d'un compte Love Ink (à faire depuis le client une fois l'intégration écrite).
+- Prochaine étape : intégration client (sélecteur 1 à 4 images, WebP, publication/suppression par modérateur). Search Console : 5 genres restants demain.
