@@ -677,6 +677,12 @@
             }
 
             try {
+                await deleteDoc(doc(db, 'comptes_prives', uid));
+            } catch (error) {
+                console.warn('Suppression du contact privé echouee:', error?.message || error);
+            }
+
+            try {
                 await deleteDoc(doc(db, 'utilisateurs', uid));
             } catch (error) {
                 console.warn('Suppression profil Firestore echouee:', error?.message || error);

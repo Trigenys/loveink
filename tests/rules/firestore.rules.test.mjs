@@ -173,3 +173,117 @@ test('images : un modo edite les images avant publication', async () => {
   await assertFails(edit([img(1), { ...img(2), alt: 3 }]));
   await assertSucceeds(edit([img(2)]));
 });
+
+// --- Role admin : au-dessus de censeur, seul a attribuer/retirer n'importe quel role ---
+const ADMIN = 'admin1', ADMIN2 = 'admin2', CENS = 'cens1';
+const seedRoles = () => env.withSecurityRulesDisabled(async (c) => {
+  const d = c.firestore();
+  await setDoc(doc(d, 'utilisateurs', ADMIN), { uid: ADMIN, pseudo: 'admin', role: 'admin', statut: 'actif' });
+  await setDoc(doc(d, 'utilisateurs', ADMIN2), { uid: ADMIN2, pseudo: 'admin2', role: 'admin', statut: 'actif' });
+  await setDoc(doc(d, 'utilisateurs', CENS), { uid: CENS, pseudo: 'cens', role: 'censeur', statut: 'actif' });
+});
+const roleChange = (actor, role, extra = {}) => ({ role, roleUpdatedBy: actor, dateRoleUpdate: serverTimestamp(), roleUpdateSource: 'test', ...extra });
+
+test('admin : attribue tous les roles, dans les deux sens, y compris admin', async () => {
+  await seedRoles();
+  const u = doc(db(ADMIN), 'utilisateurs', B);
+  await assertSucceeds(updateDoc(u, roleChange(ADMIN, 'censeur')));
+  await assertSucceeds(updateDoc(u, roleChange(ADMIN, 'admin')));
+  await assertSucceeds(updateDoc(u, roleChange(ADMIN, 'user')));
+  await assertSucceeds(updateDoc(doc(db(ADMIN), 'utilisateurs', ADMIN2), roleChange(ADMIN, 'moderateur')));
+});
+// Non-regression : register.html cree le profil SANS champ role (role implicite 'user').
+// Une cle ajoutee n'apparait pas dans changedKeys() : la regle doit quand meme accepter le changement.
+test('profil sans champ role (cree par register.html) : admin et censeur peuvent le promouvoir', async () => {
+  await seedRoles();
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'utilisateurs', 'sansrole'), { uid: 'sansrole', pseudo: 'sansrole' }));
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'utilisateurs', 'sansrole2'), { uid: 'sansrole2', pseudo: 'sansrole2' }));
+  // Role implicite inchange : aucune ecriture utile, refusee.
+  await assertFails(updateDoc(doc(db(ADMIN), 'utilisateurs', 'sansrole'), roleChange(ADMIN, 'user')));
+  await assertSucceeds(updateDoc(doc(db(ADMIN), 'utilisateurs', 'sansrole'), roleChange(ADMIN, 'moderateur')));
+  await assertSucceeds(updateDoc(doc(db(CENS), 'utilisateurs', 'sansrole2'), roleChange(CENS, 'moderateur')));
+});
+test('admin : role inconnu, champ etranger, tracabilite forgee refuses', async () => {
+  await seedRoles();
+  const u = doc(db(ADMIN), 'utilisateurs', B);
+  await assertFails(updateDoc(u, roleChange(ADMIN, 'superadmin')));
+  await assertFails(updateDoc(u, roleChange(ADMIN, 'censeur', { pseudo: 'pirate' })));
+  await assertFails(updateDoc(u, roleChange(B, 'censeur')));
+  await assertFails(updateDoc(u, { role: 'censeur' }));
+});
+test("admin : ne modifie jamais son propre role (ni promotion ni retrogradation)", async () => {
+  await seedRoles();
+  await assertFails(updateDoc(doc(db(ADMIN), 'utilisateurs', ADMIN), roleChange(ADMIN, 'user')));
+});
+test("personne ne s'auto-promeut : user, moderateur, censeur", async () => {
+  await seedRoles();
+  await assertFails(updateDoc(doc(db(B), 'utilisateurs', B), roleChange(B, 'admin')));
+  await assertFails(updateDoc(doc(db(B), 'utilisateurs', B), { role: 'admin' }));
+  await assertFails(updateDoc(doc(db(MODO), 'utilisateurs', MODO), roleChange(MODO, 'censeur')));
+  await assertFails(updateDoc(doc(db(CENS), 'utilisateurs', CENS), roleChange(CENS, 'admin')));
+  await env.withSecurityRulesDisabled((c) => deleteDoc(doc(c.firestore(), 'utilisateurs', 'neuf')));
+  await assertFails(setDoc(doc(db('neuf'), 'utilisateurs', 'neuf'), { uid: 'neuf', pseudo: 'neuf', role: 'admin' }));
+  await assertSucceeds(setDoc(doc(db('neuf'), 'utilisateurs', 'neuf'), { uid: 'neuf', pseudo: 'neuf', role: 'user' }));
+});
+test('censeur : promotions limitees, ne touche ni ne nomme un admin', async () => {
+  await seedRoles();
+  await assertSucceeds(updateDoc(doc(db(CENS), 'utilisateurs', B), roleChange(CENS, 'moderateur')));
+  await assertFails(updateDoc(doc(db(CENS), 'utilisateurs', B), roleChange(CENS, 'user')));
+  await assertFails(updateDoc(doc(db(CENS), 'utilisateurs', MODO), roleChange(CENS, 'admin')));
+  await assertFails(updateDoc(doc(db(CENS), 'utilisateurs', ADMIN), roleChange(CENS, 'user')));
+  await assertFails(updateDoc(doc(db(CENS), 'utilisateurs', ADMIN), { statut: 'banni', suspensionJusqua: null }));
+  await assertSucceeds(updateDoc(doc(db(CENS), 'utilisateurs', B), { statut: 'suspendu', suspensionJusqua: null }));
+});
+test('admin : herite des droits censeur et moderateur', async () => {
+  await seedRoles();
+  await assertSucceeds(updateDoc(doc(db(ADMIN), 'utilisateurs', M), { statut: 'banni', suspensionJusqua: null }));
+  await assertSucceeds(updateDoc(doc(db(ADMIN), 'utilisateurs', ADMIN2), { statut: 'suspendu', suspensionJusqua: null }));
+  await assertSucceeds(setDoc(doc(db(ADMIN), 'sanctions', 's1'), {
+    utilisateurId: M, type: 'avertissement', motif: 'test', dateDebut: serverTimestamp(), dateFin: null, censeurId: ADMIN, actif: true
+  }));
+  await assertSucceeds(getDocs(collection(db(ADMIN), 'ops_logs')));
+  await assertSucceeds(getDocs(collection(db(ADMIN), 'candidatures_moderateur')));
+  await assertSucceeds(deleteDoc(doc(db(ADMIN), 'commentaires', 'c1')));
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'histoires', 'att'), { ...story(B, 'en_attente'), date: new Date() }));
+  await assertSucceeds(getDoc(doc(db(ADMIN), 'histoires', 'att')));
+  await assertSucceeds(updateDoc(doc(db(ADMIN), 'histoires', 'att'), { statut: 'publie', moderateurId: ADMIN, dateModeration: serverTimestamp() }));
+  await assertSucceeds(setDoc(doc(db(ADMIN), 'ops_logs', 'l1'), { actorId: ADMIN, action: 'role_change', date: serverTimestamp(), targetUserId: B }));
+});
+test('admin : voit la liste des comptes', async () => {
+  await seedRoles();
+  const snap = await assertSucceeds(getDocs(collection(db(ADMIN), 'utilisateurs')));
+  if (snap.size < 7) throw new Error(`liste incomplete : ${snap.size}`);
+});
+
+// --- Contact privé (e-mail) : hors du profil public, lisible par le titulaire et les admins ---
+const dbMail = (uid, email) => env.authenticatedContext(uid, { email }).firestore();
+
+test('comptes_prives : le titulaire écrit son propre e-mail (celui du jeton), rien d autre', async () => {
+  await seedRoles();
+  const mine = doc(dbMail(A, 'alice@example.test'), 'comptes_prives', A);
+  await assertSucceeds(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: serverTimestamp() }));
+  await assertSucceeds(getDoc(mine));
+  // Adresse différente du jeton, champ étranger, date forgée, compte d'autrui : refusés.
+  await assertFails(setDoc(mine, { uid: A, email: 'autre@example.test', dateMaj: serverTimestamp() }));
+  await assertFails(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: serverTimestamp(), role: 'admin' }));
+  await assertFails(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: new Date(0) }));
+  await assertFails(setDoc(doc(dbMail(A, 'alice@example.test'), 'comptes_prives', B), { uid: B, email: 'alice@example.test', dateMaj: serverTimestamp() }));
+  // Jeton sans e-mail : refusé.
+  await assertFails(setDoc(doc(db(B), 'comptes_prives', B), { uid: B, email: '', dateMaj: serverTimestamp() }));
+});
+
+test('comptes_prives : lecture et liste réservées aux admins (ni membre, ni modérateur, ni censeur)', async () => {
+  await seedRoles();
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'comptes_prives', A), { uid: A, email: 'alice@example.test', dateMaj: new Date() }));
+  await assertSucceeds(getDoc(doc(db(ADMIN), 'comptes_prives', A)));
+  await assertSucceeds(getDocs(collection(db(ADMIN), 'comptes_prives')));
+  for (const uid of [B, MODO, CENS]) {
+    await assertFails(getDoc(doc(db(uid), 'comptes_prives', A)));
+    await assertFails(getDocs(collection(db(uid), 'comptes_prives')));
+  }
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'comptes_prives', A)));
+  // L'admin lit mais n'écrit pas l'e-mail d'un autre compte ; seul le titulaire supprime le sien.
+  await assertFails(setDoc(doc(dbMail(ADMIN, 'admin@example.test'), 'comptes_prives', A), { uid: A, email: 'admin@example.test', dateMaj: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(db(ADMIN), 'comptes_prives', A)));
+  await assertSucceeds(deleteDoc(doc(db(A), 'comptes_prives', A)));
+});

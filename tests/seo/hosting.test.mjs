@@ -36,7 +36,7 @@ test('sécurité : en-têtes globaux conservés + CSP en Report-Only (jamais blo
 });
 
 test('X-Robots-Tag noindex sur les espaces privés (défense en profondeur)', () => {
-    for (const p of ['/feed', '/profil', '/messagerie', '/notifications', '/parametres', '/publier', '/mes-histoires', '/auth-action', '/histoire']) {
+    for (const p of ['/feed', '/profil', '/messagerie', '/notifications', '/parametres', '/publier', '/mes-histoires', '/auth-action', '/histoire', '/admin']) {
         const rule = h.headers.find((x) => x.source === p || (Array.isArray(x.source) ? false : x.source.includes(`${p.slice(1)}`)));
         assert.ok(rule && rule.headers.some((x) => x.key === 'X-Robots-Tag' && /noindex/.test(x.value)), `${p} sans X-Robots-Tag`);
     }

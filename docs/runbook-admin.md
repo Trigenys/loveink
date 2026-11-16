@@ -40,6 +40,7 @@ firebase deploy
 | Utilisateur standard | `user` | Lecture feed, publication, commentaires, messagerie |
 | Modérateur | `moderateur` | + Lecture toutes histoires, approbation/rejet, édition éditoriale |
 | Censeur | `censeur` | + Sanctions, promotion rôles, candidatures, journal ops |
+| Admin | `admin` | + Attribuer ou retirer **tout** rôle (y compris rétrograder), liste des comptes. Un censeur ne peut ni sanctionner ni changer le rôle d'un admin. |
 
 ### Promouvoir un utilisateur
 
@@ -50,13 +51,50 @@ firebase deploy
 2. Modifier le champ `role` : `user` → `moderateur` ou `moderateur` → `censeur`
 3. Ajouter `roleUpdatedBy: "<uid-censeur>"` et `dateRoleUpdate: <timestamp>`
 
-> Transitions autorisées : `user → moderateur`, `moderateur → censeur`. Rétrograder un rôle n'est possible que via la console Firebase directement (pas d'interface UI pour la rétrogradation).
+> Censeur : transitions `user → moderateur` et `moderateur → censeur` uniquement.
+> Admin : toute transition entre `user`, `moderateur`, `censeur` et `admin`, rétrogradation comprise, depuis la
+> section « Administration — comptes et rôles » de l'onglet Modération (`profil.html?tab=moderation`).
+> Chaque changement trace `roleUpdatedBy`, `dateRoleUpdate`, `roleUpdateSource` et une entrée `role_change` dans `ops_logs`.
+> Personne, admin compris, ne peut modifier son propre rôle (règles Firestore) : aucune auto-promotion, et un
+> admin ne peut pas se retirer ses droits par erreur. Un admin est rétrogradé par un autre admin ou via la console.
 
-### Premier censeur
+### Premier admin (script d'amorçage, recommandé)
 
-Le tout premier compte censeur doit être promu manuellement via la console Firebase (pas encore de censeur pour le promouvoir) :
-1. Créer un compte via `index.html` (email/mdp)
-2. Dans Firestore console : `utilisateurs/{uid}` → modifier `role` → `censeur`
+Le script ne crée aucun compte et ne choisit aucun mot de passe : le futur admin s'inscrit d'abord sur
+https://loveink.site. Exécuté par la propriétaire du projet, avec ses propres identifiants :
+
+```bash
+npm install --no-save firebase-admin@12
+gcloud auth application-default login
+node scripts/admin-bootstrap.mjs --email jennifer@trigenys.com --pseudo "Law Admin"           # plan, lecture seule
+node scripts/admin-bootstrap.mjs --email jennifer@trigenys.com --pseudo "Law Admin" --apply   # écrit l'écart
+```
+
+- Compte introuvable : arrêt avec code 1 et message « inscris-toi d'abord sur le site ».
+- Écrit seulement l'écart : `utilisateurs/{uid}.role = admin` (+ `roleUpdatedBy`/`roleUpdateSource` =
+  `admin_bootstrap`, `dateRoleUpdate`), `pseudo`, `displayName` Auth, `comptes_prives/{uid}.email`, et une
+  entrée `ops_logs` `admin_bootstrap`. Relancer le plan doit afficher « aucun changement ».
+- `--backfill-emails` : copie aussi l'e-mail des comptes existants dans `comptes_prives` (affiché dans le plan).
+- `--project <id>` : autre projet (défaut `love-ink`).
+- L'admin se déconnecte puis se reconnecte ; le tableau de bord est sur `admin.html` (lien depuis le profil,
+  onglet modération).
+
+### Premier admin (procédure manuelle, une seule fois)
+
+Aucun compte ne peut s'attribuer un rôle : le premier admin est posé à la main par la propriétaire du projet.
+1. Le futur admin crée son compte normalement sur https://loveink.site (inscription e-mail ou Google).
+2. Console Firebase → projet `love-ink` → **Authentication** : copier l'**UID** du compte.
+3. **Firestore Database** → collection `utilisateurs` → document `<UID>` → champ `role` : remplacer la valeur par
+   `admin` (type *string*). Facultatif, pour la traçabilité : `roleUpdatedBy` = UID de la personne qui agit,
+   `dateRoleUpdate` = *timestamp* courant, `roleUpdateSource` = `console`.
+4. L'admin se reconnecte (ou recharge `profil.html?tab=moderation`) : la section « Administration — comptes et
+   rôles » apparaît. Les admins suivants, censeurs et modérateurs se gèrent ensuite depuis cette section.
+5. Stockage média : le Worker `trigenys-storage` lit aussi ce champ `role`. Pour qu'un admin publie ou consulte
+   les médias privés des histoires en attente, ajouter `"admin"` à `roles.moderator` du tenant `love-ink` dans
+   `END_USER_TENANTS_JSON` (`backend/wrangler.production.jsonc` du dépôt trigenys-storage). Ne pas toucher à
+   `TENANT_CONFIG_JSON`.
+
+Même procédure pour un premier censeur sans admin : valeur `censeur` à l'étape 3.
 
 ---
 
@@ -186,7 +224,7 @@ npm run deploy:firestore
 # 5. Déployer le hosting
 npm run deploy:hosting
 
-# 6. Créer le premier compte censeur
+# 6. Créer le premier compte admin (voir « Premier admin » ci-dessus)
 # → Inscription via index.html
-# → Console Firebase : utilisateurs/{uid} → role: "censeur"
+# → Console Firebase : utilisateurs/{uid} → role: "admin"
 ```

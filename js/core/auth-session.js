@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { firebaseAPI } from './firebase-data.js';
 import { setThemeMode } from './theme.js';
 import { startUserPresence, stopUserPresence } from './presence.js';
+import { syncAccountContact } from './account-contact.js';
 import { isEmailVerified, markVerifyPending } from './email-verification.js';
 
 const SESSION_KEY = "loveInk_user";
@@ -112,6 +113,8 @@ export function requireAuth(options = {}) {
 
         // Presence en ligne (T14): heartbeat + cleanup best effort cote client.
         startUserPresence(user.uid);
+        // Copie privée de l'e-mail (lisible par le titulaire et les admins seulement), sans bloquer la page.
+        void syncAccountContact(user);
 
         const session = syncUserSession(user, stickySession);
         window.__loveInkAuthReady = true;
