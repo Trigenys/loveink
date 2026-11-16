@@ -183,17 +183,13 @@
             await notify('success',
                 verifySent
                     ? `Bienvenue ${pseudo} ! Un e-mail de confirmation vient de vous être envoyé à ${email}. Pensez à vérifier vos courriers indésirables, puis connectez-vous.`
-                    : `Bienvenue ${pseudo} !`,
+                    : `Bienvenue ${pseudo} ! L'e-mail de confirmation n'a pas pu partir : vous pourrez le renvoyer depuis la page de connexion.`,
                 { title: 'Compte créé' });
-            if (verifySent) {
-                // Après l'envoi de l'e-mail de confirmation, on repart de la page de connexion (e-mail prérempli).
-                await signOut(auth).catch(() => {});
-                clearUserSession();
-                try { sessionStorage.setItem('loveInk_prefillEmail', email); } catch { /* stockage indisponible */ }
-                window.location.href = 'login.html';
-            } else {
-                window.location.href = 'feed.html';
-            }
+            // La connexion exige un e-mail confirmé : on repart toujours de la page de connexion (e-mail prérempli).
+            await signOut(auth).catch(() => {});
+            clearUserSession();
+            try { sessionStorage.setItem('loveInk_prefillEmail', email); } catch { /* stockage indisponible */ }
+            window.location.href = 'login.html';
         } catch (error) {
             const message = authErrorMessage(error, 'register');
             if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/invalid-email') {

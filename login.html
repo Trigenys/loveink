@@ -64,6 +64,11 @@
                 </div>
 
                 <button type="submit" class="btn btn-primary" id="submitBtn" style="width: 100%;">Se connecter</button>
+
+                <div id="verifyNotice" role="status" aria-live="polite" hidden style="margin-top: 14px; font-size: 0.9rem;">
+                    <p id="verifyText" style="margin: 0 0 6px;">Confirmez d'abord votre adresse e-mail : cliquez sur le lien reçu (pensez aux courriers indésirables), puis connectez-vous.</p>
+                    <div class="auth-links" style="margin-top: 0;"><button type="button" id="resendVerifyBtn">Renvoyer l'e-mail de confirmation</button></div>
+                </div>
             </form>
             </section>
 
@@ -101,7 +106,8 @@
 
     <script src="js/components/modale.js"></script>
     <script type="module">
-    import { sendPasswordResetEmail, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { sendPasswordResetEmail, signInWithEmailAndPassword, signOut } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+    import { isEmailVerified, sendVerification, VERIFY_PENDING_KEY } from './js/core/email-verification.js';
     import { auth } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
     import { requestPasswordReset } from './js/core/mailer-client.js';
@@ -168,6 +174,48 @@
         }
     } catch { /* stockage indisponible */ }
 
+    // Connexion refusée tant que l'e-mail n'est pas confirmé ; renvoi du lien à la demande.
+    const verifyNotice = f('verifyNotice');
+    const verifyText = f('verifyText');
+    const resendVerifyBtn = f('resendVerifyBtn');
+    function showVerifyNotice(text) {
+        if (text) verifyText.textContent = text;
+        verifyNotice.hidden = false;
+    }
+    try {
+        if (sessionStorage.getItem(VERIFY_PENDING_KEY)) {
+            sessionStorage.removeItem(VERIFY_PENDING_KEY);
+            showVerifyNotice();
+        }
+    } catch { /* stockage indisponible */ }
+    resendVerifyBtn.addEventListener('click', async () => {
+        if (busy) return;
+        clearErrors(form);
+        const email = f('email').value.trim();
+        const password = f('password').value;
+        if (!isValidEmail(email)) fieldError(f('email'), 'Saisissez une adresse e-mail valide.');
+        if (!password) fieldError(f('password'), 'Saisissez votre mot de passe pour renvoyer le lien.');
+        if (focusFirstInvalid(form)) return;
+        busy = true;
+        setBusy(resendVerifyBtn, true, 'Envoi…');
+        try {
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            if (await isEmailVerified(user)) { window.location.href = 'feed.html'; return; }
+            const sent = await sendVerification(user);
+            await signOut(auth).catch(() => {});
+            showVerifyNotice(sent
+                ? `Un nouvel e-mail de confirmation vient d'être envoyé à ${email}. Cliquez sur le lien, puis connectez-vous.`
+                : "L'e-mail n'a pas pu être envoyé. Réessayez dans quelques minutes.");
+        } catch (error) {
+            const message = authErrorMessage(error, 'login');
+            if (message === "E-mail ou mot de passe incorrect.") { fieldError(f('password'), message); f('password').focus(); }
+            else await notify('error', message, { title: 'Confirmation de l’e-mail' });
+        } finally {
+            busy = false;
+            setBusy(resendVerifyBtn, false);
+        }
+    });
+
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (busy) return;
@@ -181,7 +229,12 @@
         busy = true;
         setBusy(submitBtn, true, 'Connexion…');
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            if (!(await isEmailVerified(user))) {
+                await signOut(auth).catch(() => {});
+                showVerifyNotice();
+                return;
+            }
             window.location.href = 'feed.html';
         } catch (error) {
             const message = authErrorMessage(error, 'login');
