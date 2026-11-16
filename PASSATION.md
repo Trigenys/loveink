@@ -580,3 +580,11 @@
   - Sur ce checkout Windows, 2 tests robots.txt échouent déjà sur la base, à cause du CRLF dû à core.autocrlf (voir lessons-learned).
   - Harnais Playwright avec Firebase stubbé, sans appel prod : clic catégorie → recherche + filtre + vignette w320 conservés ; captures dans docs/pr/feed-categories/.
 - Non vérifié : comptage réel contre Firestore prod (règles publiques en lecture sur statut publie ; à observer après déploiement).
+
+## 2026-11-16 14:32 — /feed catégories en prod + chapeau à 0 histoire
+- La PR #36 est fusionnée (02a58e8) et déployée. Vérifié sur loveink.site : le CSS et le JS de feed-categories sont servis en 200.
+- Le comptage par genre (requête d'agrégation statut publie + categorie) fonctionne sans connexion. Il renvoie 0 partout : la prod n'a encore aucune histoire publiée.
+- Correctif (fix/feed-categories-empty-lede) : quand le total vaut 0, le chapeau garde le texte par défaut au lieu de « 0 histoire publiée ».
+- Reste :
+  - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
+  - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).

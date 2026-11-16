@@ -38,12 +38,12 @@ export function countLabel(n) {
     return `${n} histoire${n > 1 ? 's' : ''}`;
 }
 
-// Phrase d'introduction : total publié quand les compteurs sont connus.
+// Phrase d'introduction : total publié quand il est connu et non nul.
 export function ledeText(counts, categories = CATEGORIES) {
     const values = categories.map((c) => counts?.[c.nom]).filter(Number.isFinite);
     const genres = `${categories.length} genres`;
-    if (!values.length) return `${genres} à explorer. Choisissez-en un pour filtrer les histoires.`;
     const total = values.reduce((a, b) => a + b, 0);
+    if (!total) return `${genres} à explorer. Choisissez-en un pour filtrer les histoires.`;
     return `${genres}, ${total} histoire${total > 1 ? 's' : ''} publiée${total > 1 ? 's' : ''}. Choisissez un genre pour filtrer.`;
 }
 
