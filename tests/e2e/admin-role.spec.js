@@ -1,5 +1,5 @@
 // Rôle admin sur émulateurs : le premier admin est posé hors application (ici par l'API d'administration de
-// l'émulateur, en production à la main dans la console Firebase), puis l'admin attribue un rôle depuis le profil.
+// l'émulateur, en production à la main dans la console Firebase), puis l'onglet Modération du profil le renvoie vers admin.html.
 const { test, expect } = require('@playwright/test');
 const { makeUser, registerWithUi, loginWithUi, logoutFromNav, waitForAuthReady } = require('./helpers/app');
 
@@ -27,11 +27,7 @@ async function readUserDoc(request, uid) {
 test.describe('Love Ink - rôle admin (émulateurs)', () => {
     test.skip(process.env.E2E_ALLOW_PROD === '1', 'Écrit des rôles via l’API de l’émulateur : jamais contre la production.');
 
-    test('un admin attribue un rôle depuis le profil, sans pouvoir modifier le sien', async ({ page, request }) => {
-        const cible = await registerWithUi(page, makeUser('e2e-cible'));
-        expect(cible.uid).toBeTruthy();
-        await logoutFromNav(page);
-
+    test('le profil renvoie l’admin vers le tableau de bord pour les comptes et rôles', async ({ page, request }) => {
         const admin = await registerWithUi(page, makeUser('e2e-admin'));
         expect(admin.uid).toBeTruthy();
         await setRoleAsOwner(request, admin.uid, 'admin');
@@ -40,22 +36,18 @@ test.describe('Love Ink - rôle admin (émulateurs)', () => {
 
         await page.goto('/profil.html?tab=moderation');
         await waitForAuthReady(page);
-        const section = page.locator('#adminComptesSection');
-        await expect(section).toBeVisible({ timeout: 30000 });
+        const lien = page.locator('#adminDashboardLink');
+        await expect(lien).toBeVisible({ timeout: 30000 });
+        await expect(lien).toHaveAttribute('href', 'admin.html');
+        // La gestion des comptes vit dans admin.html (admin-dashboard.spec.js), plus dans le profil.
+        await expect(page.locator('#adminComptesSection')).toHaveCount(0);
 
-        const moi = section.locator('.admin-compte', { hasText: '(vous)' });
-        await expect(moi.locator('.admin-role-select')).toBeDisabled();
-
-        await page.fill('#adminComptesFiltre', cible.uid.toLowerCase());
-        const ligne = section.locator('.admin-compte:not([hidden])', { hasText: cible.uid });
-        await expect(ligne).toHaveCount(1);
-        await ligne.locator('.admin-role-select').selectOption('moderateur');
-        await ligne.locator('.admin-role-apply').click();
-
-        await expect.poll(async () => (await readUserDoc(request, cible.uid)).role, { timeout: 20000 }).toBe('moderateur');
-        const apres = await readUserDoc(request, cible.uid);
-        expect(apres.roleUpdatedBy).toBe(admin.uid);
-        expect(apres.roleUpdateSource).toBe('admin_panel');
+        // Une section à la fois : la file d'attente par défaut, puis le journal.
+        await expect(page.locator('[data-modo-panel="file"]')).toBeVisible();
+        await expect(page.locator('[data-modo-panel="journal"]')).toBeHidden();
+        await page.locator('#modoSubnav [data-modo="journal"]').click();
+        await expect(page.locator('[data-modo-panel="journal"]')).toBeVisible();
+        await expect(page.locator('[data-modo-panel="file"]')).toBeHidden();
         expect((await readUserDoc(request, admin.uid)).role).toBe('admin');
     });
 });
