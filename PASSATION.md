@@ -568,3 +568,8 @@
 - PR #32 (fix/profile-stat-hover) : --rose-blush sombre appliqué en clair (sélecteur mal formé dans css/profil.css) → tuiles de stats illisibles au survol. SEO 72/72. À fusionner sur accord.
 - Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
 - Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
+
+## 2026-11-16 10:43 — Inscription : retour à la connexion après l'e-mail de confirmation
+- Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
+- Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).
+- En parallèle : PR #33 (recette e2e prod) ouverte, en attente de npm run e2e:prod:setup. Transcription locale (faster-whisper medium) du vocal cliente du 2026-11-15 en cours → scratchpad vocal.txt ; premiers éléments : 1 à 4 images par histoire, espace modérateurs séparé où le modérateur peut corriger le texte.
