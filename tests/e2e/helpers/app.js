@@ -83,7 +83,9 @@ async function registerWithUi(page, user, options = {}) {
     // Selon que la connexion exige ou non un e-mail confirmé, l'inscription mène à l'application ou à la connexion.
     await waitForRedirectWithModalHandling(page, [expectRedirectTo, LOGIN_URL], 60000);
 
+    // Après l'e-mail de confirmation, l'inscription renvoie vers la connexion (e-mail prérempli) : on s'y connecte.
     if (!urlMatches(page, expectRedirectTo) && urlMatches(page, LOGIN_URL)) {
+        await expect(page.locator('#email')).toHaveValue(user.email);
         const session = await loginWithUi(page, user, { expectRedirectTo });
         return { ...user, uid: session?.uid || '', session };
     }

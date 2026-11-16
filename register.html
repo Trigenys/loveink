@@ -108,12 +108,13 @@
     import {
         createUserWithEmailAndPassword,
         sendEmailVerification,
+        signOut,
         updateProfile
     } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
     import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
     import { auth, db } from './js/core/firebase-config.js';
     import { notify } from './js/components/ui-notify.js';
-    import { syncUserSession } from './js/core/auth-session.js';
+    import { clearUserSession, syncUserSession } from './js/core/auth-session.js';
     import { requestVerificationEmail } from './js/core/mailer-client.js';
     import {
         PASSWORD_MIN, authErrorMessage, clearErrors, fieldError, focusFirstInvalid,
@@ -181,10 +182,18 @@
 
             await notify('success',
                 verifySent
-                    ? `Bienvenue ${pseudo} ! Un e-mail de confirmation vient de vous être envoyé à ${email}. Pensez à vérifier vos courriers indésirables.`
+                    ? `Bienvenue ${pseudo} ! Un e-mail de confirmation vient de vous être envoyé à ${email}. Pensez à vérifier vos courriers indésirables, puis connectez-vous.`
                     : `Bienvenue ${pseudo} !`,
                 { title: 'Compte créé' });
-            window.location.href = 'feed.html';
+            if (verifySent) {
+                // Après l'envoi de l'e-mail de confirmation, on repart de la page de connexion (e-mail prérempli).
+                await signOut(auth).catch(() => {});
+                clearUserSession();
+                try { sessionStorage.setItem('loveInk_prefillEmail', email); } catch { /* stockage indisponible */ }
+                window.location.href = 'login.html';
+            } else {
+                window.location.href = 'feed.html';
+            }
         } catch (error) {
             const message = authErrorMessage(error, 'register');
             if (error?.code === 'auth/email-already-in-use' || error?.code === 'auth/invalid-email') {

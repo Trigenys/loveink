@@ -25,16 +25,16 @@ test('countLabel : inconnu, zéro, singulier, pluriel', () => {
 });
 
 test('ledeText : sans compteurs, total nul, puis total publié', () => {
-    assert.match(ledeText(null), /^18 genres à explorer\./);
-    assert.match(ledeText(Object.fromEntries(CATEGORIES.map((c) => [c.nom, 0]))), /^18 genres à explorer\./, 'pas de « 0 histoire publiée »');
-    assert.match(ledeText({ 'Premier amour': 14, Rencontres: 9, Divers: null }), /^18 genres, 23 histoires publiées\./);
-    assert.match(ledeText({ Divers: 1 }), /1 histoire publiée\./);
+    assert.match(ledeText(null), /^8 genres à explorer\./);
+    assert.match(ledeText(Object.fromEntries(CATEGORIES.map((c) => [c.nom, 0]))), /^8 genres à explorer\./, 'pas de « 0 histoire publiée »');
+    assert.match(ledeText({ 'Premier amour': 14, Rencontres: 9, 'Amour magique': null }), /^8 genres, 23 histoires publiées\./);
+    assert.match(ledeText({ 'Amour magique': 1 }), /1 histoire publiée\./);
 });
 
-test('categoryForQuery : correspondance exacte sur la clé ou le libellé, insensible à la casse', () => {
+test('categoryForQuery : correspondance exacte sur la clé, insensible à la casse et aux accents', () => {
     assert.equal(categoryForQuery('premier amour')?.nom, 'Premier amour');
-    assert.equal(categoryForQuery("De l'amitié à l'amour")?.nom, "De l'amitie a l'amour");
-    assert.equal(categoryForQuery('  POESIE D\'AMOUR ')?.nom, "Poesie d'amour");
+    assert.equal(categoryForQuery("Poésie d'amour")?.nom, "Poésie d'amour");
+    assert.equal(categoryForQuery('  POESIE D\'AMOUR ')?.nom, "Poésie d'amour", 'la clé stockée porte l\'accent');
     assert.equal(categoryForQuery('amour'), null);
     assert.equal(categoryForQuery(''), null);
 });
@@ -53,21 +53,42 @@ test('loadCategoryCounts : met en cache un résultat complet et le relit dans le
 
 test('loadCategoryCounts : ne met pas en cache un résultat partiel, tolère un cache illisible', async () => {
     const storage = memoryStorage({ loveInk_catCounts: '{pas du json' });
-    const partial = { ...allCounts(), Divers: null };
+    const partial = { ...allCounts(), Rencontres: null };
     const counts = await loadCategoryCounts(async () => partial, { storage, now: 5 });
-    assert.equal(counts.Divers, null);
+    assert.equal(counts.Rencontres, null);
     assert.equal(storage.getItem('loveInk_catCounts'), '{pas du json');
     assert.deepEqual(await loadCategoryCounts(async () => null, { storage: null }), {});
 });
 
-test('données : 18 genres, clés uniques, icônes et visuels présents', () => {
-    assert.equal(CATEGORIES.length, 18);
-    assert.equal(new Set(CATEGORIES.map((c) => c.nom)).size, 18);
+test('loadCategoryCounts : ignore un cache qui ne couvre pas la liste actuelle des genres', async () => {
+    const stale = allCounts(3);
+    delete stale["Poésie d'amour"];
+    const storage = memoryStorage({ loveInk_catCounts: JSON.stringify({ at: 0, counts: { ...stale, 'Ancien genre': 2 } }) });
+    let calls = 0;
+    const counts = await loadCategoryCounts(async (noms) => { calls += 1; return Object.fromEntries(noms.map((n) => [n, 0])); }, { storage, now: 60_000 });
+    assert.equal(calls, 1, 'cache incomplet : recompté');
+    assert.equal(counts["Poésie d'amour"], 0);
+});
+
+test('données : genres uniques, chacun avec icône et visuel distinct présent', () => {
+    assert.equal(new Set(CATEGORIES.map((c) => c.nom)).size, CATEGORIES.length);
     for (const c of CATEGORIES) {
         assert.ok(c.label && c.icon, `${c.nom} : libellé et icône requis`);
-        if (c.image) assert.ok(existsSync(join(ROOT, c.image)), `${c.image} absent`);
+        assert.ok(c.image, `${c.nom} : visuel requis`);
+        assert.ok(existsSync(join(ROOT, c.image)), `${c.image} absent`);
     }
-    assert.ok(CATEGORIES.filter((c) => c.image).length >= 6);
+    assert.equal(new Set(CATEGORIES.map((c) => c.image)).size, CATEGORIES.length, 'un visuel distinct par genre');
+});
+
+test('contrat : genres du fil = options de publier.html = clés de data/genres.json', () => {
+    const decode = (v) => v.replaceAll('&#39;', "'").replaceAll('&apos;', "'").replaceAll('&amp;', '&');
+    const publier = readFileSync(join(ROOT, 'publier.html'), 'utf8');
+    const options = [...publier.matchAll(/<option value="([^"]+)"/g)].map((m) => decode(m[1]));
+    const editorial = Object.keys(JSON.parse(readFileSync(join(ROOT, 'data/genres.json'), 'utf8'))).filter((k) => !k.startsWith('_'));
+    const feed = CATEGORIES.map((c) => c.nom).sort();
+    assert.equal(feed.length, 8);
+    assert.deepEqual([...options].sort(), feed, 'publier.html et le fil divergent');
+    assert.deepEqual([...editorial].sort(), feed, 'data/genres.json et le fil divergent');
 });
 
 test('feed.html : section, grille et ancre des histoires conservées', () => {
