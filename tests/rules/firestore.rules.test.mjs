@@ -173,3 +173,102 @@ test('images : un modo edite les images avant publication', async () => {
   await assertFails(edit([img(1), { ...img(2), alt: 3 }]));
   await assertSucceeds(edit([img(2)]));
 });
+
+// --- Series : histoires en plusieurs chapitres ---
+// h1 (publiee, auteur A) devient le chapitre 1 de la serie « h1 ».
+const serie = (over = {}) => ({
+  titre: 't', auteurId: A, genre: 'c', couverture: null, statut: 'en_cours', dernierChapitre: 2,
+  dateCreation: serverTimestamp(), dateMaj: serverTimestamp(), ...over
+});
+const chapitre = (n, over = {}) => ({ ...story(A, 'en_attente'), serieId: 'h1', chapitre: n, ...over });
+async function premierChapitre2(d, over = {}) {
+  const b = writeBatch(d);
+  b.set(doc(d, 'series', 'h1'), serie(over.serie));
+  b.update(doc(d, 'histoires', 'h1'), { serieId: 'h1', chapitre: 1, ...(over.attach || {}) });
+  b.set(doc(d, 'histoires', over.id || 'ch2'), chapitre(2, over.chapitre));
+  return b.commit();
+}
+
+test('series : histoire sans serieId inchangee (contrat historique)', async () => {
+  await assertSucceeds(setDoc(doc(db(B), 'histoires', 'solo'), story(B, 'en_attente')));
+});
+
+test('series : chapitre 2 d\'une histoire publiee en un seul batch', async () => {
+  await assertSucceeds(premierChapitre2(db(A)));
+  let s;
+  await env.withSecurityRulesDisabled(async (c) => { s = (await getDoc(doc(c.firestore(), 'histoires', 'h1'))).data(); });
+  if (s.serieId !== 'h1' || s.chapitre !== 1) throw new Error('chapitre 1 non rattache');
+});
+
+test('series : lecture publique, creation refusee a un tiers ou hors batch', async () => {
+  const d = db(B);
+  const b = writeBatch(d);
+  b.set(doc(d, 'series', 'h1'), serie({ auteurId: B }));
+  b.set(doc(d, 'histoires', 'x2'), { ...chapitre(2), auteurId: B });
+  await assertFails(b.commit());
+  // Serie seule, sans rattacher le chapitre 1 : refusee.
+  await assertFails(setDoc(doc(db(A), 'series', 'h1'), serie()));
+  await assertSucceeds(premierChapitre2(db(A)));
+  await assertSucceeds(getDoc(doc(env.unauthenticatedContext().firestore(), 'series', 'h1')));
+});
+
+test('series : titre, genre, couverture ou numero forges refuses', async () => {
+  await assertFails(premierChapitre2(db(A), { serie: { titre: 'autre' } }));
+  await assertFails(premierChapitre2(db(A), { serie: { genre: 'autre' } }));
+  await assertFails(premierChapitre2(db(A), { serie: { couverture: img(1) } }));
+  await assertFails(premierChapitre2(db(A), { serie: { dernierChapitre: 3 } }));
+  await assertFails(premierChapitre2(db(A), { chapitre: { categorie: 'autre' } }));
+  await assertFails(premierChapitre2(db(A), { attach: { chapitre: 2 } }));
+  await assertFails(premierChapitre2(db(A), { serie: { statut: 'publie' } }));
+});
+
+test('series : histoire non publiee ne peut pas devenir une serie', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'histoires', 'h1'), { statut: 'en_attente' }));
+  await assertFails(premierChapitre2(db(A)));
+});
+
+test('series : couverture = premiere image du chapitre 1', async () => {
+  await env.withSecurityRulesDisabled((c) => updateDoc(doc(c.firestore(), 'histoires', 'h1'), { images: [img(1), img(2)] }));
+  await assertFails(premierChapitre2(db(A)));
+  await assertSucceeds(premierChapitre2(db(A), { serie: { couverture: img(1) } }));
+});
+
+test('series : chapitre 3 avec avancement +1, doublon et saut refuses', async () => {
+  await premierChapitre2(db(A));
+  const d = db(A);
+  const next = (n, id, statut = 'en_cours') => {
+    const b = writeBatch(d);
+    b.update(doc(d, 'series', 'h1'), { dernierChapitre: n, statut, dateMaj: serverTimestamp() });
+    b.set(doc(d, 'histoires', id), chapitre(n));
+    return b.commit();
+  };
+  await assertFails(next(4, 'c4'));
+  await assertSucceeds(next(3, 'c3', 'terminee'));
+  // Meme numero rejoue (deux onglets) : refuse.
+  const b = writeBatch(d);
+  b.update(doc(d, 'series', 'h1'), { statut: 'en_cours', dateMaj: serverTimestamp() });
+  b.set(doc(d, 'histoires', 'c3bis'), chapitre(3));
+  await assertFails(b.commit());
+  // Chapitre sans avancer la serie : refuse.
+  await assertFails(setDoc(doc(d, 'histoires', 'c5'), chapitre(4)));
+});
+
+test('series : un tiers ne peut ni ajouter de chapitre ni modifier la serie', async () => {
+  await premierChapitre2(db(A));
+  const d = db(B);
+  const b = writeBatch(d);
+  b.update(doc(d, 'series', 'h1'), { dernierChapitre: 3, dateMaj: serverTimestamp() });
+  b.set(doc(d, 'histoires', 'pirate'), { ...chapitre(3), auteurId: B });
+  await assertFails(b.commit());
+  await assertFails(updateDoc(doc(d, 'series', 'h1'), { statut: 'terminee', dateMaj: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(db(A), 'series', 'h1')));
+});
+
+test('series : l\'auteur ne change que statut / avancement, et ne detache pas un chapitre', async () => {
+  await premierChapitre2(db(A));
+  await assertSucceeds(updateDoc(doc(db(A), 'series', 'h1'), { statut: 'terminee', dateMaj: serverTimestamp() }));
+  await assertFails(updateDoc(doc(db(A), 'series', 'h1'), { titre: 'renomme', dateMaj: serverTimestamp() }));
+  await assertFails(updateDoc(doc(db(A), 'series', 'h1'), { dernierChapitre: 1, dateMaj: serverTimestamp() }));
+  await assertFails(updateDoc(doc(db(A), 'histoires', 'h1'), { serieId: 'autre', chapitre: 1 }));
+  await assertFails(updateDoc(doc(db(A), 'histoires', 'ch2'), { chapitre: 7 }));
+});

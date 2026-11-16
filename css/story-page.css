@@ -59,3 +59,12 @@ h1, h2, h3 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 500
 .sp-badge { display: inline-block; margin: 0 0 10px; padding: 4px 12px; border: 1px solid var(--rose); border-radius: 999px; color: var(--rose); font-size: 0.8rem; letter-spacing: 0.04em; }
 .sp-rights { margin: 18px 0 0; font-size: 0.82rem; color: var(--ink-muted); }
 .sp-rights a { color: var(--rose-deep); }
+/* Histoires en chapitres */
+.sp-chapters { font-size: 0.9rem; color: var(--ink-muted); margin: 0 0 6px; }
+.sp-chapters a { color: var(--rose-deep); }
+.sp-chapter-nav { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; margin: 36px 0 0; padding: 18px 0; border-top: 1px solid var(--border); }
+.sp-chapter-nav a { color: var(--rose-deep); font-weight: 500; text-decoration: none; }
+.sp-chapter-nav a[rel="next"] { margin-left: auto; }
+.sp-chapter-nav span { margin-left: auto; color: var(--ink-muted); font-style: italic; }
+.sp-toc { padding-left: 1.4em; margin: 0 0 28px; line-height: 2; }
+.sp-toc a { color: var(--rose-deep); }

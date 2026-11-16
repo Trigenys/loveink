@@ -85,3 +85,31 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Prévention** : un attribut de sélection (`data-step`) n'est jamais réutilisé comme attribut d'état sur un
   ancêtre ; tout composant posé dans `body.li-app` qui fixe une couleur de `label` le fait avec le préfixe
   `body.li-app`. Revue visuelle sur captures desktop + mobile avant PR.
+
+## 2026-11-16 — E2E : port local déjà servi par une autre copie du site
+
+- **Contexte** : histoires en chapitres ; e2e hermétiques lancés contre `http://127.0.0.1:5178`.
+- **Cause** : le port était déjà occupé par un serveur d'un autre worktree (autre version du site). Le nouveau
+  serveur n'a pas pu s'y lier, mais les requêtes ont abouti quand même : les tests visaient un code qui
+  n'était pas celui de la branche (wizard jamais monté, délais dépassés sans erreur explicite).
+- **Classification** : near miss d'outillage local ; faux rouge, et risque symétrique de faux vert.
+- **Résolution** : serveur relancé sur un port libre (5191), suite repassée au vert.
+- **Prévention** : avant une campagne e2e locale, vérifier que le serveur sert bien ce worktree, par exemple
+  `curl -s "$E2E_BASE_URL/js/core/series.js" | cmp - js/core/series.js` (ou tout fichier propre à la branche),
+  et choisir un port inutilisé. Toujours fixer `E2E_BASE_URL` (la config vise la production par défaut).
+- **Bug annexe trouvé par l'e2e** : `publishStoryImages` impose un minimum d'images par défaut ; un chapitre
+  sans image échouait sans message. Le mode chapitre passe `min: 0` et un test e2e couvre l'envoi sans image.
+
+## 2026-11-16 — E2E : suite lancée sans filtre, un test non hermétique a touché la production
+
+- **Contexte** : vérification de non-régression des histoires en chapitres, serveur local `127.0.0.1:5191`.
+- **Cause** : `npx playwright test` sans filtre exécute aussi `tests/e2e/full-app.spec.js`. Ce test ne simule
+  pas Firebase : servi en local, le site parle quand même au vrai projet `love-ink`. Il a créé un compte
+  `flow.<suffixe>@loveink-e2e.test`, publié une histoire de test et modifié des paramètres, puis a échoué à la
+  déconnexion. Fixer `E2E_BASE_URL` sur localhost ne rend pas un test hermétique.
+- **Classification** : incident de procédure (données de test écrites en production), sans impact utilisateur.
+- **Résolution** : signalé à la propriétaire pour suppression manuelle du compte et de l'histoire de test ;
+  aucune suppression faite sans son accord. Suite repassée en ne lançant que les specs hermétiques.
+- **Prévention** : ne jamais lancer la suite e2e sans liste explicite de specs ; les specs hermétiques
+  (`chapitres`, `publier-wizard`) se lancent par nom. Suivi proposé : faire sauter `full-app.spec.js` sauf
+  opt-in explicite (`E2E_ALLOW_PROD=1`) pour que l'oubli du filtre ne puisse plus écrire en production.

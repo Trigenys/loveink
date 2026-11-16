@@ -92,6 +92,43 @@ html .story-page[data-reader-theme="sepia"] {
 
 .li-readtime { color: var(--rd-muted); }
 
+/* Chapitres d'une serie : position, sommaire, suite */
+.li-chapters {
+    margin: 4px 0 28px;
+    padding: 12px 16px;
+    border: 1px solid var(--rd-rule);
+    border-radius: 14px;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    color: var(--rd-muted);
+    font-size: 0.9rem;
+}
+.li-chapters__pos { margin: 0; display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.li-chapters__serie { font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 1.1rem; color: var(--rd-ink); }
+.li-chapters__label { color: var(--rd-accent); font-weight: 500; }
+.li-chapters__toc { margin-top: 8px; }
+.li-chapters__toc summary { cursor: pointer; min-height: 32px; display: inline-flex; align-items: center; color: var(--rd-accent); }
+.li-chapters__toc ol { margin: 6px 0 2px; padding-left: 22px; display: grid; gap: 4px; }
+.li-chapters__toc a { color: var(--rd-ink); }
+.li-chapters__toc li[aria-current] span { color: var(--rd-accent); font-weight: 600; }
+.li-chapter-next {
+    margin: 40px 0 0;
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    font-family: 'DM Sans', system-ui, sans-serif;
+    text-align: center;
+}
+.li-chapter-next__go {
+    display: inline-flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px 10px;
+    min-height: 48px; padding: 12px 26px; border-radius: 999px;
+    background: var(--rd-accent); color: var(--rd-bg); text-decoration: none; font-weight: 500;
+}
+.li-chapter-next__go small { flex-basis: 100%; font-weight: 400; opacity: 0.85; font-size: 0.8rem; }
+.li-chapter-next__go small:empty { display: none; }
+.li-chapter-next__prev { color: var(--rd-muted); font-size: 0.88rem; min-height: 32px; display: inline-flex; align-items: center; gap: 6px; }
+.li-chapter-next__soon {
+    margin: 0; padding: 12px 20px; border-radius: 999px; border: 1px dashed var(--rd-rule);
+    color: var(--rd-accent); font-family: 'Cormorant Garamond', Georgia, serif; font-style: italic; font-size: 1.15rem;
+}
+
 /* Fin d'histoire */
 .li-story-end {
     margin-top: 56px;
@@ -243,7 +280,7 @@ html.li-focus .story-page { padding-top: 24px; }
     .li-suggest a { transition: none; }
 }
 @media print {
-    .li-reader-bar, .li-reader-panel, .li-resume, .li-story-end { display: none !important; }
+    .li-reader-bar, .li-reader-panel, .li-resume, .li-story-end, .li-chapter-next, .li-chapters__toc { display: none !important; }
 }
 .story-page .story-rights { margin: 18px 0 0; font-size: 0.82rem; opacity: 0.75; }
 /* Galerie d'images d'une histoire (1 a 4) */

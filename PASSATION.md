@@ -597,3 +597,19 @@
 - 4 visuels ajoutés dans images/landing/ (320×400 WebP) : cat-heureux, cat-lettres, cat-poesie, cat-rencontres. Les 8 tuiles de l'étape « genre » ont maintenant une photo ; Rencontres n'emprunte plus cat-seconde-chance.
 - Dégradés de secours .li-genre--happy/--letter/--poem retirés (plus utilisés) ; l'icône reste pour une catégorie héritée.
 - PR #38 toujours ouverte, ne pas fusionner ni déployer sans accord explicite.
+
+## 2026-11-16 17:26 — Histoires en plusieurs chapitres, lot 1 (branche feat/chapitres)
+- Modèle : chapitre = doc `histoires` avec `serieId` + `chapitre` ; `series/{id}` (id du chapitre 1) porte titre, genre, statut, dernierChapitre. Règles Firestore + tests (29/29).
+- Wizard : choix « nouvelle histoire / nouveau chapitre », genre hérité et sauté, titre et images facultatifs, case « dernier chapitre ». Profil : « Mes séries ».
+- Lecture : `js/components/series-nav.js` (Chapitre N sur M, sommaire, suivant / « La suite arrive bientôt »). Fil : une carte par série (`feedEntries`).
+- SEO : `scripts/build-seo-pages.mjs` génère rel prev/next sur les chapitres et `/histoires/serie/<slug>-<id>` (option `--series-fixture` en local).
+- Tests : `tests/seo/series*.test.mjs`, `tests/e2e/chapitres.spec.js`, wizard e2e étendu. Captures dans `docs/pr/chapitres/`.
+- PR empilée sur feat/publier-wizard (#38). Ne pas fusionner ni déployer sans accord explicite. Lot 2 : reprise de lecture, notifications.
+
+## 2026-11-16 17:28 — Chapitres lot 1 : incident e2e et livraison
+
+- Incident : une exécution e2e sans filtre a lancé `full-app.spec.js` contre le vrai Firebase (`love-ink`).
+  Compte de test `flow.*@loveink-e2e.test` et histoire de test probablement créés en production : à supprimer
+  par la propriétaire (rien supprimé sans accord). Leçon ajoutée dans `docs/engineering/lessons-learned.md`.
+- Ne lancer que les specs hermétiques par nom : `E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test chapitres publier-wizard`.
+- Commit, push et PR empilée sur feat/publier-wizard dans la foulée.
