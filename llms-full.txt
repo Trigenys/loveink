@@ -20,7 +20,6 @@
 - [Politique de confidentialité](https://loveink.site/confidentialite)
 
 
-
 ## Version détaillée
 - https://loveink.site/llms-full.txt : présentation et extraits des histoires publiées
 

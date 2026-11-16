@@ -417,6 +417,7 @@
         import { notify, notifyConfirm } from './js/components/ui-notify.js';
         import { clearUserSession, logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
         import { getFreshDoc } from './js/core/fresh-doc.js';
+        import { deleteStoryImages, storyImages } from './js/core/story-images.js';
         import { getStoredThemeMode, setThemeMode } from './js/core/theme.js';
         import { applyInitialsAvatar } from './js/components/avatar-initials.js';
         import { setNavAvatar, setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
@@ -648,11 +649,21 @@
             await Promise.all(snap.docs.map((docSnap) => deleteDoc(docSnap.ref)));
         }
 
+        // Images des histoires de l'utilisateur : supprimees avant les documents qui les referencent
+        // (meilleur effort, une image deja absente compte comme supprimee).
+        async function deleteOwnStoryImages(uid) {
+            const snap = await getDocs(query(collection(db, 'histoires'), where('auteurId', '==', uid)));
+            const ids = snap.docs.flatMap((docSnap) => storyImages(docSnap.data()).map((it) => it.id));
+            const failed = await deleteStoryImages(ids);
+            if (failed.length) console.warn(`${failed.length} image(s) non supprimee(s)`);
+        }
+
         async function cleanupAccountData(uid) {
             const tasks = [
                 () => deleteDocsByField('likes', 'userId', uid),
                 () => deleteDocsByField('commentaires', 'auteurId', uid),
                 () => deleteDocsByField('abonnements', 'abonneId', uid),
+                () => deleteOwnStoryImages(uid),
                 () => deleteDocsByField('histoires', 'auteurId', uid),
                 () => deleteDocsByField('notifications', 'utilisateurId', uid)
             ];

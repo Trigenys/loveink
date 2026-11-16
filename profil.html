@@ -1167,13 +1167,19 @@
                         </div>
                     `;
                     item.querySelector('.modo-approve').addEventListener('click', async () => {
-                        const ok = await firebaseAPI.approuverHistoire(h.id, currentUser.uid);
+                        let ok = false;
+                        let detail = "Erreur lors de l'approbation.";
+                        try {
+                            ok = await firebaseAPI.approuverHistoire(h.id, currentUser.uid);
+                        } catch (error) {
+                            detail = error?.message || detail;
+                        }
                         if (ok) {
                             item.remove();
                             updateModoCount();
                             if (isCenseur) await renderOpsLogsPanel();
                         } else {
-                            await notify('error', "Erreur lors de l'approbation.", { title: 'Moderation' });
+                            await notify('error', detail, { title: 'Moderation' });
                         }
                     });
                     item.querySelector('.modo-reject').addEventListener('click', () => openRejectModal(h.id, item));
