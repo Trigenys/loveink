@@ -5,23 +5,23 @@
 
 export const CATEGORIES = Object.freeze([
     { nom: 'Premier amour', icon: 'fa-heart', image: 'images/landing/cat-premier-amour.webp' },
-    { nom: 'Amour des hommes illustres', icon: 'fa-crown' },
-    { nom: 'Amour farfelu', icon: 'fa-hat-wizard' },
-    { nom: 'Amour heureux', icon: 'fa-smile' },
+    { nom: 'Amour des hommes illustres', icon: 'fa-crown', image: 'images/landing/cat-hommes-illustres.webp' },
+    { nom: 'Amour farfelu', icon: 'fa-hat-wizard', image: 'images/landing/cat-farfelu.webp' },
+    { nom: 'Amour heureux', icon: 'fa-smile', image: 'images/landing/cat-heureux.webp' },
     { nom: 'Amour magique', icon: 'fa-wand-magic-sparkles', image: 'images/landing/cat-magique.webp' },
     { nom: 'Amour virtuel', icon: 'fa-globe', image: 'images/landing/cat-distance.webp' },
     { nom: 'Aventure estivale', icon: 'fa-sun', image: 'images/landing/cat-estivale.webp' },
-    { nom: 'Belles histoires', icon: 'fa-star' },
-    { nom: "De l'amitie a l'amour", label: "De l'amitié à l'amour", icon: 'fa-handshake' },
-    { nom: 'Histoires de couples', icon: 'fa-people-arrows' },
+    { nom: 'Belles histoires', icon: 'fa-star', image: 'images/landing/cat-belles-histoires.webp' },
+    { nom: "De l'amitie a l'amour", label: "De l'amitié à l'amour", icon: 'fa-handshake', image: 'images/landing/cat-amitie-amour.webp' },
+    { nom: 'Histoires de couples', icon: 'fa-people-arrows', image: 'images/landing/cat-couples.webp' },
     { nom: 'Histoires tristes', icon: 'fa-cloud-rain', image: 'images/landing/cat-tristes.webp' },
-    { nom: 'Interessant', label: 'Intéressant', icon: 'fa-lightbulb' },
-    { nom: "Lettres d'amour", icon: 'fa-envelope' },
-    { nom: 'Nos conseils', icon: 'fa-comment-dots' },
-    { nom: "Poesie d'amour", label: "Poésie d'amour", icon: 'fa-feather' },
-    { nom: 'Rapport occasionnel', icon: 'fa-calendar-check' },
+    { nom: 'Interessant', label: 'Intéressant', icon: 'fa-lightbulb', image: 'images/landing/cat-interessant.webp' },
+    { nom: "Lettres d'amour", icon: 'fa-envelope', image: 'images/landing/cat-lettres.webp' },
+    { nom: 'Nos conseils', icon: 'fa-comment-dots', image: 'images/landing/cat-conseils.webp' },
+    { nom: "Poesie d'amour", label: "Poésie d'amour", icon: 'fa-feather', image: 'images/landing/cat-poesie.webp' },
+    { nom: 'Rapport occasionnel', icon: 'fa-calendar-check', image: 'images/landing/cat-occasionnel.webp' },
     { nom: 'Rencontres', icon: 'fa-user-group', image: 'images/landing/cat-seconde-chance.webp' },
-    { nom: 'Divers', icon: 'fa-ellipsis' }
+    { nom: 'Divers', icon: 'fa-ellipsis', image: 'images/landing/cat-divers.webp' }
 ].map((c) => Object.freeze({ label: c.nom, ...c })));
 
 const COUNT_CACHE_KEY = 'loveInk_catCounts';
@@ -75,7 +75,7 @@ function tileHtml(cat) {
         <span class="cat-go" aria-hidden="true"><i class="fas fa-arrow-right"></i></span>`;
 }
 
-// Rend les tuiles dans `root` : une rangée illustrée (genres avec visuel) puis la liste compacte.
+// Rend les tuiles dans `root` : la grille illustrée (genres avec visuel) puis, s'il en reste, la liste compacte.
 // `onSelect(cat)` est appelé au clic ; le lien garde l'ancre #storiesSection (sans JS, il défile).
 export function renderCategoryTiles(root, { onSelect, categories = CATEGORIES } = {}) {
     root.innerHTML = '';
@@ -95,7 +95,7 @@ export function renderCategoryTiles(root, { onSelect, categories = CATEGORIES } 
         item.appendChild(card);
         (cat.image ? lists.spot : lists.list).appendChild(item);
     });
-    root.append(lists.spot, lists.list);
+    root.append(...Object.values(lists).filter((ul) => ul.children.length));
 }
 
 export function applyCategoryCounts(root, counts, ledeEl) {
