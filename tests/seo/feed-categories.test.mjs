@@ -83,7 +83,9 @@ test('données : genres uniques, chacun avec icône et visuel distinct présent'
 test('contrat : genres du fil = options de publier.html = clés de data/genres.json', () => {
     const decode = (v) => v.replaceAll('&#39;', "'").replaceAll('&apos;', "'").replaceAll('&amp;', '&');
     const publier = readFileSync(join(ROOT, 'publier.html'), 'utf8');
-    const options = [...publier.matchAll(/<option value="([^"]+)"/g)].map((m) => decode(m[1]));
+    // Genres proposés à la publication : liste déroulante ou boutons radio name="categorie".
+    const options = [...publier.matchAll(/<option value="([^"]+)"|<input[^>]*name="categorie"[^>]*value="([^"]+)"/g)]
+        .map((m) => decode(m[1] ?? m[2]));
     const editorial = Object.keys(JSON.parse(readFileSync(join(ROOT, 'data/genres.json'), 'utf8'))).filter((k) => !k.startsWith('_'));
     const feed = CATEGORIES.map((c) => c.nom).sort();
     assert.equal(feed.length, 8);
