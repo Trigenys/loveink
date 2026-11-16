@@ -3,6 +3,7 @@ import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/
 import { firebaseAPI } from './firebase-data.js';
 import { setThemeMode } from './theme.js';
 import { startUserPresence, stopUserPresence } from './presence.js';
+import { isEmailVerified, markVerifyPending } from './email-verification.js';
 
 const SESSION_KEY = "loveInk_user";
 
@@ -52,7 +53,7 @@ export function clearUserSession() {
 }
 
 export function requireAuth(options = {}) {
-    const {
+    let {
         auth,
         redirectTo = "index.html",
         onReady
@@ -67,6 +68,14 @@ export function requireAuth(options = {}) {
             await stopUserPresence({ skipWrite: false });
             clearUserSession();
             window.location.href = redirectTo;
+            return;
+        }
+
+        // Compte dont l'e-mail n'est pas confirme : retour a la connexion, qui propose le renvoi du lien.
+        if (!(await isEmailVerified(user))) {
+            markVerifyPending(user.email);
+            redirectTo = "login.html";
+            await signOut(auth);
             return;
         }
 
