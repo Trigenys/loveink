@@ -602,3 +602,9 @@
 - PR Trigenys/trigenys-storage#14 mergée (8348f93) ; Worker redéployé depuis main avec `--keep-vars` : version 85770195 (rollback d97d3e98). Binding `END_USER_TENANTS_JSON` (tenant `loveink`) présent ; /health OK ; tests 21/21.
 - Non vérifié de bout en bout : un upload réel exige un jeton Firebase d'un compte Love Ink (à faire depuis le client une fois l'intégration écrite).
 - Prochaine étape : intégration client (sélecteur 1 à 4 images, WebP, publication/suppression par modérateur). Search Console : 5 genres restants demain.
+
+## 2026-11-16 12:07 — Intégration images (1 à 4 par histoire) : démarrage
+
+- Plan architecte retenu : ids seuls dans `histoires.images [{id,w,h,alt}]` (règles 0–4, UI impose minImages=1 sur les nouvelles soumissions, à confirmer avec la cliente) ; upload privé avant création ; le modo passe les images en public AVANT `statut: publie` ; rejet = images conservées (privées) ; suppression au retrait par le modo et à la suppression du compte.
+- Fichiers : js/core/media-config.js, js/core/media-storage.js (générique), js/core/story-images.js, publier.html, histoire.html, feed.html, js/core/firebase-data.js (approuver/éditer), parametres.html, firestore.rules (+ tests), firebase.json (CSP connect-src), scripts/build-seo-pages.mjs (og:image, optionnel).
+- Implémentation en cours sur une branche dédiée depuis origin/main (feat/story-images).
