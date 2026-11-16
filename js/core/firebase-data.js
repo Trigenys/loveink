@@ -1,6 +1,7 @@
 // firebase-data.js - Fonctions de donnees Firestore (SDK v9 modulaire)
 import { auth, db } from './firebase-config.js';
 import { getFreshDoc } from './fresh-doc.js';
+import { isKnownRole } from './roles.js';
 import {
     addDoc,
     collection,
@@ -1223,6 +1224,57 @@ async function promouvoirUtilisateurRole(utilisateurId, nouveauRole = 'moderateu
     }
 }
 
+// Admin : liste des comptes (pseudo, rôle, statut). La lecture est autorisée par les règles.
+async function getComptes(maxItems = 200) {
+    try {
+        const snapshot = await getDocs(query(
+            collection(db, 'utilisateurs'),
+            limit(Math.max(1, Math.min(500, Number(maxItems) || 200)))
+        ));
+        return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error('Erreur getComptes:', error);
+        return [];
+    }
+}
+
+// Admin : attribue ou retire n'importe quel rôle (règle validAdminRoleUpdate).
+// Idempotent : un rôle inchangé ne déclenche aucune écriture.
+async function changerRoleUtilisateur(utilisateurId, nouveauRole, source = 'admin_panel') {
+    const actorId = auth.currentUser?.uid;
+    const userId = String(utilisateurId || '').trim();
+    const role = String(nouveauRole || '').trim();
+    if (!actorId || !userId || !isKnownRole(role)) return { ok: false, error: 'invalid-args' };
+    if (userId === actorId) return { ok: false, error: 'self-change-forbidden' };
+
+    try {
+        const userRef = doc(db, 'utilisateurs', userId);
+        const snap = await getDoc(userRef);
+        if (!snap.exists()) return { ok: false, error: 'user-not-found' };
+
+        const oldRole = String(snap.data()?.role || 'user');
+        if (oldRole === role) return { ok: true, unchanged: true, from: oldRole, to: role };
+
+        await updateDoc(userRef, {
+            role,
+            roleUpdatedBy: actorId,
+            dateRoleUpdate: serverTimestamp(),
+            roleUpdateSource: String(source || 'admin_panel').substring(0, 80)
+        });
+
+        await creerOpsLog('role_change', {
+            targetUserId: userId,
+            message: `Rôle ${oldRole} -> ${role}`,
+            metadata: { from: oldRole, to: role, source: String(source || 'admin_panel') }
+        });
+
+        return { ok: true, from: oldRole, to: role };
+    } catch (error) {
+        console.error('Erreur changerRoleUtilisateur:', error);
+        return { ok: false, error: error?.code || 'unknown' };
+    }
+}
+
 async function traiterCandidatureModerateur(candidatureId, decision = 'approuvee', options = {}) {
     const actorId = auth.currentUser?.uid;
     const id = String(candidatureId || '').trim();
@@ -1455,6 +1507,8 @@ const firebaseAPI = {
     getCandidaturesModerateur,
     getUtilisateursParRole,
     promouvoirUtilisateurRole,
+    getComptes,
+    changerRoleUtilisateur,
     traiterCandidatureModerateur,
     getOpsLogs,
     creerOpsLog,

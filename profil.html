@@ -817,7 +817,7 @@
     <div class="tab-panel" id="panel-moderation">
         <div class="apropos-tab">
             <h3 style="font-family:var(--font-serif);font-size:20px;font-weight:400;color:var(--rose-deep);margin-bottom:8px;">Histoires en attente de validation</h3>
-            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace modération actif pour les rôles <strong>modérateur</strong> et <strong>censeur</strong>.</p>
+            <p style="font-size:13px;color:var(--ink-faint);margin-bottom:24px;">Espace modération actif pour les rôles <strong>modérateur</strong>, <strong>censeur</strong> et <strong>admin</strong>.</p>
             <div class="modo-list" id="moderationList"></div>
             <div id="censeurOpsRoot"></div>
         </div>
@@ -938,6 +938,7 @@
         import { doc, serverTimestamp, setDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { auth, db } from './js/core/firebase-config.js';
         import { firebaseAPI } from './js/core/firebase-data.js';
+        import { ROLES, ROLE_LABELS, isAdminRole, isCenseurRole, isModoRole } from './js/core/roles.js';
         import { notify } from './js/components/ui-notify.js';
         import { logoutAndRedirect, requireAuth, syncUserSession } from './js/core/auth-session.js';
         import { applyInitialsAvatar } from './js/components/avatar-initials.js';
@@ -1118,18 +1119,24 @@
                 <div class="ops-section">
                     <h4><i class="fas fa-clipboard-list" style="margin-right:8px;color:var(--rose-mid)"></i>Journal ops</h4>
                     <div id="opsLogsList" class="ops-list"></div>
-                </div>
+                </div>${isAdminRole(currentUser?.role) ? `
+                <div class="ops-section" id="adminComptesSection">
+                    <h4><i class="fas fa-users-gear" style="margin-right:8px;color:var(--rose-mid)"></i>Comptes et rôles (admin)</h4>
+                    <input type="search" id="adminComptesFiltre" placeholder="Filtrer par pseudo, rôle ou UID" aria-label="Filtrer les comptes" style="width:100%;max-width:360px;margin-bottom:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--ink)">
+                    <div id="adminComptesList" class="ops-list"></div>
+                </div>` : ''}
             `;
         }
 
         async function refreshCenseurOpsSections() {
-            if (!currentUser || currentUser.role !== 'censeur') return;
+            if (!currentUser || !isCenseurRole(currentUser.role)) return;
             ensureCenseurOpsLayout();
             await Promise.all([
                 renderSanctionHistory(),
                 renderCandidaturesModerateur(),
                 renderPromotionsRole(),
-                renderOpsLogsPanel()
+                renderOpsLogsPanel(),
+                isAdminRole(currentUser.role) ? renderComptesAdmin() : null
             ]);
         }
 
@@ -1138,7 +1145,7 @@
             if (!list) return;
             list.innerHTML = '<div class="empty-state"><i class="fas fa-spinner fa-spin"></i></div>';
 
-            const isCenseur = currentUser.role === 'censeur';
+            const isCenseur = isCenseurRole(currentUser.role);
             if (censeurOpsRoot) {
                 censeurOpsRoot.innerHTML = isCenseur ? '<div class="ops-section"><div style="font-size:13px;color:var(--ink-faint)">Chargement des operations censeur...</div></div>' : '';
             }
@@ -1287,6 +1294,63 @@
             }
         }
 
+        // Admin : liste des comptes et changement de rôle (règle validAdminRoleUpdate).
+        // Le compte connecté n'est pas modifiable ici : les règles interdisent de changer son propre rôle.
+        async function renderComptesAdmin() {
+            const list = document.getElementById('adminComptesList');
+            if (!list) return;
+            list.innerHTML = '<div style="font-size:13px;color:var(--ink-faint)">Chargement...</div>';
+            const comptes = await firebaseAPI.getComptes(300);
+            if (!comptes.length) {
+                list.innerHTML = '<p style="font-size:13px;color:var(--ink-faint)">Aucun compte lisible.</p>';
+                return;
+            }
+            const rang = (r) => ROLES.indexOf(ROLES.includes(r) ? r : 'user');
+            comptes.sort((a, b) => rang(b.role) - rang(a.role) || String(a.pseudo || '').localeCompare(String(b.pseudo || ''), 'fr'));
+            list.innerHTML = '';
+            comptes.forEach((user) => {
+                const uid = String(user.uid || user.id || '');
+                const role = ROLES.includes(user.role) ? user.role : 'user';
+                const estMoi = uid === String(currentUser.uid || '');
+                const item = document.createElement('div');
+                item.className = 'ops-item admin-compte';
+                item.dataset.filtre = `${user.pseudo || ''} ${role} ${ROLE_LABELS[role]} ${uid}`.toLowerCase();
+                item.innerHTML = `
+                    <div class="ops-item-main">
+                        <div class="ops-item-title"><strong>${escapeHtml(user.pseudo || uid)}</strong>${estMoi ? ' (vous)' : ''}</div>
+                        <div class="ops-item-meta">Rôle : ${escapeHtml(ROLE_LABELS[role])} · Statut : ${escapeHtml(user.statut || 'actif')} · UID : ${escapeHtml(uid)}</div>
+                    </div>
+                    <div class="ops-item-actions">
+                        <select class="admin-role-select" aria-label="Rôle de ${escapeHtml(user.pseudo || uid)}" ${estMoi ? 'disabled' : ''}>
+                            ${ROLES.map((r) => `<option value="${r}" ${r === role ? 'selected' : ''}>${ROLE_LABELS[r]}</option>`).join('')}
+                        </select>
+                        <button class="btn-secondary admin-role-apply" style="font-size:12px;padding:6px 14px" ${estMoi ? 'disabled' : ''}>Appliquer</button>
+                    </div>
+                `;
+                item.querySelector('.admin-role-apply')?.addEventListener('click', async () => {
+                    const cible = item.querySelector('.admin-role-select')?.value;
+                    if (!cible || cible === role) return;
+                    const result = await firebaseAPI.changerRoleUtilisateur(uid, cible, 'admin_panel');
+                    if (!result.ok) {
+                        await notify('error', "Impossible de changer ce rôle.", { title: 'Administration' });
+                        return;
+                    }
+                    await notify('success', `${user.pseudo || uid} : ${ROLE_LABELS[result.from] || result.from} → ${ROLE_LABELS[result.to] || result.to}.`, { title: 'Administration' });
+                    await refreshCenseurOpsSections();
+                });
+                list.appendChild(item);
+            });
+            const filtre = document.getElementById('adminComptesFiltre');
+            if (filtre) {
+                // Affectation (et non addEventListener) : un seul écouteur malgré les rafraîchissements.
+                filtre.oninput = () => {
+                    const q = filtre.value.trim().toLowerCase();
+                    list.querySelectorAll('.admin-compte').forEach((el) => { el.hidden = Boolean(q) && !el.dataset.filtre.includes(q); });
+                };
+                filtre.oninput();
+            }
+        }
+
         async function renderOpsLogsPanel() {
             const list = document.getElementById('opsLogsList');
             if (!list) return;
@@ -1384,7 +1448,7 @@
             document.getElementById('membreDepuis').textContent = getDateLabel(currentUser.dateInscription);
             applyInitialsAvatar(document.getElementById('profileInitials'), currentUser.pseudo);
             renderGenres(currentUser.genres || '');
-            if (['moderateur', 'censeur'].includes(currentUser.role)) {
+            if (isModoRole(currentUser.role)) {
                 document.getElementById('tabModeration')?.style.removeProperty('display');
             }
         }
@@ -1516,7 +1580,7 @@
             if (ok) {
                 itemEl.remove();
                 updateModoCount();
-                if (currentUser.role === 'censeur') await renderOpsLogsPanel();
+                if (isCenseurRole(currentUser.role)) await renderOpsLogsPanel();
             } else {
                 await notify('error', "Erreur lors du rejet.", { title: 'Moderation' });
             }
@@ -1623,13 +1687,13 @@
                 activateTab(tabParam);
 
                 if (tabParam === 'abonnements') renderAbonnements();
-                else if (tabParam === 'moderation' && ['moderateur', 'censeur'].includes(currentUser.role)) renderModeration();
+                else if (tabParam === 'moderation' && isModoRole(currentUser.role)) renderModeration();
                 else renderStories(currentStatus); // histoires (défaut) + favoris/apropos chargent les histoires en background
 
                 loadStats();
 
                 // Pre-load moderation count for badge
-                if (['moderateur', 'censeur'].includes(currentUser.role)) {
+                if (isModoRole(currentUser.role)) {
                     firebaseAPI.getHistoiresEnAttente().then(hs => {
                         const badge = document.getElementById('modoCountBadge');
                         if (badge && hs.length > 0) {

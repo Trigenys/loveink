@@ -588,3 +588,12 @@
 - Reste :
   - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
   - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).
+
+## 2026-11-16 18:09 — Rôle admin + e2e isolés de la prod (branche feat/admin-role-e2e-isolation)
+
+- Rôle `admin` au-dessus de `censeur` : règles (`validAdminRoleUpdate`, pas d'auto-changement), panneau « Comptes » dans profil.html (onglet modération), `changerRoleUtilisateur` idempotent + ops log `role_change`. Premier admin : à la main dans la console (docs/runbook-admin.md).
+- Corrigé au passage : les profils créés par register.html n'ont pas de champ `role` ; `changedKeys()` ne voit pas une clé ajoutée → la promotion échouait (admin et censeur). Leçon ajoutée.
+- E2E sur émulateurs (projet `demo-love-ink`) : `npm run test:e2e` ; prod bloquée sauf `E2E_ALLOW_PROD=1` (`npm run test:e2e:remote`). Jobs CI `rules-tests` et `e2e` ajoutés au workflow de déploiement.
+- Nettoyage prod : `scripts/e2e-prod-cleanup-plan.mjs` (lecture seule) à lancer par l'utilisatrice ; aucune suppression faite.
+- trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
+- Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.

@@ -19,7 +19,7 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 | `genres` | string | ≤ 300 chars, optionnel |
 | `avatar` | string\|null | URL ou null (Storage Blaze / initiales en mode Spark) |
 | `type` | string | `lecteur` \| `auteur` \| `lesdeux` |
-| `role` | string | `user` (défaut) \| `moderateur` \| `censeur`. Seul un censeur peut modifier ce champ via `promouvoirUtilisateurRole`. |
+| `role` | string | `user` (défaut) \| `moderateur` \| `censeur` \| `admin`. Un censeur promeut (`user → moderateur`, `moderateur → censeur`) via `promouvoirUtilisateurRole` ; un admin attribue ou retire tout rôle via `changerRoleUtilisateur`. Personne ne modifie son propre rôle ; le premier admin est posé dans la console Firebase. |
 | `statut` | string | `actif` (défaut) \| `suspendu` \| `banni`. Positionné par un censeur via `creerSanction`. |
 | `suspensionJusqua` | timestamp\|null | Fin de suspension temporaire. |
 | `dateInscription` | timestamp | Posé à la création. |

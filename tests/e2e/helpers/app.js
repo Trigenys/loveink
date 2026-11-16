@@ -1,4 +1,5 @@
 const { expect } = require('@playwright/test');
+const { assertEmulatorTarget } = require('./target-guard');
 
 const DEFAULT_PASSWORD = process.env.E2E_PASSWORD || 'LoveInkTest@2026';
 
@@ -65,6 +66,7 @@ async function registerWithUi(page, user, options = {}) {
 
     await page.goto('/register.html');
     await expect(page.locator('#registerForm')).toBeVisible();
+    await assertEmulatorTarget(page);
 
     await page.fill('#pseudo', user.pseudo);
     await page.fill('#email', user.email);
@@ -84,6 +86,7 @@ async function loginWithUi(page, user, options = {}) {
     const { expectRedirectTo = /\/feed(\.html)?($|\?)/ } = options;
     await page.goto('/login.html');
     await expect(page.locator('#loginForm')).toBeVisible();
+    await assertEmulatorTarget(page);
     await page.fill('#email', user.email);
     await page.fill('#password', user.password);
     await page.click('#loginForm button[type="submit"]');
@@ -96,7 +99,10 @@ async function logoutFromNav(page) {
     await trigger.waitFor({ state: 'visible', timeout: 15000 });
     await trigger.click();
     await page.locator('#logoutBtn').click();
-    await page.waitForURL(/\/($|index(?:\.html)?(?:\?|$))/, { timeout: 20000 });
+    // La déconnexion et la garde d'auth de la page redirigent toutes deux vers l'accueil : la seconde
+    // navigation interrompt la première (ERR_ABORTED). On attend donc l'URL finale, pas une navigation.
+    await expect.poll(() => page.url(), { timeout: 20000 }).toMatch(/\/($|index(?:\.html)?(?:\?|$))/);
+    await page.waitForLoadState('domcontentloaded');
 }
 
 async function ensureFeedLoaded(page) {

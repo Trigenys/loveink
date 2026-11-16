@@ -79,5 +79,12 @@
         "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
       }
     ]
+  },
+  "emulators": {
+    "singleProjectMode": true,
+    "auth": { "host": "127.0.0.1", "port": 9099 },
+    "firestore": { "host": "127.0.0.1", "port": 8080 },
+    "hosting": { "host": "127.0.0.1", "port": 5000 },
+    "ui": { "enabled": false }
   }
 }
