@@ -24,8 +24,9 @@ test('countLabel : inconnu, zéro, singulier, pluriel', () => {
     assert.equal(countLabel(12), '12 histoires');
 });
 
-test('ledeText : sans compteurs puis avec total publié', () => {
+test('ledeText : sans compteurs, total nul, puis total publié', () => {
     assert.match(ledeText(null), /^18 genres à explorer\./);
+    assert.match(ledeText(Object.fromEntries(CATEGORIES.map((c) => [c.nom, 0]))), /^18 genres à explorer\./, 'pas de « 0 histoire publiée »');
     assert.match(ledeText({ 'Premier amour': 14, Rencontres: 9, Divers: null }), /^18 genres, 23 histoires publiées\./);
     assert.match(ledeText({ Divers: 1 }), /1 histoire publiée\./);
 });
