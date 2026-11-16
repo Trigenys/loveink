@@ -608,3 +608,11 @@
 - Plan architecte retenu : ids seuls dans `histoires.images [{id,w,h,alt}]` (règles 0–4, UI impose minImages=1 sur les nouvelles soumissions, à confirmer avec la cliente) ; upload privé avant création ; le modo passe les images en public AVANT `statut: publie` ; rejet = images conservées (privées) ; suppression au retrait par le modo et à la suppression du compte.
 - Fichiers : js/core/media-config.js, js/core/media-storage.js (générique), js/core/story-images.js, publier.html, histoire.html, feed.html, js/core/firebase-data.js (approuver/éditer), parametres.html, firestore.rules (+ tests), firebase.json (CSP connect-src), scripts/build-seo-pages.mjs (og:image, optionnel).
 - Implémentation en cours sur une branche dédiée depuis origin/main (feat/story-images).
+
+## 2026-11-16 12:22 — Images histoires : PR #35 ouverte
+
+- Branche feat/story-images (6 commits, worktree .claude/worktrees/agent-acf9b11d9d09b4ae2), PR https://github.com/Trigenys/loveink/pull/35, non mergée (accord requis).
+- Tests : media 20/20, rules 20/20, seo 70/72 (2 échecs robots.txt dus au CRLF local, fichier non touché).
+- Non vérifié : parcours navigateur réel (sélecteur, WebP Safari, galerie privée), e2e non lancé (baseURL prod ; il écrirait une histoire).
+- Pas de suppression d'histoire unitaire dans l'app : seules les suppressions de compte nettoient les images.
+- Reste : og:image depuis images[0] (optionnel), confirmation cliente minImages=1, test réel après déploiement avec un compte cliente.
