@@ -573,3 +573,7 @@
 - Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
 - Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).
 - En parallèle : PR #33 (recette e2e prod) ouverte, en attente de npm run e2e:prod:setup. Transcription locale (faster-whisper medium) du vocal cliente du 2026-11-15 en cours → scratchpad vocal.txt ; premiers éléments : 1 à 4 images par histoire, espace modérateurs séparé où le modérateur peut corriger le texte.
+
+## 2026-11-16 10:54 — Piste images d'histoires (demande cliente)
+- Besoin : 1 à 4 images par histoire. Firebase Storage indisponible (plan Spark). Piste proposée : Cloudflare R2 + Worker qui vérifie le jeton Firebase. Pas de décision prise ni de code écrit.
+- PR #34 (redirection vers la connexion après inscription) et PR #33 (recette e2e prod) toujours ouvertes, fusion sur accord.
