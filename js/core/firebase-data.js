@@ -1238,6 +1238,49 @@ async function getComptes(maxItems = 200) {
     }
 }
 
+// Admin : e-mails des comptes (collection privée, lecture réservée aux admins par les règles).
+async function getContactsPrives() {
+    try {
+        const snapshot = await getDocs(collection(db, 'comptes_prives'));
+        return new Map(snapshot.docs.map((d) => [d.id, String(d.data()?.email || '')]));
+    } catch (error) {
+        console.error('Erreur getContactsPrives:', error);
+        return new Map();
+    }
+}
+
+// Admin : nombre d'histoires par statut (requêtes d'agrégation : aucun document téléchargé).
+async function compterHistoiresParStatut(statuts = ['publie', 'en_attente', 'rejete']) {
+    const entries = await Promise.all(statuts.map(async (statut) => {
+        try {
+            const snap = await getCountFromServer(query(collection(db, 'histoires'), where('statut', '==', statut)));
+            return [statut, snap.data().count];
+        } catch (error) {
+            console.error(`Erreur comptage histoires (${statut}):`, error);
+            return [statut, null];
+        }
+    }));
+    return Object.fromEntries(entries);
+}
+
+// Admin : nombre d'histoires par auteur, par lots pour borner les requêtes simultanées.
+async function compterHistoiresParAuteur(uids = [], concurrence = 8) {
+    const result = new Map();
+    const liste = [...new Set(uids.map((u) => String(u || '')).filter(Boolean))];
+    for (let i = 0; i < liste.length; i += concurrence) {
+        await Promise.all(liste.slice(i, i + concurrence).map(async (uid) => {
+            try {
+                const snap = await getCountFromServer(query(collection(db, 'histoires'), where('auteurId', '==', uid)));
+                result.set(uid, snap.data().count);
+            } catch (error) {
+                console.error('Erreur comptage histoires auteur:', error);
+                result.set(uid, null);
+            }
+        }));
+    }
+    return result;
+}
+
 // Admin : attribue ou retire n'importe quel rôle (règle validAdminRoleUpdate).
 // Idempotent : un rôle inchangé ne déclenche aucune écriture.
 async function changerRoleUtilisateur(utilisateurId, nouveauRole, source = 'admin_panel') {
@@ -1508,6 +1551,9 @@ const firebaseAPI = {
     getUtilisateursParRole,
     promouvoirUtilisateurRole,
     getComptes,
+    getContactsPrives,
+    compterHistoiresParStatut,
+    compterHistoiresParAuteur,
     changerRoleUtilisateur,
     traiterCandidatureModerateur,
     getOpsLogs,

@@ -665,6 +665,12 @@
 - trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
 - Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.
 
+## 2026-11-16 19:27 — Tableau de bord admin + amorçage du premier admin (branche feat/admin-dashboard, empilée sur #40)
+- `admin.html` (rôle `admin` seulement) : KPI (comptes, actifs/nouveaux 7 et 30 j, par rôle, par statut, histoires par statut), liste (pseudo, e-mail, inscription, dernière connexion, statut, rôle, nb d'histoires), filtres, tri, changement de rôle confirmé. Calculs purs dans `js/core/admin-metrics.js`.
+- E-mail : collection `comptes_prives/{uid}` lisible par titulaire + admins, écrite par le titulaire avec l'e-mail du jeton (synchro à la connexion). Jamais dans `utilisateurs`.
+- `scripts/admin-bootstrap.mjs` (plan par défaut, `--apply`, `--backfill-emails`) : ne crée ni compte ni mot de passe ; à lancer par l'utilisatrice (runbook-admin.md). Non exécuté en prod.
+- Reste : PR à relire, fusion sur accord, puis exécution du script par l'utilisatrice.
+
 ## 2026-11-16 19:47 — E2E : e-mail confirmé sur l’émulateur Auth (préparation de #44)
 
 - Helpers e2e (`tests/e2e/helpers/auth-emulator.js`, `app.js`) : avant chaque connexion, `emailVerified=true` via l’API admin de l’émulateur (`Bearer owner`, idempotent) ; si l’inscription renvoie vers la connexion, le helper s’y connecte. Ignoré avec `E2E_ALLOW_PROD=1` (le compte doit déjà être confirmé).

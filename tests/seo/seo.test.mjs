@@ -12,7 +12,7 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const BASE = 'https://loveink.site';
 
 const PUBLIC = { 'index.html': '/', 'login.html': '/login', 'register.html': '/register', 'conditions.html': '/conditions', 'confidentialite.html': '/confidentialite', 'candidature-modo.html': '/candidature-modo' };
-const PRIVATE = ['feed.html', 'profil.html', 'messagerie.html', 'notifications.html', 'parametres.html', 'publier.html', 'mes-histoires.html', 'auth-action.html', '404.html', 'histoire.html'];
+const PRIVATE = ['feed.html', 'profil.html', 'messagerie.html', 'notifications.html', 'parametres.html', 'publier.html', 'mes-histoires.html', 'auth-action.html', '404.html', 'histoire.html', 'admin.html'];
 
 const head = (html) => html.slice(0, html.indexOf('</head>'));
 const attr = (html, re) => (html.match(re) || [])[1];
@@ -54,7 +54,7 @@ test('index.html : maillage vers la bibliothèque, flux Atom déclaré, @id Orga
 
 test('robots.txt : pages privées exclues, sitemap déclaré', () => {
     const r = read('robots.txt');
-    for (const p of ['/feed', '/profil', '/messagerie', '/notifications', '/parametres', '/publier', '/mes-histoires', '/auth-action']) assert.ok(r.includes(`Disallow: ${p}\n`), `${p} non exclu`);
+    for (const p of ['/feed', '/profil', '/messagerie', '/notifications', '/parametres', '/publier', '/mes-histoires', '/auth-action', '/admin']) assert.ok(r.includes(`Disallow: ${p}\n`), `${p} non exclu`);
     assert.ok(r.includes(`Sitemap: ${BASE}/sitemap.xml`));
 });
 

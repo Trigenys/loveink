@@ -638,6 +638,19 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Contact privé (e-mail) : hors du profil public. Lecture par le titulaire et les admins uniquement.
+    // L'e-mail écrit doit être celui du jeton : personne ne peut s'attribuer ou attribuer une autre adresse.
+    match /comptes_prives/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create, update: if isOwner(userId) &&
+        request.resource.data.keys().hasOnly(['uid', 'email', 'dateMaj']) &&
+        request.resource.data.uid == userId &&
+        request.auth.token.email is string &&
+        request.resource.data.email == request.auth.token.email &&
+        request.resource.data.dateMaj == request.time;
+      allow delete: if isOwner(userId);
+    }
+
     match /ops_logs/{logId} {
       allow read: if isOpsAdmin();
       allow create: if isModo() && validOpsLogCreate();

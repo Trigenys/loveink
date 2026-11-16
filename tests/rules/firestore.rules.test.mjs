@@ -254,3 +254,36 @@ test('admin : voit la liste des comptes', async () => {
   const snap = await assertSucceeds(getDocs(collection(db(ADMIN), 'utilisateurs')));
   if (snap.size < 7) throw new Error(`liste incomplete : ${snap.size}`);
 });
+
+// --- Contact privé (e-mail) : hors du profil public, lisible par le titulaire et les admins ---
+const dbMail = (uid, email) => env.authenticatedContext(uid, { email }).firestore();
+
+test('comptes_prives : le titulaire écrit son propre e-mail (celui du jeton), rien d autre', async () => {
+  await seedRoles();
+  const mine = doc(dbMail(A, 'alice@example.test'), 'comptes_prives', A);
+  await assertSucceeds(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: serverTimestamp() }));
+  await assertSucceeds(getDoc(mine));
+  // Adresse différente du jeton, champ étranger, date forgée, compte d'autrui : refusés.
+  await assertFails(setDoc(mine, { uid: A, email: 'autre@example.test', dateMaj: serverTimestamp() }));
+  await assertFails(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: serverTimestamp(), role: 'admin' }));
+  await assertFails(setDoc(mine, { uid: A, email: 'alice@example.test', dateMaj: new Date(0) }));
+  await assertFails(setDoc(doc(dbMail(A, 'alice@example.test'), 'comptes_prives', B), { uid: B, email: 'alice@example.test', dateMaj: serverTimestamp() }));
+  // Jeton sans e-mail : refusé.
+  await assertFails(setDoc(doc(db(B), 'comptes_prives', B), { uid: B, email: '', dateMaj: serverTimestamp() }));
+});
+
+test('comptes_prives : lecture et liste réservées aux admins (ni membre, ni modérateur, ni censeur)', async () => {
+  await seedRoles();
+  await env.withSecurityRulesDisabled((c) => setDoc(doc(c.firestore(), 'comptes_prives', A), { uid: A, email: 'alice@example.test', dateMaj: new Date() }));
+  await assertSucceeds(getDoc(doc(db(ADMIN), 'comptes_prives', A)));
+  await assertSucceeds(getDocs(collection(db(ADMIN), 'comptes_prives')));
+  for (const uid of [B, MODO, CENS]) {
+    await assertFails(getDoc(doc(db(uid), 'comptes_prives', A)));
+    await assertFails(getDocs(collection(db(uid), 'comptes_prives')));
+  }
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(), 'comptes_prives', A)));
+  // L'admin lit mais n'écrit pas l'e-mail d'un autre compte ; seul le titulaire supprime le sien.
+  await assertFails(setDoc(doc(dbMail(ADMIN, 'admin@example.test'), 'comptes_prives', A), { uid: A, email: 'admin@example.test', dateMaj: serverTimestamp() }));
+  await assertFails(deleteDoc(doc(db(ADMIN), 'comptes_prives', A)));
+  await assertSucceeds(deleteDoc(doc(db(A), 'comptes_prives', A)));
+});

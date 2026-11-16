@@ -75,7 +75,7 @@
         "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
       },
       {
-        "source": "/@(feed|profil|messagerie|notifications|parametres|publier|mes-histoires|auth-action|histoire)",
+        "source": "/@(feed|profil|messagerie|notifications|parametres|publier|mes-histoires|auth-action|histoire|admin)",
         "headers": [{ "key": "X-Robots-Tag", "value": "noindex" }]
       }
     ]
