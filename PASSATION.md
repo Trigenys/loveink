@@ -664,3 +664,10 @@
 - Nettoyage prod : `scripts/e2e-prod-cleanup-plan.mjs` (lecture seule) à lancer par l'utilisatrice ; aucune suppression faite.
 - trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
 - Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.
+
+## 2026-11-16 19:47 — E2E : e-mail confirmé sur l’émulateur Auth (préparation de #44)
+
+- Helpers e2e (`tests/e2e/helpers/auth-emulator.js`, `app.js`) : avant chaque connexion, `emailVerified=true` via l’API admin de l’émulateur (`Bearer owner`, idempotent) ; si l’inscription renvoie vers la connexion, le helper s’y connecte. Ignoré avec `E2E_ALLOW_PROD=1` (le compte doit déjà être confirmé).
+- `main` fusionné dans `feat/admin-role-e2e-isolation` (conflit helper avec #34 résolu en gardant les deux comportements).
+- Vérifié en local : e2e 6 réussis / 3 ignorés, sans #44 et avec #44 fusionnée dans un worktree jetable.
+- PR #40 et #42 (empilée) ouvertes, fusion sur accord uniquement.
