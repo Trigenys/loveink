@@ -88,6 +88,20 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Prévention proposée** : ajouter un `.gitattributes` (`* text=auto eol=lf`) ou normaliser `\r\n` dans les tests
   qui lisent des fichiers texte. Ce changement est transversal et fait l'objet d'une PR dédiée.
 
+## 2026-11-16 — Wizard « Écrire une histoire » : collision `data-step` et couleur imposée par `app.css`
+
+- **Contexte** : refonte de `publier.html` en parcours par étapes (sections `[data-step="..."]`).
+- **Cause 1** : l'étape courante était posée sur la racine en `root.dataset.step`. La racine correspondait alors
+  elle aussi à `[data-step="categorie"]`, ce qui cassait tous les sélecteurs e2e (violation strict mode) et
+  aurait pu cibler le mauvais nœud en CSS.
+- **Cause 2** : `body.li-app label { color: var(--ink) }` dans `css/app.css` l'emporte sur `.li-genre { color }`,
+  ce qui rendait les noms de genres illisibles sur les photos. Les tests passaient : seule la capture l'a montré.
+- **Classification** : bug d'intégration (espace de noms d'attributs) et régression visuelle d'accessibilité.
+- **Résolution** : état courant renommé `data-current-step` ; règle `body.li-app .li-genre` (spécificité
+  supérieure) et dégradé plus sombre sous le texte.
+- **Prévention** : un attribut de sélection (`data-step`) n'est jamais réutilisé comme attribut d'état sur un
+  ancêtre ; tout composant posé dans `body.li-app` qui fixe une couleur de `label` le fait avec le préfixe
+  `body.li-app`. Revue visuelle sur captures desktop + mobile avant PR.
 ## 2026-11-16 — Les e2e écrivaient dans la production
 
 - **Contexte** : `playwright.config.js` prenait `https://loveink.site` par défaut et le code servi en local

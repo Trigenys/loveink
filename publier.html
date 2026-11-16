@@ -3,209 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Publier une histoire - Love Ink</title>
+    <title>Écrire une histoire - Love Ink</title>
     <meta name="robots" content="noindex, nofollow">
     <link rel="icon" type="image/svg+xml" href="favicon.svg?v=20260325-brand3">
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        .publish-container {
-            max-width: 800px;
-            margin: 40px auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 5px 30px rgba(183, 110, 110, 0.15);
-            overflow: hidden;
-        }
-        
-        .publish-header {
-            background: #b76e6e;
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-        
-        .publish-header h1 {
-            font-family: 'Baskerville', serif;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-        
-        .publish-form {
-            padding: 40px;
-        }
-        
-        .form-group {
-            margin-bottom: 25px;
-        }
-        
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            color: #5c3e35;
-            font-weight: 600;
-        }
-        
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 12px 15px;
-            border: 2px solid #f0e4e0;
-            border-radius: 10px;
-            font-family: 'Century Gothic', sans-serif;
-            transition: border 0.3s;
-        }
-        
-        .form-group input:focus,
-        .form-group select:focus,
-        .form-group textarea:focus {
-            outline: none;
-            border-color: #b76e6e;
-        }
-        
-        .form-group textarea {
-            min-height: 300px;
-            resize: vertical;
-        }
-        
-        .btn-publish {
-            background: #b76e6e;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 1.1rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-        }
-        
-        .btn-publish:hover {
-            background: #9e5a5a;
-            transform: translateY(-2px);
-        }
-        
-        .char-counter {
-            text-align: right;
-            color: #999;
-            font-size: 0.85rem;
-            margin-top: 5px;
-        }
-
-        .moderation-banner {
-            display: none;
-            margin: 20px 40px 0;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid #ecd8a2;
-            background: #fff8e6;
-            color: #6d5225;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .author-pseudo-notice {
-            display: none;
-            margin: 0 0 20px;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid #ecd8a2;
-            background: #fff8e6;
-            color: #6d5225;
-            font-size: 0.9rem;
-            line-height: 1.5;
-        }
-
-        .author-pseudo-notice a {
-            color: inherit;
-            font-weight: 600;
-        }
-
-        .moderation-actions {
-            display: none;
-            gap: 10px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-        }
-
-        .moderation-actions .btn-publish {
-            flex: 1;
-            min-width: 220px;
-        }
-
-        .btn-approve {
-            background: #4c9c72;
-        }
-
-        .btn-approve:hover {
-            background: #3f855f;
-        }
-
-        .images-hint {
-            margin: 0 0 10px;
-            color: #8a6f66;
-            font-size: 0.85rem;
-            line-height: 1.5;
-        }
-
-        .image-previews {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 12px;
-            margin-top: 12px;
-        }
-
-        .image-preview {
-            margin: 0;
-            border: 2px solid #f0e4e0;
-            border-radius: 12px;
-            overflow: hidden;
-            background: #fffaf8;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .image-preview img {
-            width: 100%;
-            aspect-ratio: 4 / 3;
-            object-fit: cover;
-            display: block;
-            background: #f6ece8;
-        }
-
-        .image-preview .form-group-inline {
-            padding: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        .image-preview input[type="text"] {
-            padding: 8px 10px;
-            font-size: 0.85rem;
-        }
-
-        .image-preview .btn-remove-image {
-            background: none;
-            border: 1px solid #b76e6e;
-            color: #b76e6e;
-            border-radius: 8px;
-            padding: 6px 8px;
-            font-size: 0.8rem;
-            cursor: pointer;
-        }
-
-        .image-preview .btn-remove-image:hover {
-            background: #b76e6e;
-            color: white;
-        }
-    </style>
     <link rel="stylesheet" href="css/immersive.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500;600&family=Pinyon+Script&display=swap">
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/publier.css">
     <script src="js/core/immersive.js" defer></script>
 </head>
 <body class="li-app">
@@ -215,62 +21,184 @@
     mountAppNav({ variant: 'classic', active: 'publier', showUser: true, showPublish: true });
     </script>
 
-    <div class="container">
-        <div class="publish-container">
-            <div class="publish-header">
-                <h1 id="publishTitle">Publier votre histoire</h1>
-                <p id="publishSubtitle">Partagez votre cœur avec la communauté Love Ink</p>
+    <main class="li-write" id="writeRoot">
+        <header class="publish-header">
+            <p class="li-write__eyebrow">Écrire une histoire</p>
+            <h1 id="publishTitle">Racontez-la, <em>pas à pas</em></h1>
+            <p id="publishSubtitle">Un genre, un titre, vos mots et quelques images : votre histoire prend forme sous vos yeux avant d'être confiée à la modération.</p>
+        </header>
+
+        <div class="moderation-banner" id="moderationBanner" role="status" hidden></div>
+
+        <nav class="li-steps" aria-label="Étapes de l'écriture">
+            <div class="li-steps__bar" aria-hidden="true"><span class="li-steps__fill" data-wizard-fill></span></div>
+            <ol class="li-steps__list">
+                <li><button type="button" class="li-steps__item" data-goto="0"><span class="li-steps__num"><span>1</span></span><span class="li-steps__label">Genre</span></button></li>
+                <li><button type="button" class="li-steps__item" data-goto="1"><span class="li-steps__num"><span>2</span></span><span class="li-steps__label">Titre</span></button></li>
+                <li><button type="button" class="li-steps__item" data-goto="2"><span class="li-steps__num"><span>3</span></span><span class="li-steps__label">Texte</span></button></li>
+                <li><button type="button" class="li-steps__item" data-goto="3"><span class="li-steps__num"><span>4</span></span><span class="li-steps__label">Images</span></button></li>
+                <li><button type="button" class="li-steps__item" data-goto="4"><span class="li-steps__num"><span>5</span></span><span class="li-steps__label">Aperçu</span></button></li>
+            </ol>
+        </nav>
+        <p class="li-sr-only" aria-live="polite" data-wizard-announce></p>
+
+        <form class="li-write__card publish-form" id="publishForm" novalidate>
+            <div class="author-pseudo-notice" id="authorPseudoNotice" role="alert">
+                <span id="authorPseudoNoticeText"></span>
+                <a href="parametres.html" id="authorPseudoNoticeLink">Choisir mon pseudonyme</a>
             </div>
-            <div class="moderation-banner" id="moderationBanner"></div>
-            
-            <form class="publish-form" id="publishForm">
-                <div class="author-pseudo-notice" id="authorPseudoNotice" role="alert">
-                    <span id="authorPseudoNoticeText"></span>
-                    <a href="parametres.html" id="authorPseudoNoticeLink">Choisir mon pseudonyme</a>
-                </div>
-                <div class="form-group">
-                    <label for="titre">Titre de l'histoire *</label>
-                    <input type="text" id="titre" placeholder="Ex: L'été de mes 16 ans" required>
-                </div>
-                
-                <div class="form-group">
-                    <label for="categorie">Catégorie *</label>
-                    <select id="categorie" required>
-                        <option value="">Choisissez une catégorie</option>
-                        <option value="Premier amour">Premier amour</option>
-                        <option value="Amour heureux">Amour heureux</option>
-                        <option value="Amour magique">Amour magique</option>
-                        <option value="Histoires tristes">Histoires tristes</option>
-                        <option value="Lettres d'amour">Lettres d'amour</option>
-                        <option value="Poésie d'amour">Poésie d'amour</option>
-                        <option value="Aventure estivale">Aventure estivale</option>
-                        <option value="Rencontres">Rencontres</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="contenu">Votre histoire *</label>
-                    <textarea id="contenu" placeholder="Il était une fois..." required></textarea>
-                    <div class="char-counter" id="charCount">0 caractères</div>
-                </div>
+            <!-- Étape 1 : genre. La liste des valeurs fait foi pour data/genres.json (tests/seo/generator.test.mjs). -->
+            <section class="li-step" data-step="categorie" aria-labelledby="stepTitleCategorie">
+                <p class="li-step__kicker">Étape 1 sur 5</p>
+                <h2 id="stepTitleCategorie" tabindex="-1">Quel genre d'histoire <em>voulez-vous raconter ?</em></h2>
+                <p class="li-step__hint">Il aide les lecteurs à trouver votre histoire. Vous pourrez revenir le changer avant l'envoi.</p>
+                <fieldset class="li-genres" id="categorie">
+                    <legend class="li-sr-only">Catégorie *</legend>
+                    <div class="li-genres__grid" id="genresGrid">
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Premier amour" required>
+                            <img src="images/landing/cat-premier-amour.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Premier amour</span>
+                            <span class="li-genre__blurb">Les premières fois qu'on n'oublie pas</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Amour heureux">
+                            <img src="images/landing/cat-heureux.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Amour heureux</span>
+                            <span class="li-genre__blurb">Quand tout va bien, et qu'on veut le dire</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Amour magique">
+                            <img src="images/landing/cat-magique.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Amour magique</span>
+                            <span class="li-genre__blurb">Destin, hasard et étincelles</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Histoires tristes">
+                            <img src="images/landing/cat-tristes.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Histoires tristes</span>
+                            <span class="li-genre__blurb">Ce qui a fait mal, et ce qu'il en reste</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Lettres d'amour">
+                            <img src="images/landing/cat-lettres.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Lettres d'amour</span>
+                            <span class="li-genre__blurb">Des mots adressés à quelqu'un</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Poésie d'amour">
+                            <img src="images/landing/cat-poesie.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Poésie d'amour</span>
+                            <span class="li-genre__blurb">L'amour en vers</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Aventure estivale">
+                            <img src="images/landing/cat-estivale.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Aventure estivale</span>
+                            <span class="li-genre__blurb">Un été, une rencontre</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                        <label class="li-genre">
+                            <input type="radio" name="categorie" value="Rencontres">
+                            <img src="images/landing/cat-rencontres.webp" alt="" width="320" height="400" loading="lazy" decoding="async">
+                            <span class="li-genre__name">Rencontres</span>
+                            <span class="li-genre__blurb">Le moment où tout a commencé</span>
+                            <span class="li-genre__check" aria-hidden="true"><i class="fas fa-check"></i></span>
+                        </label>
+                    </div>
+                </fieldset>
+                <p class="li-step__error" role="alert" data-step-error hidden></p>
+            </section>
 
-                <div class="form-group" id="imagesGroup">
-                    <label for="imagesInput">Images de l'histoire <span id="imagesRequiredMark">*</span></label>
-                    <p class="images-hint" id="imagesHint">De 1 à 4 images. Elles restent privées jusqu'à la validation par la modération. Décrivez chaque image en quelques mots pour les lecteurs malvoyants.</p>
-                    <input type="file" id="imagesInput" accept="image/*" multiple>
-                    <div class="image-previews" id="imagePreviews" aria-live="polite"></div>
-                    <div class="char-counter" id="imagesCount">0 / 4 image</div>
+            <!-- Étape 2 : titre -->
+            <section class="li-step" data-step="titre" aria-labelledby="stepTitleTitre" hidden>
+                <p class="li-step__kicker">Étape 2 sur 5</p>
+                <h2 id="stepTitleTitre" tabindex="-1">Comment s'appelle <em>votre histoire ?</em></h2>
+                <p class="li-step__hint">Quelques mots qui donnent envie d'ouvrir la première page.</p>
+                <label class="li-sr-only" for="titre">Titre de l'histoire *</label>
+                <input type="text" id="titre" class="li-title-input" placeholder="Ex : L'été de mes 16 ans" maxlength="140" autocomplete="off" required data-autofocus>
+                <div class="li-field-meta">
+                    <span class="li-kbd-hint"><kbd>Entrée</kbd> pour continuer</span>
+                    <span id="titleCount" aria-live="off">0 / 140</span>
                 </div>
+                <p class="li-step__error" role="alert" data-step-error hidden></p>
+            </section>
 
-                <button type="submit" class="btn-publish" id="publishSubmitBtn" data-action="publish">Publier mon histoire</button>
-
-                <div class="moderation-actions" id="moderationActions">
-                    <button type="submit" class="btn-publish" id="saveEditBtn" data-action="save">Enregistrer les corrections</button>
-                    <button type="submit" class="btn-publish btn-approve" id="approveEditBtn" data-action="approve">Enregistrer et approuver</button>
+            <!-- Étape 3 : texte -->
+            <section class="li-step" data-step="texte" aria-labelledby="stepTitleTexte" hidden>
+                <p class="li-step__kicker">Étape 3 sur 5</p>
+                <h2 id="stepTitleTexte" tabindex="-1">Et maintenant, <em>racontez.</em></h2>
+                <p class="li-step__hint">Prenez votre temps : votre texte est gardé en brouillon sur cet appareil à mesure que vous écrivez. Laissez une ligne vide entre deux paragraphes.</p>
+                <div class="li-draft-banner" id="draftBanner" hidden>
+                    <span id="draftBannerText">Brouillon restauré.</span>
+                    <button type="button" class="li-linkbtn" id="draftDiscardBtn">Repartir de zéro</button>
                 </div>
-            </form>
-        </div>
-    </div>
+                <label class="li-sr-only" for="contenu">Votre histoire *</label>
+                <textarea id="contenu" class="li-story-input" placeholder="Il était une fois…" maxlength="200000" required data-autofocus></textarea>
+                <div class="li-field-meta">
+                    <span class="char-counter" id="charCount">0 mot · 0 caractère</span>
+                    <span class="li-draft-status" id="draftStatus" aria-live="polite"></span>
+                </div>
+                <p class="li-kbd-hint"><kbd>Ctrl</kbd> + <kbd>Entrée</kbd> pour continuer</p>
+                <p class="li-step__error" role="alert" data-step-error hidden></p>
+            </section>
+
+            <!-- Étape 4 : images (1 à 4, privées jusqu'à la validation) -->
+            <section class="li-step" data-step="images" aria-labelledby="stepTitleImages" id="imagesGroup" hidden>
+                <p class="li-step__kicker">Étape 4 sur 5</p>
+                <h2 id="stepTitleImages" tabindex="-1">Mettez-y <em>des images</em> <span id="imagesRequiredMark" class="li-sr-only">(obligatoire)</span></h2>
+                <p class="images-hint" id="imagesHint">De 1 à 4 images. Elles restent privées jusqu'à la validation par la modération. Décrivez chaque image en quelques mots pour les lecteurs malvoyants.</p>
+                <label class="li-dropzone" id="imagesDropzone">
+                    <i class="fas fa-images" aria-hidden="true"></i>
+                    <span><strong>Choisissez vos images</strong> ou glissez-les ici</span>
+                    <span class="char-counter" id="imagesCount">0 / 4 image</span>
+                    <input type="file" id="imagesInput" accept="image/*" multiple aria-label="Ajouter des images (1 à 4)">
+                </label>
+                <div class="image-previews" id="imagePreviews" aria-live="polite"></div>
+                <p class="li-step__error" role="alert" data-step-error hidden></p>
+            </section>
+
+            <!-- Étape 5 : aperçu tel que publié -->
+            <section class="li-step" data-step="apercu" aria-labelledby="stepTitleApercu" hidden>
+                <p class="li-step__kicker">Étape 5 sur 5</p>
+                <h2 id="stepTitleApercu" tabindex="-1">Relisez-vous, <em>comme vos lecteurs.</em></h2>
+                <p class="li-step__hint">Voici votre histoire telle qu'elle apparaîtra une fois publiée. Touchez une étape plus haut pour corriger.</p>
+                <article class="li-preview" id="storyPreview" aria-label="Aperçu de l'histoire">
+                    <p class="li-preview__kicker" id="previewCategorie"></p>
+                    <h3 class="li-preview__title" id="previewTitre"></h3>
+                    <p class="li-preview__meta">
+                        <span><i class="fas fa-user" aria-hidden="true"></i><span id="previewAuteur"></span></span>
+                        <span><i class="fas fa-calendar" aria-hidden="true"></i><span id="previewDate"></span></span>
+                        <span><i class="fas fa-clock" aria-hidden="true"></i><span id="previewLecture"></span></span>
+                    </p>
+                    <div class="li-preview__gallery" id="previewGallery" hidden></div>
+                    <div class="li-preview__content" id="previewContenu"></div>
+                </article>
+                <p class="li-review-note" id="reviewNote"><i class="fas fa-shield-heart" aria-hidden="true"></i><span>En l'envoyant, votre histoire passe en attente de modération. Elle reste privée, images comprises, jusqu'à sa validation ; vous la retrouverez dans votre profil.</span></p>
+                <p class="li-step__error" role="alert" data-step-error hidden></p>
+            </section>
+
+            <div class="li-write__nav">
+                <button type="button" class="li-btn li-btn--ghost" data-wizard-prev hidden><i class="fas fa-arrow-left" aria-hidden="true"></i> Précédent</button>
+                <div class="li-write__nav-end">
+                    <button type="button" class="li-btn li-btn--primary" data-wizard-next id="wizardNextBtn">Suivant <i class="fas fa-arrow-right" aria-hidden="true"></i></button>
+                    <div class="li-write__final" data-wizard-final hidden>
+                        <button type="submit" class="li-btn li-btn--primary btn-publish" id="publishSubmitBtn" data-action="publish">Publier mon histoire</button>
+                        <div class="moderation-actions" id="moderationActions" hidden>
+                            <button type="submit" class="li-btn li-btn--ghost btn-publish" id="saveEditBtn" data-action="save">Enregistrer les corrections</button>
+                            <button type="submit" class="li-btn li-btn--approve btn-publish btn-approve" id="approveEditBtn" data-action="approve">Enregistrer et approuver</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </main>
 
     <script src="js/components/modale.js"></script>
     <script type="module">
@@ -284,15 +212,24 @@
         import {
             checkStoryFiles, cleanAlt, deleteStoryImages, getMediaClient, publishStoryImages, storyImages
         } from './js/core/story-images.js';
+        import {
+            STEPS, clearDraft, loadDraft, mountPublishWizard, readingMinutes, saveDraft, storyParagraphs, textStats
+        } from './js/components/publish-wizard.js';
 
+        const titreInput = document.getElementById('titre');
         const contenu = document.getElementById('contenu');
         const charCount = document.getElementById('charCount');
+        const titleCount = document.getElementById('titleCount');
+        const genresGrid = document.getElementById('genresGrid');
         const publishForm = document.getElementById('publishForm');
         const publishSubmitBtn = document.getElementById('publishSubmitBtn');
         const moderationActions = document.getElementById('moderationActions');
         const moderationBanner = document.getElementById('moderationBanner');
         const publishTitle = document.getElementById('publishTitle');
         const publishSubtitle = document.getElementById('publishSubtitle');
+        const draftStatus = document.getElementById('draftStatus');
+        const draftBanner = document.getElementById('draftBanner');
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
         let currentUser = null;
         let currentUserRole = 'user';
@@ -300,8 +237,42 @@
         let moderationStoryId = '';
         let moderationStory = null;
 
+        // ===== Genre (boutons radio illustrés) =====
+        function getCategorie() {
+            return publishForm.querySelector('input[name="categorie"]:checked')?.value || '';
+        }
+
+        // Une histoire en modération peut porter un genre absent de la liste : on l'ajoute pour ne pas le perdre.
+        function setCategorie(value) {
+            const wanted = String(value || '');
+            let radio = Array.from(publishForm.querySelectorAll('input[name="categorie"]')).find((r) => r.value === wanted);
+            if (!radio && wanted) {
+                const label = document.createElement('label');
+                label.className = 'li-genre';
+                radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'categorie';
+                radio.value = wanted;
+                const icon = document.createElement('span');
+                icon.className = 'li-genre__icon';
+                icon.setAttribute('aria-hidden', 'true');
+                icon.innerHTML = '<i class="fas fa-heart"></i>';
+                const name = document.createElement('span');
+                name.className = 'li-genre__name';
+                name.textContent = wanted;
+                const check = document.createElement('span');
+                check.className = 'li-genre__check';
+                check.setAttribute('aria-hidden', 'true');
+                check.innerHTML = '<i class="fas fa-check"></i>';
+                label.append(radio, icon, name, check);
+                genresGrid.appendChild(label);
+            }
+            publishForm.querySelectorAll('input[name="categorie"]').forEach((r) => { r.checked = r === radio; });
+        }
+
         // ===== Images (1 a 4, privees jusqu'a la validation) =====
         const imagesInput = document.getElementById('imagesInput');
+        const imagesDropzone = document.getElementById('imagesDropzone');
         const imagePreviews = document.getElementById('imagePreviews');
         const imagesCount = document.getElementById('imagesCount');
         const imagesHint = document.getElementById('imagesHint');
@@ -349,6 +320,7 @@
             const n = selectedImages.length;
             imagesCount.textContent = `${n} / ${MEDIA_CONFIG.maxImages} image${n > 1 ? 's' : ''}`;
             imagesInput.disabled = n >= MEDIA_CONFIG.maxImages;
+            imagesDropzone.classList.toggle('is-full', imagesInput.disabled);
         }
 
         function removeImage(key) {
@@ -360,9 +332,7 @@
             renderImagePreviews();
         }
 
-        imagesInput.addEventListener('change', async () => {
-            const files = Array.from(imagesInput.files || []);
-            imagesInput.value = '';
+        async function addImageFiles(files) {
             if (!files.length) return;
             const room = MEDIA_CONFIG.maxImages - selectedImages.length;
             const accepted = files.slice(0, Math.max(0, room));
@@ -375,9 +345,30 @@
                 selectedImages.push({ key: ++imageKey, file, alt: '', previewUrl: URL.createObjectURL(file), revoke: true });
             });
             renderImagePreviews();
+            wizard.showError(wizard.current, '');
             if (files.length > accepted.length) {
                 await notify('warning', `${MEDIA_CONFIG.maxImages} images maximum : ${files.length - accepted.length} image(s) ignoree(s).`, { title: 'Images' });
             }
+        }
+
+        imagesInput.addEventListener('change', async () => {
+            const files = Array.from(imagesInput.files || []);
+            imagesInput.value = '';
+            await addImageFiles(files);
+        });
+
+        // Glisser-déposer sur la zone d'images (même validation que le sélecteur).
+        ['dragenter', 'dragover'].forEach((type) => imagesDropzone.addEventListener(type, (event) => {
+            if (imagesInput.disabled || imagesDropzone.hidden) return;
+            event.preventDefault();
+            imagesDropzone.classList.add('is-dragover');
+        }));
+        ['dragleave', 'dragend'].forEach((type) => imagesDropzone.addEventListener(type, () => imagesDropzone.classList.remove('is-dragover')));
+        imagesDropzone.addEventListener('drop', async (event) => {
+            event.preventDefault();
+            imagesDropzone.classList.remove('is-dragover');
+            if (imagesInput.disabled || imagesDropzone.hidden) return;
+            await addImageFiles(Array.from(event.dataTransfer?.files || []));
         });
 
         // Mode moderation : images existantes (privees) affichees via URLs blob authentifiees.
@@ -396,12 +387,147 @@
                 }
             }));
             renderImagePreviews();
+            if (wizard.current === STEPS.length - 1) renderPreview();
         }
 
         window.addEventListener('pagehide', () => {
             selectedImages.forEach((e) => { if (e.revoke && e.previewUrl) URL.revokeObjectURL(e.previewUrl); });
         });
 
+        // ===== Parcours en étapes =====
+        function formState() {
+            return {
+                categorie: getCategorie(),
+                titre: titreInput.value,
+                contenu: contenu.value,
+                imagesCount: selectedImages.length
+            };
+        }
+
+        // Nom public de l'auteur : une seule source pour l'aperçu et l'envoi.
+        function auteurPublic() {
+            if (moderationStory) return moderationStory.auteur || '';
+            if (!currentUser) return '';
+            // Pseudonyme du profil uniquement, jamais dérivé de l'e-mail.
+            const authorName = resolvePublicAuthorName(currentUserProfile, currentUser);
+            return authorName.ok ? authorName.auteur : '';
+        }
+
+        function showAuthorPseudoNotice(reason) {
+            const notice = document.getElementById('authorPseudoNotice');
+            document.getElementById('authorPseudoNoticeText').textContent = authorNameErrorMessage(reason) + ' ';
+            document.getElementById('authorPseudoNoticeLink').href = PSEUDO_SETTINGS_URL;
+            notice.style.display = 'block';
+        }
+
+        function renderPreview() {
+            const state = formState();
+            document.getElementById('previewCategorie').textContent = state.categorie;
+            document.getElementById('previewTitre').textContent = state.titre.trim();
+            document.getElementById('previewAuteur').textContent = auteurPublic() || 'Vous';
+            document.getElementById('previewDate').textContent = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+            const minutes = readingMinutes(state.contenu);
+            document.getElementById('previewLecture').textContent = `${minutes || 1} min de lecture`;
+
+            const gallery = document.getElementById('previewGallery');
+            gallery.replaceChildren();
+            selectedImages.forEach((entry, index) => {
+                if (!entry.previewUrl) return;
+                const img = document.createElement('img');
+                img.src = entry.previewUrl;
+                img.alt = cleanAlt(entry.alt) || `Image ${index + 1} de l'histoire`;
+                gallery.appendChild(img);
+            });
+            gallery.hidden = !gallery.children.length;
+
+            // Même découpage que la page de lecture : paragraphes sur ligne vide, retours à la ligne gardés.
+            const content = document.getElementById('previewContenu');
+            content.replaceChildren();
+            storyParagraphs(state.contenu).forEach((lines) => {
+                const p = document.createElement('p');
+                lines.forEach((line, i) => {
+                    if (i) p.appendChild(document.createElement('br'));
+                    p.appendChild(document.createTextNode(line));
+                });
+                content.appendChild(p);
+            });
+        }
+
+        const wizard = mountPublishWizard(document.getElementById('writeRoot'), {
+            getState: formState,
+            validationOptions: () => ({ minImages: moderationStoryId ? 0 : MEDIA_CONFIG.minImages }),
+            onEnter: (stepId) => { if (stepId === 'apercu') renderPreview(); },
+            onChange: () => scheduleDraftSave()
+        });
+
+        // Choix d'un genre à la souris ou au doigt : on enchaîne sur le titre. Au clavier, Entrée valide.
+        let pointerChoice = false;
+        genresGrid.addEventListener('pointerdown', () => { pointerChoice = true; });
+        genresGrid.addEventListener('change', () => {
+            scheduleDraftSave();
+            if (!pointerChoice) return;
+            pointerChoice = false;
+            setTimeout(() => { if (wizard.current === 0 && getCategorie()) wizard.next(); }, reduceMotion.matches ? 0 : 320);
+        });
+
+        // ===== Compteurs et brouillon local =====
+        function updateCounters() {
+            titleCount.textContent = `${titreInput.value.length} / ${titreInput.maxLength}`;
+            charCount.textContent = textStats(contenu.value).label;
+        }
+
+        function autosize() {
+            contenu.style.height = 'auto';
+            contenu.style.height = `${Math.max(contenu.scrollHeight + 2, contenu.offsetHeight)}px`;
+        }
+
+        let draftTimer = 0;
+        function scheduleDraftSave() {
+            if (!currentUser || moderationStoryId) return;
+            clearTimeout(draftTimer);
+            draftTimer = setTimeout(() => {
+                const saved = saveDraft(window.localStorage, currentUser.uid, formState(), wizard.current);
+                if (saved && (titreInput.value.trim() || contenu.value.trim())) {
+                    const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                    draftStatus.innerHTML = '<i class="fas fa-cloud" aria-hidden="true"></i>';
+                    draftStatus.append(`Brouillon enregistré à ${time}`);
+                }
+            }, 600);
+        }
+
+        function restoreDraft(uid) {
+            let storage = null;
+            try { storage = window.localStorage; } catch { return; }
+            const draft = loadDraft(storage, uid);
+            if (!draft) return;
+            // Ne jamais écraser une saisie commencée pendant le chargement.
+            if (getCategorie() || titreInput.value.trim() || contenu.value.trim()) return;
+            if (draft.categorie) setCategorie(draft.categorie);
+            titreInput.value = draft.titre;
+            contenu.value = draft.contenu;
+            updateCounters();
+            const date = new Date(draft.savedAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+            document.getElementById('draftBannerText').textContent = `Brouillon du ${date} restauré. Les images, elles, sont à ajouter de nouveau.`;
+            draftBanner.hidden = false;
+            wizard.go(Math.min(draft.step, STEPS.findIndex((s) => s.id === 'images')), { focus: false });
+        }
+
+        document.getElementById('draftDiscardBtn').addEventListener('click', () => {
+            if (currentUser) {
+                try { clearDraft(window.localStorage, currentUser.uid); } catch { /* stockage indisponible */ }
+            }
+            publishForm.querySelectorAll('input[name="categorie"]').forEach((r) => { r.checked = false; });
+            titreInput.value = '';
+            contenu.value = '';
+            draftBanner.hidden = true;
+            draftStatus.textContent = '';
+            updateCounters();
+            wizard.go(0);
+        });
+
+        titreInput.addEventListener('input', () => { updateCounters(); scheduleDraftSave(); });
+        contenu.addEventListener('input', () => { updateCounters(); autosize(); scheduleDraftSave(); });
+        updateCounters();
         renderImagePreviews();
 
         function getEditStoryIdFromUrl() {
@@ -436,16 +562,17 @@
 
             publishTitle.textContent = "Edition de moderation";
             publishSubtitle.textContent = "Corrigez une histoire en attente puis validez-la.";
-            publishSubmitBtn.style.display = 'none';
-            moderationActions.style.display = 'flex';
+            publishSubmitBtn.hidden = true;
+            moderationActions.hidden = false;
+            document.getElementById('reviewNote').hidden = true;
 
-            moderationBanner.style.display = 'block';
+            moderationBanner.hidden = false;
             const hasOriginal = Boolean(story.versionOriginale && typeof story.versionOriginale === 'object');
-            moderationBanner.innerHTML = hasOriginal
+            moderationBanner.textContent = hasOriginal
                 ? 'Mode moderation actif. Version originale deja conservee. Vos modifications resteront tracables.'
                 : 'Mode moderation actif. La version originale sera sauvegardee automatiquement a la premiere correction.';
 
-            imagesInput.hidden = true;
+            imagesDropzone.hidden = true;
             imagesRequiredMark.hidden = true;
             imagesHint.textContent = "Images privees soumises par l'auteur. Vous pouvez en retirer ou corriger leur description ; elles deviennent publiques a l'approbation.";
         }
@@ -473,11 +600,14 @@
                 return;
             }
 
-            document.getElementById('titre').value = story.titre || '';
-            document.getElementById('categorie').value = story.categorie || '';
+            titreInput.value = story.titre || '';
+            setCategorie(story.categorie || '');
             contenu.value = story.contenu || '';
-            charCount.textContent = `${contenu.value.length} caractères`;
+            updateCounters();
             enableModerationMode(story);
+            // Tout est déjà saisi : le modérateur arrive sur l'aperçu et peut rouvrir n'importe quelle étape.
+            wizard.reach(STEPS.length - 1);
+            wizard.go(STEPS.length - 1, { focus: false });
             await loadExistingImages(story);
         }
 
@@ -507,33 +637,29 @@
                     const authorName = resolvePublicAuthorName(currentUserProfile, user);
                     if (!authorName.ok) showAuthorPseudoNotice(authorName.reason);
                 }
+                if (!moderationStoryId) restoreDraft(user.uid);
             }
         });
-        
-        function showAuthorPseudoNotice(reason) {
-            const notice = document.getElementById('authorPseudoNotice');
-            document.getElementById('authorPseudoNoticeText').textContent = authorNameErrorMessage(reason) + ' ';
-            document.getElementById('authorPseudoNoticeLink').href = PSEUDO_SETTINGS_URL;
-            notice.style.display = 'block';
-        }
 
-        contenu.addEventListener('input', () => {
-            charCount.textContent = contenu.value.length + ' caractères';
-        });
-
-        document.getElementById('publishForm').addEventListener('submit', async (e) => {
+        publishForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const action = e.submitter?.dataset?.action || 'publish';
-            
-            const titre = document.getElementById('titre').value.trim();
-            const categorie = document.getElementById('categorie').value;
-            const contenuTexte = document.getElementById('contenu').value.trim();
-            
-            if (!titre || !categorie || !contenuTexte) {
-                await notify('warning', 'Veuillez remplir tous les champs', { title: 'Publication' });
+            // Entrée dans un champ ou bouton d'envoi atteint avant la fin : on avance d'une étape, on n'envoie pas.
+            if (!wizard.isLast) {
+                wizard.next();
                 return;
             }
-            
+            const action = e.submitter?.dataset?.action || (moderationStoryId ? 'save' : 'publish');
+
+            const titre = titreInput.value.trim();
+            const categorie = getCategorie();
+            const contenuTexte = contenu.value.trim();
+
+            if (!titre || !categorie || !contenuTexte) {
+                await notify('warning', 'Veuillez remplir tous les champs', { title: 'Publication' });
+                wizard.go(STEPS.length - 1);
+                return;
+            }
+
             if (!auth.currentUser || !currentUser) {
                 await notify('warning', 'Vous devez etre connecte', { title: 'Publication' });
                 window.location.href = 'login.html';
@@ -611,9 +737,11 @@
                     throw new Error("l'histoire n'a pas pu etre enregistree");
                 }
 
+                clearTimeout(draftTimer);
+                clearDraft(window.localStorage, currentUser.uid);
                 await notify('success', 'Histoire soumise ! Elle sera visible apres validation par un moderateur.', { title: 'Publication' });
                 window.location.href = 'profil.html?tab=histoires&status=en_attente';
-                
+
             } catch (error) {
                 console.error("❌ Erreur:", error);
                 await notify('error', 'Erreur lors de la publication: ' + error.message, { title: 'Publication' });

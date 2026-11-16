@@ -599,6 +599,22 @@
   - Harnais Playwright avec Firebase stubbé, sans appel prod : clic catégorie → recherche + filtre + vignette w320 conservés ; captures dans docs/pr/feed-categories/.
 - Non vérifié : comptage réel contre Firestore prod (règles publiques en lecture sur statut publie ; à observer après déploiement).
 
+## 2026-11-16 14:50 — « Écrire une histoire » en étapes (publier.html)
+- Branche feat/publier-wizard (depuis origin/main 02a58e8), PR ouverte, non fusionnée (en attente d'accord).
+- Parcours en 5 étapes : genre → titre → texte → images → aperçu « comme publié », puis envoi. Barre de progression, transitions douces, Entrée / Ctrl+Entrée / Ctrl+Maj+Entrée, prefers-reduced-motion respecté, navigation fixée en bas sur mobile.
+- Nouveau : js/components/publish-wizard.js (fonctions pures + montage), css/publier.css (le style inline est retiré de publier.html).
+- Inchangé : firebaseAPI.publierHistoire(titre, categorie, contenu, auteur, auteurId, images), sélecteur 1–4 images et upload (js/core/story-images.js), validation, requireAuth, message « en attente de modération », mode modération (?edit=) qui ouvre directement l'aperçu.
+- Brouillon local par utilisateur (localStorage `loveInk_publishDraft:<uid>`, 30 jours, sans les images), proposé à la reprise, effacé après envoi.
+- Les 8 genres canoniques sont maintenant les `input[name=categorie]` ; tests/seo/generator.test.mjs adapté.
+- Tests : tests/seo/publish-wizard.test.mjs (10), tests/e2e/publier-wizard.spec.js (7, hermétique : Firebase stubbé, aucune écriture prod), full-app.spec.js passe par fillPublishWizard.
+- Lancer les e2e en local : servir le dépôt sur un port local puis `E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test publier-wizard` (sans E2E_BASE_URL, la cible est la prod).
+- Conflit attendu avec la PR #8 (auteur = pseudo) : la logique est isolée dans auteurPublic() de publier.html.
+- Suivi : le fil écrit « Poesie d'amour » sans accent alors que publier envoie « Poésie d'amour ».
+
+## 2026-11-16 16:23 — Photos des genres du wizard (PR #38)
+- 4 visuels ajoutés dans images/landing/ (320×400 WebP) : cat-heureux, cat-lettres, cat-poesie, cat-rencontres. Les 8 tuiles de l'étape « genre » ont maintenant une photo ; Rencontres n'emprunte plus cat-seconde-chance.
+- Dégradés de secours .li-genre--happy/--letter/--poem retirés (plus utilisés) ; l'icône reste pour une catégorie héritée.
+- PR #38 toujours ouverte, ne pas fusionner ni déployer sans accord explicite.
 ## 2026-11-16 14:32 — /feed catégories en prod + chapeau à 0 histoire
 - La PR #36 est fusionnée (02a58e8) et déployée. Vérifié sur loveink.site : le CSS et le JS de feed-categories sont servis en 200.
 - Le comptage par genre (requête d'agrégation statut publie + categorie) fonctionne sans connexion. Il renvoie 0 partout : la prod n'a encore aucune histoire publiée.

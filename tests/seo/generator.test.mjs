@@ -80,8 +80,8 @@ test('page histoire : texte intégral présent dans le HTML sans JavaScript', ()
 });
 
 test('data/genres.json : chaque catégorie de publier.html a une intro et une description (50-160 caractères)', () => {
-    const options = [...readFileSync(join(ROOT, 'publier.html'), 'utf8').matchAll(/<option value="([^"]+)">/g)].map((m) => m[1]);
-    assert.ok(options.length >= 5);
+    const options = [...readFileSync(join(ROOT, 'publier.html'), 'utf8').matchAll(/<input type="radio" name="categorie" value="([^"]+)"/g)].map((m) => m[1]);
+    assert.ok(options.length >= 8, `genres de publier.html introuvables (${options.length})`);
     for (const g of options) {
         assert.ok(genres[g]?.intro, `genre « ${g} » sans intro`);
         assert.ok(genres[g].description.length >= 50 && genres[g].description.length <= 160, `description « ${g} » hors 50-160`);
