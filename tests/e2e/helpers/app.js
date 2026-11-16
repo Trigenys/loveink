@@ -214,6 +214,23 @@ async function ensureMessagingConversationOpen(page, otherUid, timeoutMs = 60000
     }
 }
 
+// Parcours « Écrire une histoire » en étapes : genre → titre → texte → images → aperçu.
+async function fillPublishWizard(page, { categorie, titre, contenu, files = [] }) {
+    await page.locator('#publishForm').waitFor({ state: 'visible' });
+    await page.locator(`input[name="categorie"][value="${categorie}"]`).check({ force: true });
+    await page.click('[data-wizard-next]');
+    await page.fill('#titre', titre);
+    await page.click('[data-wizard-next]');
+    await page.fill('#contenu', contenu);
+    await page.click('[data-wizard-next]');
+    if (files.length) {
+        await page.setInputFiles('#imagesInput', files);
+        await expect(page.locator('#imagePreviews .image-preview')).toHaveCount(files.length);
+    }
+    await page.click('[data-wizard-next]');
+    await expect(page.locator('[data-step="apercu"]')).toBeVisible();
+}
+
 module.exports = {
     DEFAULT_PASSWORD,
     makeUser,
@@ -225,5 +242,6 @@ module.exports = {
     ensureFeedLoaded,
     waitForAuthReady,
     ensureMessagingConversationOpen,
-    waitForRedirectWithModalHandling
+    waitForRedirectWithModalHandling,
+    fillPublishWizard
 };

@@ -8,7 +8,8 @@ const {
     logoutFromNav,
     ensureFeedLoaded,
     ensureMessagingConversationOpen,
-    waitForRedirectWithModalHandling
+    waitForRedirectWithModalHandling,
+    fillPublishWizard
 } = require('./helpers/app');
 const { mockMediaStorage, tinyImageFile } = require('./helpers/media-mock');
 
@@ -39,11 +40,12 @@ test.describe('Love Ink - E2E global', () => {
         await page.waitForTimeout(2000);
 
         const submitStory = async () => {
-            await page.fill('#titre', `Histoire e2e ${Date.now()}`);
-            await page.selectOption('#categorie', 'Rencontres');
-            await page.fill('#contenu', 'Contenu automatique e2e. '.repeat(40));
-            await page.setInputFiles('#imagesInput', tinyImageFile());
-            await expect(page.locator('#imagePreviews .image-preview')).toHaveCount(1);
+            await fillPublishWizard(page, {
+                categorie: 'Rencontres',
+                titre: `Histoire e2e ${Date.now()}`,
+                contenu: 'Contenu automatique e2e. '.repeat(40),
+                files: [tinyImageFile()]
+            });
             await page.click('#publishSubmitBtn');
             await waitForRedirectWithModalHandling(
                 page,
