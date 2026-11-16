@@ -583,3 +583,9 @@
 - Écarts pour Love Ink : l'autorisation d'envoi exige un backend de confiance qui détient le secret du tenant (Love Ink n'en a pas, plan Spark) ; v1 = images publiques immuables seulement, sans retrait ni état « en attente ». À ajouter dans trigenys-storage : vérification du jeton Firebase par tenant, état non public jusqu'à approbation, suppression avec purge du cache.
 - Idées cliente (communauté) : défis d'écriture, salons thématiques, lectures partagées, badge « membre fondateur », noyau de 50 à 100 membres actifs. Rien de codé.
 - PR #33 et #34 toujours en attente d'accord.
+
+## 2026-11-16 11:32 — trigenys-storage : support Firebase pour les images Love Ink
+
+- PR Trigenys/trigenys-storage#13 (branche `feat/firebase-tenant-auth`) : tenants authentifiés par jeton Firebase, upload privé jusqu'à publication par un modérateur (rôle lu dans `utilisateurs/{uid}` avec le jeton de l'utilisateur), lecture privée propriétaire/modérateur, `POST .../visibility`, `DELETE` idempotent, plafond d'images en attente par utilisateur. `npm run check` : 20/20.
+- Pas encore fait (actions utilisateur) : merge de la PR, migration D1 0004, déploiement du Worker, ajout de l'entrée `loveink` au secret `TENANT_CONFIG_JSON` (forme dans `backend/README.md` du dépôt storage).
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP côté navigateur, publication/suppression des images depuis l'espace modérateur.
