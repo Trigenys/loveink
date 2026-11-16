@@ -191,6 +191,22 @@ Reference: `firestore.rules`, `firestore.indexes.json`, `js/core/firebase-data.j
 
 ---
 
+### `comptes_prives/{uid}` *(données personnelles)*
+
+| Champ | Type | Notes |
+|---|---|---|
+| `uid` | string | = id du document |
+| `email` | string | E-mail du compte Auth ; la règle impose qu'il soit égal à `request.auth.token.email` |
+| `dateMaj` | timestamp | `request.time` à l'écriture |
+
+**Règles :** lecture par le titulaire et les admins uniquement ; création/mise à jour par le titulaire seul
+(champs `uid`, `email`, `dateMaj` exclusivement) ; suppression par le titulaire (suppression de compte).
+Synchronisé à la connexion (`js/core/account-contact.js`, sans écriture si inchangé) ; rattrapage des comptes
+existants par `scripts/admin-bootstrap.mjs --backfill-emails`. L'e-mail n'est jamais copié dans `utilisateurs`,
+lisible par tout membre connecté.
+
+---
+
 ### `ops_logs/{logId}` *(collection technique)*
 
 | Champ | Type | Notes |

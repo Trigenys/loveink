@@ -58,6 +58,27 @@ firebase deploy
 > Personne, admin compris, ne peut modifier son propre rôle (règles Firestore) : aucune auto-promotion, et un
 > admin ne peut pas se retirer ses droits par erreur. Un admin est rétrogradé par un autre admin ou via la console.
 
+### Premier admin (script d'amorçage, recommandé)
+
+Le script ne crée aucun compte et ne choisit aucun mot de passe : le futur admin s'inscrit d'abord sur
+https://loveink.site. Exécuté par la propriétaire du projet, avec ses propres identifiants :
+
+```bash
+npm install --no-save firebase-admin@12
+gcloud auth application-default login
+node scripts/admin-bootstrap.mjs --email jennifer@trigenys.com --pseudo "Law Admin"           # plan, lecture seule
+node scripts/admin-bootstrap.mjs --email jennifer@trigenys.com --pseudo "Law Admin" --apply   # écrit l'écart
+```
+
+- Compte introuvable : arrêt avec code 1 et message « inscris-toi d'abord sur le site ».
+- Écrit seulement l'écart : `utilisateurs/{uid}.role = admin` (+ `roleUpdatedBy`/`roleUpdateSource` =
+  `admin_bootstrap`, `dateRoleUpdate`), `pseudo`, `displayName` Auth, `comptes_prives/{uid}.email`, et une
+  entrée `ops_logs` `admin_bootstrap`. Relancer le plan doit afficher « aucun changement ».
+- `--backfill-emails` : copie aussi l'e-mail des comptes existants dans `comptes_prives` (affiché dans le plan).
+- `--project <id>` : autre projet (défaut `love-ink`).
+- L'admin se déconnecte puis se reconnecte ; le tableau de bord est sur `admin.html` (lien depuis le profil,
+  onglet modération).
+
 ### Premier admin (procédure manuelle, une seule fois)
 
 Aucun compte ne peut s'attribuer un rôle : le premier admin est posé à la main par la propriétaire du projet.

@@ -1122,6 +1122,7 @@
                 </div>${isAdminRole(currentUser?.role) ? `
                 <div class="ops-section" id="adminComptesSection">
                     <h4><i class="fas fa-users-gear" style="margin-right:8px;color:var(--rose-mid)"></i>Comptes et rôles (admin)</h4>
+                    <p style="margin:0 0 12px"><a href="admin.html" id="adminDashboardLink" class="btn btn-secondary"><i class="fas fa-chart-line" aria-hidden="true"></i> Tableau de bord administrateur</a></p>
                     <input type="search" id="adminComptesFiltre" placeholder="Filtrer par pseudo, rôle ou UID" aria-label="Filtrer les comptes" style="width:100%;max-width:360px;margin-bottom:12px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--ink)">
                     <div id="adminComptesList" class="ops-list"></div>
                 </div>` : ''}

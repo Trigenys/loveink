@@ -597,3 +597,9 @@
 - Nettoyage prod : `scripts/e2e-prod-cleanup-plan.mjs` (lecture seule) à lancer par l'utilisatrice ; aucune suppression faite.
 - trigenys-storage : ajouter "admin" à `roles.moderator` de `END_USER_TENANTS_JSON` (jamais `TENANT_CONFIG_JSON`) — non fait ici.
 - Reste : PR ouverte, CI à vérifier, fusion sur accord uniquement.
+
+## 2026-11-16 19:27 — Tableau de bord admin + amorçage du premier admin (branche feat/admin-dashboard, empilée sur #40)
+- `admin.html` (rôle `admin` seulement) : KPI (comptes, actifs/nouveaux 7 et 30 j, par rôle, par statut, histoires par statut), liste (pseudo, e-mail, inscription, dernière connexion, statut, rôle, nb d'histoires), filtres, tri, changement de rôle confirmé. Calculs purs dans `js/core/admin-metrics.js`.
+- E-mail : collection `comptes_prives/{uid}` lisible par titulaire + admins, écrite par le titulaire avec l'e-mail du jeton (synchro à la connexion). Jamais dans `utilisateurs`.
+- `scripts/admin-bootstrap.mjs` (plan par défaut, `--apply`, `--backfill-emails`) : ne crée ni compte ni mot de passe ; à lancer par l'utilisatrice (runbook-admin.md). Non exécuté en prod.
+- Reste : PR à relire, fusion sur accord, puis exécution du script par l'utilisatrice.
