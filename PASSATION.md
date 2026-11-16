@@ -577,3 +577,9 @@
 ## 2026-11-16 10:54 — Piste images d'histoires (demande cliente)
 - Besoin : 1 à 4 images par histoire. Firebase Storage indisponible (plan Spark). Piste proposée : Cloudflare R2 + Worker qui vérifie le jeton Firebase. Pas de décision prise ni de code écrit.
 - PR #34 (redirection vers la connexion après inscription) et PR #33 (recette e2e prod) toujours ouvertes, fusion sur accord.
+
+## 2026-11-16 11:14 — Images via trigenys-storage + idées communauté
+- Projet existant : Trigenys/trigenys-storage (Worker Cloudflare + R2 privé + D1, WebP, variantes w320/w800, cache immuable). Prototype ; mise en prod (#5) non prouvée.
+- Écarts pour Love Ink : l'autorisation d'envoi exige un backend de confiance qui détient le secret du tenant (Love Ink n'en a pas, plan Spark) ; v1 = images publiques immuables seulement, sans retrait ni état « en attente ». À ajouter dans trigenys-storage : vérification du jeton Firebase par tenant, état non public jusqu'à approbation, suppression avec purge du cache.
+- Idées cliente (communauté) : défis d'écriture, salons thématiques, lectures partagées, badge « membre fondateur », noyau de 50 à 100 membres actifs. Rien de codé.
+- PR #33 et #34 toujours en attente d'accord.
