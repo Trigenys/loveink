@@ -569,6 +569,11 @@
 - Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
 - Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
 
+## 2026-11-09 22:19 — Recette e2e prod (rôles + interactions)
+- Branche test/e2e-prod-roles : tests/e2e/prod/ (accounts, setup.spec, scenario.spec, teardown, run). Scripts : e2e:prod:setup, e2e:prod (nettoie toujours), e2e:prod:keep, e2e:prod:teardown.
+- Comptes jetables + mots de passe générés dans .env.e2e.json (ignoré par git). npm test n'inclut jamais tests/e2e/prod (testIgnore sauf E2E_PROD=1).
+- Déroulé : l'utilisateur lance setup → rôles modo/censeur posés via console Firestore (uids affichés) → l'utilisateur lance e2e:prod → nettoyage console des notifications/conversations/messages/ops_logs listés.
+- Anciennes données de test encore à nettoyer : histoire 454vUtYCNABRZlWH9xvU, claude_test, « Plume 1448 », flow-1794245289333-63693, comptes smoke/msgA/msgB.
 ## 2026-11-16 12:49 — Refonte de « Explorez par catégorie » (/feed)
 - Branche feat/feed-categories-redesign (depuis origin/main b9be392), PR ouverte, non fusionnée (en attente d'accord).
 - Nouveau composant js/components/feed-categories.js (données + rendu + fonctions pures) et css/feed-categories.css. Le CSS inline de l'ancienne grille est retiré de feed.html.
