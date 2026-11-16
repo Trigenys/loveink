@@ -700,6 +700,7 @@
     <script type="module">
     import { auth } from './js/core/firebase-config.js';
     import { firebaseAPI } from './js/core/firebase-data.js';
+    import { storyImages, storyImageUrl } from './js/core/story-images.js';
     import { notify } from './js/components/ui-notify.js';
     import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
     import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
@@ -788,7 +789,10 @@
 
     function createStoryCard(story, index) {
         const href = `histoire.html?id=${encodeURIComponent(story.id || '')}`;
-        const hasImage = isValidUrl(story.image || '');
+        // Vignette : premiere image de l'histoire (variante w320) sinon illustration de categorie.
+        const [firstImage] = storyImages(story);
+        const thumbSrc = firstImage ? storyImageUrl(firstImage.id, 320) : String(story.image || '');
+        const hasImage = isValidUrl(thumbSrc);
         const card = document.createElement('a');
         card.href = href;
         card.className = 'story-card animate';
@@ -805,7 +809,7 @@
         card.innerHTML = `
             <div class="story-img">
                 ${hasImage
-                    ? `<img src="${escapeHtml(story.image)}" alt="Illustration de ${titre}">`
+                    ? `<img src="${escapeHtml(thumbSrc)}" alt="${firstImage?.alt ? escapeHtml(firstImage.alt) : `Illustration de ${titre}`}" loading="lazy">`
                     : `<div class="story-img-placeholder"><i class="fas fa-heart"></i></div>`}
                 <span class="story-badge">${categorie}</span>
             </div>

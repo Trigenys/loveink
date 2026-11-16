@@ -229,6 +229,29 @@ service cloud.firestore {
         );
     }
 
+    // Images d'une histoire (0 a 4) : references opaques vers le stockage media externe.
+    function validImageItem(it) {
+      return it is map &&
+        it.keys().hasAll(['id', 'w', 'h', 'alt']) &&
+        it.keys().hasOnly(['id', 'w', 'h', 'alt']) &&
+        it.id is string && it.id.size() == 36 &&
+        it.w is int && it.w > 0 &&
+        it.h is int && it.h > 0 &&
+        it.alt is string && it.alt.size() <= 200;
+    }
+
+    // Pas de boucle dans les regles : taille bornee a 4 puis chaque index verifie.
+    function validImages(d) {
+      return !('images' in d) || (
+        d.images is list &&
+        d.images.size() <= 4 &&
+        (d.images.size() < 1 || validImageItem(d.images[0])) &&
+        (d.images.size() < 2 || validImageItem(d.images[1])) &&
+        (d.images.size() < 3 || validImageItem(d.images[2])) &&
+        (d.images.size() < 4 || validImageItem(d.images[3]))
+      );
+    }
+
     function validStoryCreate() {
       return request.resource.data.auteurId == request.auth.uid &&
         request.resource.data.titre is string &&
@@ -243,6 +266,7 @@ service cloud.firestore {
         request.resource.data.likes == 0 &&
         request.resource.data.commentaires == 0 &&
         request.resource.data.date is timestamp &&
+        validImages(request.resource.data) &&
         // Toute nouvelle histoire passe par la moderation.
         request.resource.data.statut == 'en_attente';
     }
@@ -251,7 +275,8 @@ service cloud.firestore {
     // et ne touche jamais aux compteurs ni aux champs de moderation.
     function validStoryOwnerUpdate() {
       return resource.data.get('statut', 'publie') in ['en_attente', 'rejete'] &&
-        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titre', 'categorie', 'contenu', 'extrait', 'image']) &&
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['titre', 'categorie', 'contenu', 'extrait', 'image', 'images']) &&
+        validImages(request.resource.data) &&
         request.resource.data.titre is string &&
         request.resource.data.titre.size() > 0 &&
         request.resource.data.titre.size() <= 140 &&
@@ -290,6 +315,7 @@ service cloud.firestore {
           'contenu',
           'extrait',
           'image',
+          'images',
           'statut',
           'motifRejet',
           'moderateurId',
@@ -311,6 +337,7 @@ service cloud.firestore {
         request.resource.data.extrait.size() <= 500 &&
         request.resource.data.image is string &&
         request.resource.data.image.size() > 0 &&
+        validImages(request.resource.data) &&
         request.resource.data.statut in ['en_attente', 'publie'] &&
         (
           !('motifRejet' in request.resource.data) ||

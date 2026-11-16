@@ -66,6 +66,7 @@
     <script type="module">
         import { auth } from './js/core/firebase-config.js';
         import { firebaseAPI } from './js/core/firebase-data.js';
+        import { renderGallery } from './js/core/story-images.js';
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
         import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
@@ -199,11 +200,15 @@
                         </button>` : ''}
                     </div>
                 </div>
+                <div class="story-gallery" id="storyGallery" hidden></div>
                 <div class="story-content" data-li-attrib data-titre="${escapeHtml(currentStory.titre || 'Sans titre')}" data-auteur="${escapeHtml(currentStory.auteur || '')}">
                     ${renderStoryContent(currentStory.contenu)}
                 </div>
                 <p class="story-rights">© ${escapeHtml(currentStory.auteur || 'Auteur inconnu')} · Tous droits réservés. Reproduction interdite sans l'accord de l'auteur. <a href="conditions.html#plagiat">Signaler un plagiat</a></p>
             `;
+            // Publiee : URLs publiques ; sinon (auteur ou modo en preview) : images privees authentifiees.
+            renderGallery(document.getElementById('storyGallery'), currentStory.images, { isPublic: isPublie })
+                .catch((error) => console.warn('Galerie indisponible:', error?.message || error));
             document.dispatchEvent(new CustomEvent('li:story-rendered', { detail: { story: currentStory, storyId } }));
         }
 
