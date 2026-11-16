@@ -356,6 +356,19 @@
             margin-bottom: 8px;
         }
 
+        .story-series {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--rose-deep);
+            background: var(--rose-pale, #f5e6e6);
+            border-radius: 999px;
+            padding: 3px 10px;
+            margin-bottom: 8px;
+        }
+
         .story-author {
             display: flex;
             align-items: center;
@@ -653,6 +666,7 @@
     import { auth } from './js/core/firebase-config.js';
     import { firebaseAPI } from './js/core/firebase-data.js';
     import { storyImages, storyImageUrl } from './js/core/story-images.js';
+    import { feedEntries } from './js/core/series.js';
     import { notify } from './js/components/ui-notify.js';
     import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
     import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
@@ -743,6 +757,7 @@
             </div>
             <div class="story-body">
                 <h3 class="story-title">${titre}</h3>
+                ${story.serie ? `<div class="story-series"><i class="fas fa-layer-group" aria-hidden="true"></i> ${escapeHtml(story.serie.badge)}</div>` : ''}
                 <div class="story-author"><i class="fas fa-pen-fancy"></i> ${auteur}</div>
                 <p class="story-excerpt">${excerpt}</p>
                 <div class="story-footer">
@@ -874,7 +889,8 @@
     async function loadStories() {
         try {
             const result = await firebaseAPI.getHistoires(1, 12);
-            allStories = result?.histoires || [];
+            // Une seule carte par serie (histoires en plusieurs chapitres).
+            allStories = await feedEntries(result?.histoires || [], firebaseAPI);
             renderStories(allStories);
             document.dispatchEvent(new CustomEvent('li:feed-loaded', { detail: { stories: allStories } }));
         } catch (error) {

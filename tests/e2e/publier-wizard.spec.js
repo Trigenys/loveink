@@ -27,7 +27,11 @@ export const firebaseAPI = {
     getUtilisateur: async () => ({ role: cfg.role || 'user', statut: 'actif', pseudo: 'Plume Test' }),
     publierHistoire: async (...args) => { log('publierHistoire', args); return 'story-e2e-1'; },
     getHistoireById: async (id) => (cfg.story ? { id, ...cfg.story } : null),
-    editerHistoireModeration: async (...args) => { log('editerHistoireModeration', args); return { ok: true }; }
+    editerHistoireModeration: async (...args) => { log('editerHistoireModeration', args); return { ok: true }; },
+    // Chapitres : séries et histoires de l'auteur (vides par défaut, le parcours historique est inchangé).
+    getSeriesAuteur: async () => cfg.series || [],
+    getHistoiresAuteur: async () => cfg.stories || [],
+    publierChapitre: async (...args) => { log('publierChapitre', args); return { id: 'chap-e2e-1', serieId: 's1', chapitre: 3 }; }
 };
 `;
 
@@ -235,5 +239,80 @@ test.describe('Écrire une histoire — parcours en étapes', () => {
         expect(args[2]).toMatchObject({ titre: 'Histoire relue', categorie: 'Amour heureux', contenu: 'Un texte en attente.' });
         expect(args[2].images).toHaveLength(1);
         expect(args[3]).toEqual({ approuver: false });
+    });
+});
+
+const SERIES = [{ id: 's1', titre: 'Nos étés', genre: 'Rencontres', statut: 'en_cours', dernierChapitre: 2 }];
+const SOLO = [{ id: 'h1', titre: 'Le quai de la gare', categorie: 'Amour heureux', statut: 'publie' }];
+
+test.describe('Écrire un nouveau chapitre', () => {
+    test('choix « nouveau chapitre » : genre hérité et sauté, titre et images facultatifs, dernier chapitre', async ({ page }) => {
+        await stubBackend(page, { series: SERIES, stories: SOLO });
+        await page.goto('/publier.html');
+        const chooser = page.locator('#suiteChooser');
+        await expect(chooser).toBeVisible();
+        await expect(page.locator('#publishForm')).toBeHidden();
+        await expect(chooser.locator('[data-suite-id]')).toHaveCount(2);
+        await chooser.locator('[data-suite-id="s1"]').click();
+
+        await expect(chooser).toBeHidden();
+        await expect(page.locator('#chapterBannerText')).toHaveText('Chapitre 3 de « Nos étés »');
+        await expect(current(page)).toContainText('Titre');
+        await expect(page.locator('[data-goto="0"]').locator('xpath=..')).toBeHidden();
+        await expect(page.locator('[data-step="titre"] .li-step__kicker')).toHaveText('Étape 1 sur 4');
+
+        // Titre vide accepté.
+        await page.locator('#titre').focus();
+        await page.keyboard.press('Enter');
+        await expect(page.locator('[data-step="titre"] [data-step-error]')).toBeHidden();
+        await expect(page.locator('#contenu')).toBeFocused();
+        await page.fill('#contenu', STORY);
+        await page.keyboard.press('Control+Enter');
+        await expect(current(page)).toContainText('Images');
+
+        // Aucune image : on passe quand même à l'aperçu.
+        await page.click('[data-wizard-next]');
+        await expect(page.locator('[data-step="apercu"]')).toBeVisible();
+        await expect(page.locator('#previewTitre')).toHaveText('Chapitre 3');
+        await expect(page.locator('#previewCategorie')).toContainText('Chapitre 3');
+        await expect(page.locator('#publishSubmitBtn')).toHaveText('Publier ce chapitre');
+        await page.check('#dernierChapitre');
+
+        await page.click('#publishSubmitBtn');
+        await closeModalIfPresent(page);
+        await page.waitForURL(/profil\.html\?tab=histoires&status=en_attente/);
+        const calls = await page.evaluate(() => JSON.parse(sessionStorage.getItem('__calls') || '{}'));
+        expect(calls.publierHistoire).toBeUndefined();
+        expect(calls.publierChapitre).toHaveLength(1);
+        const [cible, data] = calls.publierChapitre[0];
+        expect(cible).toEqual({ serieId: 's1' });
+        expect(data).toMatchObject({ auteurId: USER.uid, dernier: true, images: [] });
+        expect(String(data.titre || '').trim()).toBe('');
+    });
+
+    test('?suite=<histoire> : chapitre 2 direct, puis retour à une nouvelle histoire', async ({ page }) => {
+        await stubBackend(page, { stories: SOLO });
+        await page.goto('/publier.html?suite=h1');
+        await expect(page.locator('#chapterBannerText')).toHaveText('Chapitre 2 de « Le quai de la gare »');
+        await expect(page.locator('#suiteChooser')).toBeHidden();
+        await expect(current(page)).toContainText('Titre');
+        expect(await page.locator('#lastChapterField').evaluate((el) => el.hidden)).toBe(false);
+
+        await page.click('#chapterChangeBtn');
+        await expect(page.locator('#suiteChooser')).toBeVisible();
+        await page.click('#suiteNewBtn');
+        await expect(page.locator('#chapterBanner')).toBeHidden();
+        await expect(current(page)).toContainText('Genre');
+        await expect(page.locator('[data-step="categorie"] .li-step__kicker')).toHaveText('Étape 1 sur 5');
+        await expect(page.locator('#publishSubmitBtn')).toHaveText('Publier mon histoire');
+    });
+
+    test('?suite= inconnu : avertissement et parcours normal', async ({ page }) => {
+        await stubBackend(page);
+        await page.goto('/publier.html?suite=inconnu');
+        await closeModalIfPresent(page);
+        await expect(page.locator('#publishForm')).toBeVisible();
+        await expect(current(page)).toContainText('Genre');
+        await expect(page.locator('#chapterBanner')).toBeHidden();
     });
 });

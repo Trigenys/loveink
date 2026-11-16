@@ -711,3 +711,19 @@
 - `main` fusionné dans `feat/admin-role-e2e-isolation` (conflit helper avec #34 résolu en gardant les deux comportements).
 - Vérifié en local : e2e 6 réussis / 3 ignorés, sans #44 et avec #44 fusionnée dans un worktree jetable.
 - PR #40 et #42 (empilée) ouvertes, fusion sur accord uniquement.
+
+## 2026-11-16 17:26 — Histoires en plusieurs chapitres, lot 1 (branche feat/chapitres)
+- Modèle : chapitre = doc `histoires` avec `serieId` + `chapitre` ; `series/{id}` (id du chapitre 1) porte titre, genre, statut, dernierChapitre. Règles Firestore + tests (29/29).
+- Wizard : choix « nouvelle histoire / nouveau chapitre », genre hérité et sauté, titre et images facultatifs, case « dernier chapitre ». Profil : « Mes séries ».
+- Lecture : `js/components/series-nav.js` (Chapitre N sur M, sommaire, suivant / « La suite arrive bientôt »). Fil : une carte par série (`feedEntries`).
+- SEO : `scripts/build-seo-pages.mjs` génère rel prev/next sur les chapitres et `/histoires/serie/<slug>-<id>` (option `--series-fixture` en local).
+- Tests : `tests/seo/series*.test.mjs`, `tests/e2e/chapitres.spec.js`, wizard e2e étendu. Captures dans `docs/pr/chapitres/`.
+- PR empilée sur feat/publier-wizard (#38). Ne pas fusionner ni déployer sans accord explicite. Lot 2 : reprise de lecture, notifications.
+
+## 2026-11-16 17:28 — Chapitres lot 1 : incident e2e et livraison
+
+- Incident : une exécution e2e sans filtre a lancé `full-app.spec.js` contre le vrai Firebase (`love-ink`).
+  Compte de test `flow.*@loveink-e2e.test` et histoire de test probablement créés en production : à supprimer
+  par la propriétaire (rien supprimé sans accord). Leçon ajoutée dans `docs/engineering/lessons-learned.md`.
+- Ne lancer que les specs hermétiques par nom : `E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test chapitres publier-wizard`.
+- Commit, push et PR empilée sur feat/publier-wizard dans la foulée.

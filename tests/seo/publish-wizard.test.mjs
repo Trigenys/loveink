@@ -127,3 +127,23 @@ test('raccourcis clavier', () => {
     assert.equal(keyIntent({ key: 'Enter', altKey: true }, 'field'), null);
     assert.equal(keyIntent({ key: 'a', ctrlKey: true }, 'field'), null);
 });
+
+test('chapitre : titre facultatif, images facultatives, genre sauté', () => {
+    assert.equal(validateStep('titre', { titre: '' }).ok, false);
+    assert.equal(validateStep('titre', { titre: '  ' }, { titreOptional: true }).ok, true);
+    assert.equal(validateStep('titre', { titre: 'x'.repeat(LIMITS.titre + 1) }, { titreOptional: true }).ok, false);
+    assert.equal(validateStep('images', { imagesCount: 0 }, { minImages: 0 }).ok, true);
+    const state = { categorie: '', titre: '', contenu: 'Texte', imagesCount: 0 };
+    assert.equal(firstInvalidStep(state, { minImages: 0, titreOptional: true }), 0);
+    assert.equal(firstInvalidStep(state, { minImages: 0, titreOptional: true, skip: ['categorie'] }), -1);
+});
+
+test('brouillon : champ suite facultatif, rétrocompatible v1', () => {
+    const now = 1_700_000_000_000;
+    const plain = JSON.parse(serializeDraft({ titre: 'T' }, 1, now));
+    assert.equal('suite' in plain, false);
+    const chap = parseDraft(serializeDraft({ titre: '', contenu: 'Suite', suite: 'serie1' }, 2, now), now);
+    assert.equal(chap.suite, 'serie1');
+    const old = parseDraft(JSON.stringify({ v: 1, categorie: 'Romance', titre: 'T', contenu: '', step: 1, savedAt: now }), now);
+    assert.equal(old.suite, undefined);
+});

@@ -2,6 +2,7 @@
 import { auth, db } from './firebase-config.js';
 import { getFreshDoc } from './fresh-doc.js';
 import { isKnownRole } from './roles.js';
+import { planChapter, sortChapters } from './series.js';
 import {
     addDoc,
     collection,
@@ -47,24 +48,29 @@ async function rendreImagesPubliques(images) {
     await setStoryImagesVisibility(liste, 'public');
 }
 
+// Document histoire a la soumission (contrat de creation de firestore.rules).
+function construireHistoire(titre, categorie, contenu, auteur, auteurId, images = []) {
+    const imagesHistoire = normaliserImages(images);
+    const histoire = {
+        titre,
+        auteur,
+        auteurId,
+        categorie,
+        contenu,
+        extrait: contenu.substring(0, 150) + "...",
+        date: serverTimestamp(),
+        likes: 0,
+        commentaires: 0,
+        image: getImageForCategory(categorie),
+        statut: "en_attente"
+    };
+    if (imagesHistoire.length) histoire.images = imagesHistoire;
+    return histoire;
+}
+
 async function publierHistoire(titre, categorie, contenu, auteur, auteurId, images = []) {
     try {
-        const imagesHistoire = normaliserImages(images);
-        const histoire = {
-            titre,
-            auteur,
-            auteurId,
-            categorie,
-            contenu,
-            extrait: contenu.substring(0, 150) + "...",
-            date: serverTimestamp(),
-            likes: 0,
-            commentaires: 0,
-            image: getImageForCategory(categorie),
-            statut: "en_attente"
-        };
-        if (imagesHistoire.length) histoire.images = imagesHistoire;
-
+        const histoire = construireHistoire(titre, categorie, contenu, auteur, auteurId, images);
         const docRef = await addDoc(collection(db, 'histoires'), histoire);
         console.log("Histoire publiee avec ID:", docRef.id);
         return docRef.id;
@@ -193,6 +199,93 @@ async function getHistoiresAuteur(auteurId, statut = null) {
     } catch (error) {
         console.error("Erreur getHistoiresAuteur:", error);
         return [];
+    }
+}
+
+// ===== SERIES (histoires en plusieurs chapitres) =====
+
+function avecDate(snapshotDoc) {
+    const data = snapshotDoc.data();
+    return { id: snapshotDoc.id, ...data, date: data.date?.toDate ? data.date.toDate() : new Date() };
+}
+
+async function getSerie(serieId) {
+    const id = String(serieId || '');
+    if (!id) return null;
+    try {
+        const snapshotDoc = await getDoc(doc(db, 'series', id));
+        return snapshotDoc.exists() ? { id: snapshotDoc.id, ...snapshotDoc.data() } : null;
+    } catch (error) {
+        console.error("Erreur getSerie:", error);
+        return null;
+    }
+}
+
+async function getSeriesAuteur(auteurId) {
+    const uid = String(auteurId || '');
+    if (!uid) return [];
+    try {
+        const snapshot = await getDocs(query(collection(db, 'series'), where('auteurId', '==', uid)));
+        return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch (error) {
+        console.error("Erreur getSeriesAuteur:", error);
+        return [];
+    }
+}
+
+// Chapitres publies d'une serie (egalites seules : pas d'index composite), tries par numero.
+// Avec auteurId : tous les chapitres de l'auteur, quel que soit leur statut (vue profil).
+async function getChapitresSerie(serieId, { auteurId = null } = {}) {
+    const id = String(serieId || '');
+    if (!id) return [];
+    try {
+        const constraints = [where('serieId', '==', id)];
+        constraints.push(auteurId ? where('auteurId', '==', String(auteurId)) : where('statut', '==', 'publie'));
+        const snapshot = await getDocs(query(collection(db, 'histoires'), ...constraints));
+        return sortChapters(snapshot.docs.map(avecDate));
+    } catch (error) {
+        console.error("Erreur getChapitresSerie:", error);
+        return [];
+    }
+}
+
+// Nouveau chapitre, en un seul batch avec l'avancement de la serie (et sa creation au chapitre 2).
+// cible : { serieId } pour une serie existante, { histoireId } pour une histoire publiee seule.
+// L'etat est relu juste avant l'ecriture : un second envoi concurrent est refuse par les regles.
+async function publierChapitre(cible, { titre, contenu, auteur, auteurId, images = [], dernier = false }) {
+    try {
+        const serieId = String(cible?.serieId || cible?.histoireId || '');
+        if (!serieId) throw new Error('serie ou histoire manquante');
+        const serieSnap = await getDoc(doc(db, 'series', serieId));
+        let base = null;
+        let serie = null;
+        if (serieSnap.exists()) {
+            serie = { id: serieSnap.id, ...serieSnap.data() };
+        } else {
+            const baseSnap = await getDoc(doc(db, 'histoires', serieId));
+            if (!baseSnap.exists()) throw new Error('histoire introuvable');
+            base = { id: baseSnap.id, ...baseSnap.data() };
+        }
+        const plan = planChapter({ base, serie, titre, dernier });
+        const histoire = {
+            ...construireHistoire(plan.titre, plan.genre, contenu, auteur, auteurId, images),
+            serieId: plan.serieId,
+            chapitre: plan.chapitre
+        };
+        const chapitreRef = doc(collection(db, 'histoires'));
+        const batch = writeBatch(db);
+        if (plan.createSerie) {
+            batch.set(doc(db, 'series', plan.serieId), { ...plan.createSerie, dateCreation: serverTimestamp(), dateMaj: serverTimestamp() });
+            batch.update(doc(db, 'histoires', plan.serieId), plan.attachFirst);
+        } else {
+            batch.update(doc(db, 'series', plan.serieId), { ...plan.updateSerie, dateMaj: serverTimestamp() });
+        }
+        batch.set(chapitreRef, histoire);
+        await batch.commit();
+        return { id: chapitreRef.id, serieId: plan.serieId, chapitre: plan.chapitre };
+    } catch (error) {
+        console.error("Erreur publication chapitre:", error);
+        return null;
     }
 }
 
@@ -1530,6 +1623,10 @@ const firebaseAPI = {
     compterHistoiresParCategorie,
     getHistoireById,
     getHistoiresAuteur,
+    getSerie,
+    getSeriesAuteur,
+    getChapitresSerie,
+    publierChapitre,
     getHistoiresEnAttente,
     approuverHistoire,
     rejeterHistoire,

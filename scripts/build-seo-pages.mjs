@@ -7,15 +7,19 @@
 // Textes éditoriaux : data/genres.json (pages de genre) et data/ressources.json (guides), versionnés.
 // Idempotent : n'écrit un fichier que si son contenu change ; supprime les pages générées devenues orphelines.
 // Usage : node scripts/build-seo-pages.mjs [--base https://loveink.site] [--project love-ink] [--dry-run]
-//         [--fixture tests/seo/fixtures/stories.json] [--allow-shrink] [--out <dossier>]
+//         [--fixture tests/seo/fixtures/stories.json] [--series-fixture <series.json>] [--allow-shrink] [--out <dossier>]
 // Garde-fou : si la source renvoie 0 histoire alors que des pages existent, ou si plus de la moitié des
 // pages d'histoires seraient supprimées, le script s'arrête (code 2) sauf `--allow-shrink`.
 // Vie privée : seul le pseudonyme public (`auteur`) est publié ; `auteurId` (uid) sert uniquement à
 // regrouper les histoires d'un même auteur et n'apparaît dans aucune sortie ; un `auteur` qui ressemble
 // à une adresse e-mail est remplacé par « Auteur inconnu ».
+// Histoires en chapitres : une page par chapitre (rel prev/next, position dans la série) et une page
+// de série (/histoires/serie/) dès que deux chapitres au moins sont publiés ; la collection publique
+// `series` fournit titre et statut (repli sur le chapitre 1 si elle est illisible).
 import { readFileSync, writeFileSync, mkdirSync, readdirSync, unlinkSync, existsSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { chapterTitle, isChapter, sortChapters } from '../js/core/series.js';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SITE = 'Love Ink';
@@ -31,7 +35,7 @@ const NON_PERSON = new Set(['', 'anonyme', 'auteur inconnu', 'inconnu']);
 const LATEST_MARK = ['<!-- seo:latest:start -->', '<!-- seo:latest:end -->'];
 const LLMS_MARK = ['<!-- llms:histoires:start -->', '<!-- llms:histoires:end -->'];
 // Dossiers entièrement possédés par le générateur (les .html orphelins y sont supprimés).
-export const OWNED_DIRS = ['histoires', 'histoires/genre', 'histoires/auteur', 'ressources'];
+export const OWNED_DIRS = ['histoires', 'histoires/genre', 'histoires/auteur', 'histoires/serie', 'ressources'];
 
 export function parseArgs(argv) {
     return Object.fromEntries(argv.map((a, i, all) => a.startsWith('--') ? [a.slice(2), all[i + 1]?.startsWith('--') || all[i + 1] === undefined ? true : all[i + 1]] : []).filter(Boolean));
@@ -78,6 +82,52 @@ export async function fetchPublished(project, pageSize = 300) {
         if (docs.length < pageSize) return out;
         cursor = docs[docs.length - 1].document.name;
     }
+}
+
+// Séries (collection publique `series`) : pagination par pageToken, mêmes règles de décodage.
+export async function fetchSeries(project, pageSize = 300) {
+    const base = `https://firestore.googleapis.com/v1/projects/${project}/databases/(default)/documents/series`;
+    const out = [];
+    let token = '';
+    for (;;) {
+        const r = await fetch(`${base}?pageSize=${pageSize}${token ? `&pageToken=${encodeURIComponent(token)}` : ''}`);
+        if (!r.ok) throw new Error(`Firestore series ${r.status} : ${(await r.text()).slice(0, 200)}`);
+        const body = await r.json();
+        for (const d of body.documents || []) {
+            const f = Object.fromEntries(Object.entries(d.fields || {}).map(([k, v]) => [k, decode(v)]));
+            out.push({ id: d.name.split('/').pop(), titre: f.titre || '', genre: f.genre || '', statut: f.statut || 'en_cours' });
+        }
+        if (!body.nextPageToken) return out;
+        token = body.nextPageToken;
+    }
+}
+
+export const seriePath = (serie) => `/histoires/serie/${slug(serie.titre).slice(0, 80).replace(/-$/, '')}-${serie.id}`;
+
+// Regroupe les chapitres publiés par série. Seules les séries d'au moins deux chapitres publiés sont
+// traitées comme telles : un chapitre 1 seul reste une histoire ordinaire (aucune page changée).
+export function groupSeries(stories, series = []) {
+    const docs = new Map(series.filter((x) => x?.id).map((x) => [x.id, x]));
+    const byId = new Map();
+    for (const s of stories) if (isChapter(s)) byId.set(s.serieId, [...(byId.get(s.serieId) || []), s]);
+    const groups = new Map();
+    for (const [id, list] of byId) {
+        const chapters = sortChapters(list);
+        if (chapters.length < 2) continue;
+        const doc = docs.get(id) || {};
+        const first = chapters.find((c) => c.id === id) || chapters[0];
+        const serie = { id, titre: doc.titre || first.titre || 'Sans titre', genre: doc.genre || first.categorie || 'Divers', statut: doc.statut === 'terminee' ? 'terminee' : 'en_cours' };
+        const group = { serie, chapters, path: seriePath(serie), auteur: first.auteur };
+        groups.set(id, group);
+    }
+    return groups;
+}
+
+// Titre affiché d'un chapitre : « Série – Chapitre N » (+ « : titre propre » s'il en a un).
+export function chapterHeading(s, group) {
+    const label = chapterTitle(s.chapitre);
+    const own = s.titre && s.titre !== group.serie.titre && s.titre !== label ? `${label} : ${s.titre}` : label;
+    return `${group.serie.titre} – ${own}`;
 }
 
 // --- Rendu --------------------------------------------------------------
@@ -147,7 +197,7 @@ export function uniqueBy(items, variant, maxLevel = 2) {
     return new Map(items.map((x) => [x.id, variant(x, level.get(x.id))]));
 }
 
-export function createRenderer({ base = 'https://loveink.site', genres = {}, guides = [], year = new Date().getUTCFullYear(), authorOf = () => null, metaOf = null } = {}) {
+export function createRenderer({ base = 'https://loveink.site', genres = {}, guides = [], year = new Date().getUTCFullYear(), authorOf = () => null, metaOf = null, seriesOf = () => null } = {}) {
     const BASE = String(base).replace(/\/$/, '');
     const OG_IMG = `${BASE}/images/og-love-ink.jpg`;
     const ORG = { '@type': 'Organization', '@id': `${BASE}/#organization`, name: SITE, url: `${BASE}/`, logo: { '@type': 'ImageObject', url: OG_IMG, width: 1200, height: 630 }, parentOrganization: { '@id': PARENT_ORG_ID } };
@@ -208,7 +258,8 @@ ${body}
 
     // Variantes de title / description d'une histoire (niveau 0 = forme courte ; niveaux suivants = désambiguïsation).
     function storyMeta(s, level = 0) {
-        const titre = s.titre || 'Sans titre';
+        const group = seriesOf(s);
+        const titre = group ? chapterHeading(s, group) : s.titre || 'Sans titre';
         const genre = s.categorie || 'Divers';
         const date = fmtDate(s.date);
         const qualifier = level === 0 ? '' : level === 1 && date ? ` (${date})` : ` (${[date, s.id.slice(0, 6)].filter(Boolean).join(', ')})`;
@@ -218,33 +269,79 @@ ${body}
         return { title, description };
     }
 
+    // Navigation de chapitre (vide pour une histoire seule) : position, lien vers la série, précédent / suivant.
+    function chapterNav(s, group) {
+        if (!group) return { head: '', foot: '', meta: [], crumb: [], part: null };
+        const i = group.chapters.findIndex((c) => c.id === s.id);
+        const prev = group.chapters[i - 1];
+        const next = group.chapters[i + 1];
+        const label = (c) => esc(chapterHeading(c, group).slice(group.serie.titre.length + 3));
+        const ending = group.serie.statut === 'terminee' ? 'Fin de la série' : 'La suite arrive bientôt';
+        const head = `            <p class="sp-chapters">Chapitre ${i + 1} sur ${group.chapters.length} · <a href="${group.path}">${esc(group.serie.titre)}</a></p>\n`;
+        const foot = `            <nav class="sp-chapter-nav" aria-label="Chapitres">${prev ? `<a rel="prev" href="${storyPath(prev)}">← ${label(prev)}</a>` : ''}${next ? `<a rel="next" href="${storyPath(next)}">${label(next)} →</a>` : `<span>${ending}</span>`}</nav>\n`;
+        const meta = [prev && `<link rel="prev" href="${BASE}${storyPath(prev)}">`, next && `<link rel="next" href="${BASE}${storyPath(next)}">`].filter(Boolean);
+        const part = { '@type': 'CreativeWorkSeries', '@id': `${BASE}${group.path}#series`, name: group.serie.titre, url: `${BASE}${group.path}` };
+        return { head, foot, meta, crumb: [[group.serie.titre, group.path]], part, position: i + 1 };
+    }
+
     function storyPage(s) {
         const path = storyPath(s);
         const genre = s.categorie || 'Divers';
         const author = authorOf(s);
+        const group = seriesOf(s);
+        const nav = chapterNav(s, group);
+        const heading = group ? chapterHeading(s, group) : s.titre || 'Sans titre';
         const { title, description } = metaOf?.(s) || storyMeta(s);
         const byline = author ? `<a href="${author.path}" rel="author">${esc(s.auteur)}</a>` : esc(s.auteur || UNKNOWN_AUTHOR);
         const body = `        <article class="sp-story">
             <p class="sp-kicker"><a href="/histoires/">Histoires</a> › <a href="${genrePath(genre)}">${esc(genre)}</a></p>
-${s.coupDeCoeur ? `            <p class="sp-badge">Coup de cœur Love Ink · <time datetime="${s.coupDeCoeur}">${fmtDate(s.coupDeCoeur)}</time></p>\n` : ''}            <h1>${esc(s.titre || 'Sans titre')}</h1>
+${s.coupDeCoeur ? `            <p class="sp-badge">Coup de cœur Love Ink · <time datetime="${s.coupDeCoeur}">${fmtDate(s.coupDeCoeur)}</time></p>\n` : ''}${nav.head}            <h1>${esc(heading)}</h1>
             <p class="sp-meta">Par ${byline}${s.date ? ` · <time datetime="${s.date}">${fmtDate(s.date)}</time>` : ''} · ${readingMinutes(s.contenu)} min de lecture</p>
             <div class="sp-content" data-li-attrib data-titre="${esc(s.titre || 'Sans titre')}" data-auteur="${esc(s.auteur || UNKNOWN_AUTHOR)}" data-url="${BASE}${path}">
 ${paragraphs(s.contenu)}
             </div>
-            <p class="sp-rights">© ${(s.date || '').slice(0, 4) || year} ${esc(s.auteur || UNKNOWN_AUTHOR)} · Tous droits réservés. Reproduction interdite sans l'accord de l'auteur. <a href="/conditions#plagiat">Signaler un plagiat</a></p>
+${nav.foot}            <p class="sp-rights">© ${(s.date || '').slice(0, 4) || year} ${esc(s.auteur || UNKNOWN_AUTHOR)} · Tous droits réservés. Reproduction interdite sans l'accord de l'auteur. <a href="/conditions#plagiat">Signaler un plagiat</a></p>
             <aside class="sp-react"><p>Cette histoire vous a touché ? Réagissez, commentez et suivez l'auteur sur Love Ink.</p><a class="sp-cta" href="/histoire?id=${esc(s.id)}">Lire dans l'application</a> <a class="sp-link" href="/register">Créer un compte gratuit</a></aside>
         </article>`;
         const article = {
             '@context': 'https://schema.org', '@type': 'Article', additionalType: 'https://schema.org/ShortStory', '@id': `${BASE}${path}#article`,
-            headline: s.titre || 'Sans titre', description, url: `${BASE}${path}`,
+            headline: heading, description, url: `${BASE}${path}`,
             author: { '@type': 'Person', name: s.auteur || UNKNOWN_AUTHOR, ...(author ? { '@id': `${BASE}${author.path}#person`, url: `${BASE}${author.path}` } : {}) },
             datePublished: s.date || undefined, dateModified: s.dateModified || s.date || undefined,
             articleSection: genre, genre, wordCount: wordCount(s.contenu), timeRequired: `PT${readingMinutes(s.contenu)}M`, isAccessibleForFree: true,
-            inLanguage: 'fr', mainEntityOfPage: `${BASE}${path}`, image: OG_IMG, isPartOf: WEBSITE, publisher: ORG,
+            inLanguage: 'fr', mainEntityOfPage: `${BASE}${path}`, image: OG_IMG, isPartOf: nav.part ? [WEBSITE, nav.part] : WEBSITE, publisher: ORG,
+            ...(nav.part ? { position: nav.position } : {}),
         };
-        const meta = [s.date && `<meta property="article:published_time" content="${s.date}">`, (s.dateModified || s.date) && `<meta property="article:modified_time" content="${s.dateModified || s.date}">`, `<meta property="article:section" content="${esc(genre)}">`, `<meta property="article:author" content="${esc(s.auteur || UNKNOWN_AUTHOR)}">`, '<script type="module" src="/js/components/attribution.js"></script>'].filter(Boolean).map((m) => `    ${m}\n`).join('');
-        const jsonLd = [article, crumbs([['Accueil', '/'], ['Histoires', '/histoires/'], [genre, genrePath(genre)], [s.titre || 'Sans titre', path]])];
+        const meta = [s.date && `<meta property="article:published_time" content="${s.date}">`, (s.dateModified || s.date) && `<meta property="article:modified_time" content="${s.dateModified || s.date}">`, `<meta property="article:section" content="${esc(genre)}">`, `<meta property="article:author" content="${esc(s.auteur || UNKNOWN_AUTHOR)}">`, ...nav.meta, '<script type="module" src="/js/components/attribution.js"></script>'].filter(Boolean).map((m) => `    ${m}\n`).join('');
+        const jsonLd = [article, crumbs([['Accueil', '/'], ['Histoires', '/histoires/'], [genre, genrePath(genre)], ...nav.crumb, [heading, path]])];
         return { path, html: page({ title, description, path, body, jsonLd, type: 'article', meta }), lastmod: s.dateModified || s.date };
+    }
+
+    // Page de série : sommaire des chapitres publiés, lien vers le premier.
+    function seriePage(group) {
+        const { serie, chapters, path } = group;
+        const total = plural(chapters.length, 'chapitre');
+        const etat = serie.statut === 'terminee' ? 'série terminée' : 'série en cours';
+        const title = `${serie.titre} : histoire d'amour en ${total} | Love Ink`;
+        const description = clip(`${serie.titre}, ${serie.genre.toLowerCase()} en ${total} (${etat}) par ${group.auteur || 'un auteur Love Ink'}, à lire gratuitement sur Love Ink. ${excerpt(chapters[0], 120)}`, 160);
+        const body = `        <article class="sp-story sp-serie">
+            <p class="sp-kicker"><a href="/histoires/">Histoires</a> › <a href="${genrePath(serie.genre)}">${esc(serie.genre)}</a></p>
+            <h1>${esc(serie.titre)}</h1>
+            <p class="sp-meta">Par ${esc(group.auteur || UNKNOWN_AUTHOR)} · ${total} · ${etat}</p>
+            <p class="sp-lead">${esc(excerpt(chapters[0], 300))}</p>
+            <ol class="sp-toc">
+${chapters.map((c) => `                <li><a href="${storyPath(c)}">${esc(chapterHeading(c, group).slice(serie.titre.length + 3))}</a> <span class="sp-meta">${readingMinutes(c.contenu)} min</span></li>`).join('\n')}
+            </ol>
+            <p><a class="sp-cta" href="${storyPath(chapters[0])}">Commencer la lecture</a></p>
+        </article>`;
+        const ldSerie = {
+            '@context': 'https://schema.org', '@type': 'CreativeWorkSeries', '@id': `${BASE}${path}#series`, name: serie.titre, url: `${BASE}${path}`,
+            genre: serie.genre, inLanguage: 'fr', isAccessibleForFree: true, isPartOf: WEBSITE, publisher: ORG,
+            ...(isPerson(group.auteur) ? { author: { '@type': 'Person', name: group.auteur } } : {}),
+            hasPart: chapters.map((c, i) => ({ '@type': 'Article', position: i + 1, name: chapterHeading(c, group), url: `${BASE}${storyPath(c)}` })),
+        };
+        const jsonLd = [ldSerie, crumbs([['Accueil', '/'], ['Histoires', '/histoires/'], [serie.genre, genrePath(serie.genre)], [serie.titre, path]])];
+        return { path, html: page({ title, description, path, body, jsonLd }), lastmod: latest(chapters) };
     }
 
     function genrePage(name, stories) {
@@ -407,7 +504,7 @@ ${stories.slice(0, 30).map(entry).join('\n')}
         return `${manual}\n\n## Histoires publiées (extraits)\n\nLe texte intégral de chaque histoire est sur sa page (${BASE}/histoires/). Les droits restent aux autrices et auteurs.\n\n${items.join('\n\n') || 'Aucune histoire publiée pour le moment.'}\n${guideItems.length ? `\n## Guides d'écriture\n\n${guideItems.join('\n\n')}\n` : ''}`;
     }
 
-    return { page, card, storyMeta, storyPage, genrePage, authorPage, guidePage, guidesIndex, indexPage, sitemap, atom, latestBlock, llmsSection, llmsFull, BASE, FEED_PATH };
+    return { page, card, storyMeta, storyPage, seriePage, genrePage, authorPage, guidePage, guidesIndex, indexPage, sitemap, atom, latestBlock, llmsSection, llmsFull, BASE, FEED_PATH };
 }
 
 export const replaceBetween = (text, [start, end], block) => {
@@ -420,7 +517,7 @@ export const fileFor = (path) => path.endsWith('/') ? `${path}index.html` : `${p
 const guideList = (ressources) => (Array.isArray(ressources) ? ressources : ressources?.pages || []).filter((g) => g?.slug && g.title);
 
 // Construit toutes les sorties (pures) à partir des histoires : { files: Map<relFile, content>, keep: Set<file>, pages }.
-export function build(stories, { base, genres = {}, ressources, indexHtml, llmsTxt, year } = {}) {
+export function build(stories, { base, genres = {}, ressources, indexHtml, llmsTxt, year, series = [] } = {}) {
     const sorted = [...stories].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     const guides = guideList(ressources);
     const { authors, byStory } = groupAuthors(sorted);
@@ -428,16 +525,19 @@ export function build(stories, { base, genres = {}, ressources, indexHtml, llmsT
     for (const s of sorted) { const g = s.categorie || 'Divers'; byGenre.set(g, [...(byGenre.get(g) || []), s]); }
     // Pages de genre : genres éditorialisés (data/genres.json, même vides) puis genres rencontrés dans les histoires.
     const allGenres = [...new Set([...Object.keys(genres).filter((g) => !g.startsWith('_') && genres[g]?.intro), ...byGenre.keys()])];
-    const probe = createRenderer({ base, genres, guides, year });
+    const groups = groupSeries(sorted, series);
+    const seriesOf = (s) => (isChapter(s) && groups.get(s.serieId)) || null;
+    const probe = createRenderer({ base, genres, guides, year, seriesOf });
     const titles = uniqueBy(sorted, (s, l) => probe.storyMeta(s, l).title);
     const descriptions = uniqueBy(sorted, (s, l) => probe.storyMeta(s, l).description);
-    const r = createRenderer({ base, genres, guides, year, authorOf: (s) => byStory.get(s.id) || null, metaOf: (s) => ({ title: titles.get(s.id), description: descriptions.get(s.id) }) });
+    const r = createRenderer({ base, genres, guides, year, authorOf: (s) => byStory.get(s.id) || null, metaOf: (s) => ({ title: titles.get(s.id), description: descriptions.get(s.id) }), seriesOf });
     const pages = [
         r.indexPage(byGenre, sorted, allGenres),
         ...allGenres.map((g) => r.genrePage(g, byGenre.get(g) || [])),
         ...(guides.length ? [r.guidesIndex(), ...guides.map((g) => r.guidePage(g, byGenre))] : []),
         ...authors.map(r.authorPage),
         ...sorted.map(r.storyPage),
+        ...[...groups.values()].map(r.seriePage),
     ];
     const files = new Map(pages.map((p) => [fileFor(p.path).replace(/^\//, ''), p.html]));
     files.set('sitemap.xml', r.sitemap([...STATIC_URLS.map((path) => ({ path })), ...pages.map((p) => ({ path: p.path, lastmod: p.lastmod }))]));
@@ -447,7 +547,7 @@ export function build(stories, { base, genres = {}, ressources, indexHtml, llmsT
         files.set('llms.txt', replaceBetween(llmsTxt, LLMS_MARK, r.llmsSection(byGenre, sorted, allGenres, authors)));
         files.set('llms-full.txt', r.llmsFull(byGenre, sorted, llmsTxt));
     }
-    return { files, keep: new Set(pages.map((p) => fileFor(p.path))), pages, byGenre, authors, guides, stories: sorted };
+    return { files, keep: new Set(pages.map((p) => fileFor(p.path))), pages, byGenre, authors, guides, stories: sorted, groups };
 }
 
 // Garde-fou de suppression massive. Renvoie un message d'erreur ou null.
@@ -471,7 +571,11 @@ export async function main(argv = process.argv.slice(2)) {
     const genres = readJson(join(ROOT, 'data/genres.json'), {});
     const ressources = readJson(join(ROOT, 'data/ressources.json'), { pages: [] });
     const stories = args.fixture ? JSON.parse(readFileSync(resolve(String(args.fixture)), 'utf8')).map((s) => normalize(s, s.id)) : await fetchPublished(project);
-    const { files, keep, byGenre } = build(stories, { base, genres, ressources, indexHtml: readOpt('index.html'), llmsTxt: readOpt('llms.txt') });
+    // Séries : --series-fixture en local ; sinon Firestore, avec repli sur les chapitres si la lecture échoue.
+    let series = [];
+    if (args['series-fixture']) series = JSON.parse(readFileSync(resolve(String(args['series-fixture'])), 'utf8'));
+    else if (!args.fixture) series = await fetchSeries(project).catch((e) => { console.warn(`avertissement : séries illisibles (${e.message}), titres repris du chapitre 1`); return []; });
+    const { files, keep, byGenre } = build(stories, { base, genres, ressources, indexHtml: readOpt('index.html'), llmsTxt: readOpt('llms.txt'), series });
 
     for (const g of byGenre.keys()) if (!genres[g]?.intro) console.warn(`avertissement : genre « ${g} » sans intro dans data/genres.json`);
 

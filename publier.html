@@ -30,6 +30,23 @@
 
         <div class="moderation-banner" id="moderationBanner" role="status" hidden></div>
 
+        <!-- Départ : nouvelle histoire ou chapitre suivant (affiché seulement si l'auteur a de quoi continuer). -->
+        <section class="li-suite" id="suiteChooser" aria-labelledby="suiteChooserTitle" hidden>
+            <h2 id="suiteChooserTitle" tabindex="-1">Que voulez-vous <em>écrire aujourd'hui ?</em></h2>
+            <button type="button" class="li-suite__option li-suite__option--new" id="suiteNewBtn">
+                <span class="li-suite__icon" aria-hidden="true"><i class="fas fa-feather"></i></span>
+                <span class="li-suite__text"><strong>Une nouvelle histoire</strong><small>Un nouveau titre, un nouveau genre.</small></span>
+            </button>
+            <h3 class="li-suite__subtitle">Un nouveau chapitre de…</h3>
+            <ul class="li-suite__list" id="suiteList"></ul>
+        </section>
+
+        <div class="li-chapter-banner" id="chapterBanner" role="status" hidden>
+            <i class="fas fa-book-open" aria-hidden="true"></i>
+            <span id="chapterBannerText"></span>
+            <button type="button" class="li-linkbtn" id="chapterChangeBtn">Écrire autre chose</button>
+        </div>
+
         <nav class="li-steps" aria-label="Étapes de l'écriture">
             <div class="li-steps__bar" aria-hidden="true"><span class="li-steps__fill" data-wizard-fill></span></div>
             <ol class="li-steps__list">
@@ -180,6 +197,10 @@
                     <div class="li-preview__gallery" id="previewGallery" hidden></div>
                     <div class="li-preview__content" id="previewContenu"></div>
                 </article>
+                <label class="li-last-chapter" id="lastChapterField" hidden>
+                    <input type="checkbox" id="dernierChapitre">
+                    <span><strong>C'est le dernier chapitre</strong><small>La série sera marquée « terminée ». Vous pourrez toujours la reprendre plus tard.</small></span>
+                </label>
                 <p class="li-review-note" id="reviewNote"><i class="fas fa-shield-heart" aria-hidden="true"></i><span>En l'envoyant, votre histoire passe en attente de modération. Elle reste privée, images comprises, jusqu'à sa validation ; vous la retrouverez dans votre profil.</span></p>
                 <p class="li-step__error" role="alert" data-step-error hidden></p>
             </section>
@@ -215,6 +236,7 @@
         import {
             STEPS, clearDraft, loadDraft, mountPublishWizard, readingMinutes, saveDraft, storyParagraphs, textStats
         } from './js/components/publish-wizard.js';
+        import { chapterTitle, isChapter, suiteChoices } from './js/core/series.js';
 
         const titreInput = document.getElementById('titre');
         const contenu = document.getElementById('contenu');
@@ -236,6 +258,9 @@
         let currentUserProfile = null;
         let moderationStoryId = '';
         let moderationStory = null;
+        // Chapitre en cours d'écriture : { kind: 'serie'|'histoire', id, titre, genre, prochain, statut } ou null.
+        let suite = null;
+        let suiteOptions = [];
 
         // ===== Genre (boutons radio illustrés) =====
         function getCategorie() {
@@ -400,7 +425,8 @@
                 categorie: getCategorie(),
                 titre: titreInput.value,
                 contenu: contenu.value,
-                imagesCount: selectedImages.length
+                imagesCount: selectedImages.length,
+                suite: suite?.id || ''
             };
         }
 
@@ -422,8 +448,10 @@
 
         function renderPreview() {
             const state = formState();
-            document.getElementById('previewCategorie').textContent = state.categorie;
-            document.getElementById('previewTitre').textContent = state.titre.trim();
+            document.getElementById('previewCategorie').textContent = suite
+                ? `${state.categorie} · ${suite.titre} · Chapitre ${suite.prochain}`
+                : state.categorie;
+            document.getElementById('previewTitre').textContent = state.titre.trim() || (suite ? chapterTitle(suite.prochain) : '');
             document.getElementById('previewAuteur').textContent = auteurPublic() || 'Vous';
             document.getElementById('previewDate').textContent = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
             const minutes = readingMinutes(state.contenu);
@@ -453,9 +481,16 @@
             });
         }
 
+        // Chapitre : genre hérité (étape sautée), titre et images facultatifs. Modération d'un chapitre : genre figé.
+        function validationOptions() {
+            if (moderationStoryId) return { minImages: 0, skip: isChapter(moderationStory) ? ['categorie'] : [] };
+            if (suite) return { minImages: 0, titreOptional: true, skip: ['categorie'] };
+            return { minImages: MEDIA_CONFIG.minImages };
+        }
+
         const wizard = mountPublishWizard(document.getElementById('writeRoot'), {
             getState: formState,
-            validationOptions: () => ({ minImages: moderationStoryId ? 0 : MEDIA_CONFIG.minImages }),
+            validationOptions,
             onEnter: (stepId) => { if (stepId === 'apercu') renderPreview(); },
             onChange: () => scheduleDraftSave()
         });
@@ -464,6 +499,7 @@
         let pointerChoice = false;
         genresGrid.addEventListener('pointerdown', () => { pointerChoice = true; });
         genresGrid.addEventListener('change', () => {
+            draftDirty = true;
             scheduleDraftSave();
             if (!pointerChoice) return;
             pointerChoice = false;
@@ -481,9 +517,12 @@
             contenu.style.height = `${Math.max(contenu.scrollHeight + 2, contenu.offsetHeight)}px`;
         }
 
+        // N'enregistre qu'après une saisie (ou une reprise) : changer de mode ou d'étape sans rien écrire
+        // ne doit jamais écraser un brouillon resté en réserve (ex. celui d'un autre chapitre).
         let draftTimer = 0;
+        let draftDirty = false;
         function scheduleDraftSave() {
-            if (!currentUser || moderationStoryId) return;
+            if (!currentUser || moderationStoryId || !draftDirty) return;
             clearTimeout(draftTimer);
             draftTimer = setTimeout(() => {
                 const saved = saveDraft(window.localStorage, currentUser.uid, formState(), wizard.current);
@@ -495,14 +534,16 @@
             }, 600);
         }
 
-        function restoreDraft(uid) {
-            let storage = null;
-            try { storage = window.localStorage; } catch { return; }
-            const draft = loadDraft(storage, uid);
+        function readDraft(uid) {
+            try { return loadDraft(window.localStorage, uid); } catch { return null; }
+        }
+
+        function restoreDraft(draft) {
             if (!draft) return;
             // Ne jamais écraser une saisie commencée pendant le chargement.
-            if (getCategorie() || titreInput.value.trim() || contenu.value.trim()) return;
-            if (draft.categorie) setCategorie(draft.categorie);
+            if ((!suite && getCategorie()) || titreInput.value.trim() || contenu.value.trim()) return;
+            draftDirty = true;
+            if (draft.categorie && !suite) setCategorie(draft.categorie);
             titreInput.value = draft.titre;
             contenu.value = draft.contenu;
             updateCounters();
@@ -516,7 +557,7 @@
             if (currentUser) {
                 try { clearDraft(window.localStorage, currentUser.uid); } catch { /* stockage indisponible */ }
             }
-            publishForm.querySelectorAll('input[name="categorie"]').forEach((r) => { r.checked = false; });
+            if (!suite) publishForm.querySelectorAll('input[name="categorie"]').forEach((r) => { r.checked = false; });
             titreInput.value = '';
             contenu.value = '';
             draftBanner.hidden = true;
@@ -525,10 +566,150 @@
             wizard.go(0);
         });
 
-        titreInput.addEventListener('input', () => { updateCounters(); scheduleDraftSave(); });
-        contenu.addEventListener('input', () => { updateCounters(); autosize(); scheduleDraftSave(); });
+        titreInput.addEventListener('input', () => { draftDirty = true; updateCounters(); scheduleDraftSave(); });
+        contenu.addEventListener('input', () => { draftDirty = true; updateCounters(); autosize(); scheduleDraftSave(); });
         updateCounters();
         renderImagePreviews();
+
+        // ===== Chapitres =====
+        const suiteChooser = document.getElementById('suiteChooser');
+        const suiteList = document.getElementById('suiteList');
+        const chapterBanner = document.getElementById('chapterBanner');
+        const lastChapterField = document.getElementById('lastChapterField');
+        const dernierChapitre = document.getElementById('dernierChapitre');
+        const writeRoot = document.getElementById('writeRoot');
+        const titreHeading = document.getElementById('stepTitleTitre');
+        const titreHint = titreHeading.nextElementSibling;
+        const defaults = {
+            title: publishTitle.innerHTML,
+            subtitle: publishSubtitle.textContent,
+            titreHeading: titreHeading.innerHTML,
+            titreHint: titreHint.textContent,
+            titrePlaceholder: titreInput.placeholder,
+            imagesHint: imagesHint.textContent
+        };
+
+        function publishLabel() {
+            return suite ? 'Publier ce chapitre' : 'Publier mon histoire';
+        }
+
+        function el(tag, className, text) {
+            const node = document.createElement(tag);
+            if (className) node.className = className;
+            if (text !== undefined) node.textContent = text;
+            return node;
+        }
+
+        // Séries de l'auteur et histoires publiées pouvant recevoir une suite. Tolérant : sans API, aucun choix.
+        async function loadSuiteChoices(uid) {
+            if (typeof firebaseAPI.getSeriesAuteur !== 'function' || typeof firebaseAPI.getHistoiresAuteur !== 'function') return [];
+            try {
+                const [series, stories] = await Promise.all([firebaseAPI.getSeriesAuteur(uid), firebaseAPI.getHistoiresAuteur(uid)]);
+                return suiteChoices(stories || [], series || []);
+            } catch (error) {
+                console.warn('Suites indisponibles:', error?.message || error);
+                return [];
+            }
+        }
+
+        function showChooser() {
+            suiteList.replaceChildren();
+            suiteOptions.forEach((choice) => {
+                const button = el('button', 'li-suite__option');
+                button.type = 'button';
+                button.dataset.suiteId = choice.id;
+                const icon = el('span', 'li-suite__icon');
+                icon.setAttribute('aria-hidden', 'true');
+                icon.innerHTML = '<i class="fas fa-book-open"></i>';
+                const text = el('span', 'li-suite__text');
+                text.append(el('strong', '', choice.titre), el('small', '', `Chapitre ${choice.prochain} · ${choice.genre}`));
+                button.append(icon, text);
+                button.addEventListener('click', () => { hideChooser(); enterChapterMode(choice); });
+                const item = el('li');
+                item.appendChild(button);
+                suiteList.appendChild(item);
+            });
+            writeRoot.dataset.mode = 'choose';
+            suiteChooser.hidden = false;
+            document.getElementById('suiteChooserTitle').focus({ preventScroll: true });
+        }
+
+        function hideChooser() {
+            suiteChooser.hidden = true;
+            delete writeRoot.dataset.mode;
+        }
+
+        function enterChapterMode(choice) {
+            suite = choice;
+            const n = choice.prochain;
+            setCategorie(choice.genre);
+            titreInput.required = false;
+            titreInput.placeholder = `${chapterTitle(n)} (facultatif)`;
+            titreHeading.innerHTML = 'Un titre pour <em>ce chapitre ?</em>';
+            titreHint.textContent = `Facultatif : sans titre, il s'appellera « ${chapterTitle(n)} ».`;
+            imagesRequiredMark.hidden = true;
+            imagesHint.textContent = "Facultatives à partir du chapitre 2 : la couverture de la série reste celle du premier chapitre. Elles restent privées jusqu'à la validation.";
+            publishTitle.innerHTML = `${chapterTitle(n)}, <em>la suite</em>`;
+            publishSubtitle.textContent = `Le genre de « ${choice.titre} » est repris automatiquement : il ne reste qu'à écrire. Chaque chapitre est relu par la modération avant d'être publié.`;
+            document.getElementById('chapterBannerText').textContent = `${chapterTitle(n)} de « ${choice.titre} »`;
+            chapterBanner.hidden = false;
+            document.getElementById('chapterChangeBtn').hidden = !suiteOptions.length;
+            lastChapterField.hidden = false;
+            dernierChapitre.checked = false;
+            publishSubmitBtn.textContent = publishLabel();
+            wizard.refresh();
+        }
+
+        function leaveChapterMode() {
+            suite = null;
+            publishForm.querySelectorAll('input[name="categorie"]').forEach((r) => { r.checked = false; });
+            titreInput.required = true;
+            titreInput.placeholder = defaults.titrePlaceholder;
+            titreHeading.innerHTML = defaults.titreHeading;
+            titreHint.textContent = defaults.titreHint;
+            imagesRequiredMark.hidden = false;
+            imagesHint.textContent = defaults.imagesHint;
+            publishTitle.innerHTML = defaults.title;
+            publishSubtitle.textContent = defaults.subtitle;
+            chapterBanner.hidden = true;
+            lastChapterField.hidden = true;
+            publishSubmitBtn.textContent = publishLabel();
+            wizard.refresh();
+            wizard.go(0, { focus: false });
+        }
+
+        document.getElementById('suiteNewBtn').addEventListener('click', () => {
+            hideChooser();
+            if (suite) leaveChapterMode();
+            wizard.go(0);
+        });
+        document.getElementById('chapterChangeBtn').addEventListener('click', () => {
+            leaveChapterMode();
+            showChooser();
+        });
+
+        // Point de départ : ?suite=<id> (profil « + Ajouter un chapitre »), sinon reprise du brouillon, sinon choix.
+        async function startWriting(uid) {
+            suiteOptions = await loadSuiteChoices(uid);
+            const wanted = new URLSearchParams(window.location.search).get('suite') || '';
+            const draft = readDraft(uid);
+            if (wanted) {
+                const choice = suiteOptions.find((c) => c.id === wanted);
+                if (choice) {
+                    enterChapterMode(choice);
+                    if (draft?.suite === wanted) restoreDraft(draft);
+                    return;
+                }
+                await notify('warning', "Cette histoire ne peut pas recevoir de nouveau chapitre (elle doit être publiée et vous appartenir).", { title: 'Chapitre' });
+            }
+            const draftChoice = draft?.suite ? suiteOptions.find((c) => c.id === draft.suite) : null;
+            if (draft && (!draft.suite || draftChoice)) {
+                if (draftChoice) enterChapterMode(draftChoice);
+                restoreDraft(draft);
+                return;
+            }
+            if (suiteOptions.length) showChooser();
+        }
 
         function getEditStoryIdFromUrl() {
             return new URLSearchParams(window.location.search).get('edit') || '';
@@ -541,7 +722,7 @@
             });
 
             if (!pending) {
-                publishSubmitBtn.textContent = 'Publier mon histoire';
+                publishSubmitBtn.textContent = publishLabel();
                 document.getElementById('saveEditBtn').textContent = 'Enregistrer les corrections';
                 document.getElementById('approveEditBtn').textContent = 'Enregistrer et approuver';
                 return;
@@ -637,7 +818,7 @@
                     const authorName = resolvePublicAuthorName(currentUserProfile, user);
                     if (!authorName.ok) showAuthorPseudoNotice(authorName.reason);
                 }
-                if (!moderationStoryId) restoreDraft(user.uid);
+                if (!moderationStoryId) await startWriting(user.uid);
             }
         });
 
@@ -654,7 +835,7 @@
             const categorie = getCategorie();
             const contenuTexte = contenu.value.trim();
 
-            if (!titre || !categorie || !contenuTexte) {
+            if ((!titre && !suite) || !categorie || !contenuTexte) {
                 await notify('warning', 'Veuillez remplir tous les champs', { title: 'Publication' });
                 wizard.go(STEPS.length - 1);
                 return;
@@ -712,7 +893,7 @@
                 document.getElementById('authorPseudoNotice').style.display = 'none';
                 const auteur = authorName.auteur;
                 const newImages = selectedImages.filter((e) => e.file);
-                const check = checkStoryFiles(newImages.map((e) => e.file));
+                const check = checkStoryFiles(newImages.map((e) => e.file), suite ? { min: 0 } : undefined);
                 if (!check.ok) {
                     await notify('warning', check.error, { title: 'Images' });
                     setSubmittingState(action, false);
@@ -722,6 +903,8 @@
                 const images = await publishStoryImages(
                     newImages.map((e) => ({ file: e.file, alt: e.alt })),
                     {
+                        // Chapitre : images facultatives (la couverture reste celle de la série).
+                        ...(suite ? { min: 0 } : {}),
                         onProgress: ({ index, total, step }) => {
                             publishSubmitBtn.textContent = `Image ${index + 1}/${total} : ${step === 'compress' ? 'compression' : 'envoi'}...`;
                         }
@@ -729,7 +912,16 @@
                 );
                 publishSubmitBtn.textContent = 'Envoi en cours...';
 
-                const histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid, images);
+                let histoireId = null;
+                if (suite) {
+                    const cible = suite.kind === 'serie' ? { serieId: suite.id } : { histoireId: suite.id };
+                    const result = await firebaseAPI.publierChapitre(cible, {
+                        titre, contenu: contenuTexte, auteur, auteurId: currentUser.uid, images, dernier: dernierChapitre.checked
+                    });
+                    histoireId = result?.id || null;
+                } else {
+                    histoireId = await firebaseAPI.publierHistoire(titre, categorie, contenuTexte, auteur, currentUser.uid, images);
+                }
 
                 if (!histoireId) {
                     // L'histoire n'a pas ete creee : on ne laisse pas d'images orphelines.
@@ -739,7 +931,9 @@
 
                 clearTimeout(draftTimer);
                 clearDraft(window.localStorage, currentUser.uid);
-                await notify('success', 'Histoire soumise ! Elle sera visible apres validation par un moderateur.', { title: 'Publication' });
+                await notify('success', suite
+                    ? 'Chapitre soumis ! Il sera visible apres validation par un moderateur.'
+                    : 'Histoire soumise ! Elle sera visible apres validation par un moderateur.', { title: 'Publication' });
                 window.location.href = 'profil.html?tab=histoires&status=en_attente';
 
             } catch (error) {
