@@ -60,14 +60,15 @@ test('loadCategoryCounts : ne met pas en cache un résultat partiel, tolère un 
     assert.deepEqual(await loadCategoryCounts(async () => null, { storage: null }), {});
 });
 
-test('données : 18 genres, clés uniques, icônes et visuels présents', () => {
+test('données : 18 genres, clés uniques, icônes et un visuel distinct par genre', () => {
     assert.equal(CATEGORIES.length, 18);
     assert.equal(new Set(CATEGORIES.map((c) => c.nom)).size, 18);
     for (const c of CATEGORIES) {
         assert.ok(c.label && c.icon, `${c.nom} : libellé et icône requis`);
-        if (c.image) assert.ok(existsSync(join(ROOT, c.image)), `${c.image} absent`);
+        assert.ok(c.image, `${c.nom} : visuel requis`);
+        assert.ok(existsSync(join(ROOT, c.image)), `${c.image} absent`);
     }
-    assert.ok(CATEGORIES.filter((c) => c.image).length >= 6);
+    assert.equal(new Set(CATEGORIES.map((c) => c.image)).size, 18, 'un visuel distinct par genre');
 });
 
 test('feed.html : section, grille et ancre des histoires conservées', () => {

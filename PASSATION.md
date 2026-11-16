@@ -588,6 +588,12 @@
 - Reste :
   - Voir le rendu de /feed connecté en prod (pas de connexion faite ici).
   - Ajouter un .gitattributes en LF (faux rouge CRLF des tests robots.txt sous Windows).
+
+## 2026-11-16 19:22 — Visuels pour les 12 genres sans image (/feed)
+- Branche feat/feed-categories-visuels : 12 nouveaux visuels (images/landing/cat-*.webp, 320×400, ~5 Ko chacun), dans le style des 6 existants (nature morte, rose/bordeaux, sans personnage).
+- Les 18 genres sont désormais des tuiles photo (6 colonnes × 3 rangées sur ordinateur). Sur mobile : carrousel horizontal sur deux rangées. La liste compacte n'est plus rendue que s'il reste des genres sans visuel.
+- Le test d'intégrité exige un visuel distinct et présent pour chaque genre.
+- Captures avant/après : docs/pr/feed-categories-visuels/.
 ## 2026-11-16 10:43 — Inscription : retour à la connexion après l'e-mail de confirmation
 - Branche fix/register-redirect-login : si l'e-mail de confirmation part, register.html déconnecte, vide la session et renvoie vers login.html ; e-mail prérempli via sessionStorage (loveInk_prefillEmail, pas dans l'URL), focus sur le mot de passe. Sans e-mail envoyé : fil comme avant.
 - Helper e2e registerWithUi : accepte l'arrivée sur login et se connecte. Vérifié en local : préremplissage OK, modules OK, SEO 72/72. Parcours complet non joué en prod (création de compte = côté utilisateur).
