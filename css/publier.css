@@ -145,9 +145,6 @@ html[data-theme="dark"] .li-step__error { color: #f1b3b0; }
     transition: transform .45s var(--ease), box-shadow .3s;
 }
 @media (min-width: 720px) { .li-genre { aspect-ratio: 4 / 5; } }
-.li-genre--letter { background: linear-gradient(150deg, #d9b38c, #8a5a3c); }
-.li-genre--poem { background: linear-gradient(150deg, #b9a0c9, #5e4374); }
-.li-genre--happy { background: linear-gradient(150deg, #e2a98f, #a4534a); }
 .li-genre img, .li-genre__icon {
     position: absolute; inset: 0; z-index: -2;
 }

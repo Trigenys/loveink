@@ -592,3 +592,8 @@
 - Lancer les e2e en local : servir le dépôt sur un port local puis `E2E_BASE_URL=http://127.0.0.1:<port> npx playwright test publier-wizard` (sans E2E_BASE_URL, la cible est la prod).
 - Conflit attendu avec la PR #8 (auteur = pseudo) : la logique est isolée dans auteurPublic() de publier.html.
 - Suivi : le fil écrit « Poesie d'amour » sans accent alors que publier envoie « Poésie d'amour ».
+
+## 2026-11-16 16:23 — Photos des genres du wizard (PR #38)
+- 4 visuels ajoutés dans images/landing/ (320×400 WebP) : cat-heureux, cat-lettres, cat-poesie, cat-rencontres. Les 8 tuiles de l'étape « genre » ont maintenant une photo ; Rencontres n'emprunte plus cat-seconde-chance.
+- Dégradés de secours .li-genre--happy/--letter/--poem retirés (plus utilisés) ; l'icône reste pour une catégorie héritée.
+- PR #38 toujours ouverte, ne pas fusionner ni déployer sans accord explicite.
