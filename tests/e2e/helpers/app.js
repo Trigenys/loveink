@@ -60,7 +60,7 @@ async function registerWithUi(page, user, options = {}) {
     const {
         type = 'lecteur',
         bio = 'Compte test e2e',
-        expectRedirectTo = /\/feed(\.html)?($|\?)/
+        expectRedirectTo = /\/(feed|login)(\.html)?($|\?)/
     } = options;
 
     await page.goto('/register.html');
@@ -75,6 +75,14 @@ async function registerWithUi(page, user, options = {}) {
     await page.check('#consent');
     await page.click('#registerForm button[type="submit"]');
     await waitForRedirectWithModalHandling(page, expectRedirectTo, 60000);
+
+    // Après l'e-mail de confirmation, l'inscription renvoie vers la connexion (e-mail prérempli).
+    if (/\/login(\.html)?($|\?)/.test(page.url())) {
+        await expect(page.locator('#email')).toHaveValue(user.email);
+        await page.fill('#password', user.password);
+        await page.click('#loginForm button[type="submit"]');
+        await waitForRedirectWithModalHandling(page, /\/feed(\.html)?($|\?)/, 45000);
+    }
 
     const session = await readSession(page);
     return { ...user, uid: session?.uid || '', session };
