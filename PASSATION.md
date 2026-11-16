@@ -589,3 +589,10 @@
 - PR Trigenys/trigenys-storage#13 (branche `feat/firebase-tenant-auth`) : tenants authentifiés par jeton Firebase, upload privé jusqu'à publication par un modérateur (rôle lu dans `utilisateurs/{uid}` avec le jeton de l'utilisateur), lecture privée propriétaire/modérateur, `POST .../visibility`, `DELETE` idempotent, plafond d'images en attente par utilisateur. `npm run check` : 20/20.
 - Pas encore fait (actions utilisateur) : merge de la PR, migration D1 0004, déploiement du Worker, ajout de l'entrée `loveink` au secret `TENANT_CONFIG_JSON` (forme dans `backend/README.md` du dépôt storage).
 - Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP côté navigateur, publication/suppression des images depuis l'espace modérateur.
+
+## 2026-11-16 11:53 — Stockage images en prod + Search Console
+
+- trigenys-storage : PR #13 mergée ; migrations D1 0003 (no-op, objets déjà présents) et 0004 appliquées en prod ; Worker déployé (version d97d3e98, rollback 4eeb9aab). `TENANT_CONFIG_JSON` non touché (secret Xeption illisible).
+- PR Trigenys/trigenys-storage#14 (ouverte) : tenant `loveink` déclaré dans la variable non secrète `END_USER_TENANTS_JSON`. Le tenant n'est actif qu'après merge + `npx wrangler deploy --config wrangler.production.jsonc --keep-vars` depuis main.
+- Search Console (propriété préfixe https://loveink.site/) : sitemap relu (14 URL) ; indexation demandée pour 3 pages ressources, /ressources/, /histoires/, /, et genres premier-amour, lettres-d-amour, poesie-d-amour. Demain : genres amour-heureux, amour-magique, histoires-tristes, aventure-estivale, rencontres.
+- Ensuite côté Love Ink : sélecteur 1 à 4 images, compression WebP navigateur, publication/suppression des images dans l'espace modérateur.
