@@ -7,6 +7,7 @@ import {
     deleteDoc,
     doc,
     getDoc,
+    getCountFromServer,
     getDocs,
     increment,
     limit,
@@ -159,6 +160,21 @@ async function getHistoireById(id) {
         console.error("Erreur recuperation histoire:", error);
         return null;
     }
+}
+
+// Nombre d'histoires publiees par categorie (requetes d'agregation : 1 lecture facturee par tranche
+// de 1000 entrees). Un echec isole donne null pour cette categorie, sans bloquer les autres.
+async function compterHistoiresParCategorie(noms = []) {
+    const results = await Promise.allSettled(noms.map((nom) => getCountFromServer(query(
+        collection(db, 'histoires'),
+        where('statut', '==', 'publie'),
+        where('categorie', '==', nom)
+    ))));
+    return Object.fromEntries(noms.map((nom, i) => {
+        const r = results[i];
+        if (r.status === 'rejected') console.warn('Comptage categorie impossible:', nom, r.reason?.code || r.reason);
+        return [nom, r.status === 'fulfilled' ? r.value.data().count : null];
+    }));
 }
 
 async function getHistoiresAuteur(auteurId, statut = null) {
@@ -1416,6 +1432,7 @@ async function marquerMessagesLus(conversationId, userId) {
 const firebaseAPI = {
     publierHistoire,
     getHistoires,
+    compterHistoiresParCategorie,
     getHistoireById,
     getHistoiresAuteur,
     getHistoiresEnAttente,

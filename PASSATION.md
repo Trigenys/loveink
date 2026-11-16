@@ -568,3 +568,15 @@
 - PR #32 (fix/profile-stat-hover) : --rose-blush sombre appliqué en clair (sélecteur mal formé dans css/profil.css) → tuiles de stats illisibles au survol. SEO 72/72. À fusionner sur accord.
 - Modérateur : rôle = champ `role: "moderateur"` dans utilisateurs/{uid}, modifiable seulement hors client (console). L'utilisateur crée le 2e compte sur loveink.site ; ensuite poser le rôle via la console Firestore (navigateur intégré connecté au projet love-ink). Ne pas promouvoir claude_test.
 - Une seule histoire testée en prod jusqu'ici (454vUtYCNABRZlWH9xvU).
+
+## 2026-11-16 12:49 — Refonte de « Explorez par catégorie » (/feed)
+- Branche feat/feed-categories-redesign (depuis origin/main b9be392), PR ouverte, non fusionnée (en attente d'accord).
+- Nouveau composant js/components/feed-categories.js (données + rendu + fonctions pures) et css/feed-categories.css. Le CSS inline de l'ancienne grille est retiré de feed.html.
+- Les 6 genres qui ont un visuel de la landing sont affichés en tuiles photo (carrousel à accroche sur mobile), les 12 autres en liste compacte. Animations au survol et au focus, état actif (aria-current) synchronisé avec la recherche, prefers-reduced-motion respecté.
+- Les clés de données (`nom`) sont inchangées et servent toujours à la recherche ; seuls les libellés affichés sont accentués (« De l'amitié à l'amour », « Intéressant », « Poésie d'amour »).
+- Compteurs par genre : firebaseAPI.compterHistoiresParCategorie (getCountFromServer, statut=='publie' + categorie==nom, sans index composite), mis en cache 10 min dans sessionStorage (clé loveInk_catCounts). En cas d'échec, rien n'est affiché.
+- Vérifié :
+  - test:seo 79/79 sur une copie en LF.
+  - Sur ce checkout Windows, 2 tests robots.txt échouent déjà sur la base, à cause du CRLF dû à core.autocrlf (voir lessons-learned).
+  - Harnais Playwright avec Firebase stubbé, sans appel prod : clic catégorie → recherche + filtre + vignette w320 conservés ; captures dans docs/pr/feed-categories/.
+- Non vérifié : comptage réel contre Firestore prod (règles publiques en lecture sur statut publie ; à observer après déploiement).
