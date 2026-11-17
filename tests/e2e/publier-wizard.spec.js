@@ -172,7 +172,9 @@ test.describe('Écrire une histoire — parcours en étapes', () => {
         await page.fill('#titre', 'Lettre à M.');
         await page.click('[data-wizard-next]');
         await page.fill('#contenu', 'Cher M., je t\'écris depuis la gare.');
-        await expect(page.locator('#draftStatus')).toContainText('Brouillon enregistré');
+        // Attendre que le brouillon persisté contienne bien le texte, à l'étape Texte (le statut peut provenir de la sauvegarde du titre).
+        await expect.poll(async () => page.evaluate((uid) => localStorage.getItem(`loveInk_publishDraft:${uid}`) || '', USER.uid))
+            .toContain('depuis la gare');
 
         await page.reload();
         await expect(page.locator('#draftBanner')).toBeVisible();
@@ -186,6 +188,21 @@ test.describe('Écrire une histoire — parcours en étapes', () => {
         await expect(page.locator('#titre')).toHaveValue('');
         const draft = await page.evaluate((uid) => localStorage.getItem(`loveInk_publishDraft:${uid}`), USER.uid);
         expect(draft).toBeNull();
+    });
+
+    test('brouillon : rechargement immédiat après la frappe, la dernière saisie est conservée', async ({ page }) => {
+        await stubBackend(page);
+        await openWizard(page);
+        await page.locator('input[name="categorie"][value="Lettres d\'amour"]').check({ force: true });
+        await page.click('[data-wizard-next]');
+        await page.fill('#titre', 'Lettre à M.');
+        await page.click('[data-wizard-next]');
+        await page.fill('#contenu', 'Écrit juste avant de recharger.');
+
+        await page.reload();
+        await expect(page.locator('#draftBanner')).toBeVisible();
+        await expect(page.locator('#contenu')).toHaveValue('Écrit juste avant de recharger.');
+        await expect(current(page)).toContainText('Texte');
     });
 
     test('prefers-reduced-motion : aucune animation d\'entrée d\'étape', async ({ page }) => {

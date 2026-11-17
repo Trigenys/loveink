@@ -521,18 +521,28 @@
         // ne doit jamais écraser un brouillon resté en réserve (ex. celui d'un autre chapitre).
         let draftTimer = 0;
         let draftDirty = false;
+        function persistDraft() {
+            draftTimer = 0;
+            if (!currentUser || moderationStoryId || !draftDirty) return;
+            const saved = saveDraft(window.localStorage, currentUser.uid, formState(), wizard.current);
+            if (saved && (titreInput.value.trim() || contenu.value.trim())) {
+                const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+                draftStatus.innerHTML = '<i class="fas fa-cloud" aria-hidden="true"></i>';
+                draftStatus.append(`Brouillon enregistré à ${time}`);
+            }
+        }
         function scheduleDraftSave() {
             if (!currentUser || moderationStoryId || !draftDirty) return;
             clearTimeout(draftTimer);
-            draftTimer = setTimeout(() => {
-                const saved = saveDraft(window.localStorage, currentUser.uid, formState(), wizard.current);
-                if (saved && (titreInput.value.trim() || contenu.value.trim())) {
-                    const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-                    draftStatus.innerHTML = '<i class="fas fa-cloud" aria-hidden="true"></i>';
-                    draftStatus.append(`Brouillon enregistré à ${time}`);
-                }
-            }, 600);
+            draftTimer = setTimeout(persistDraft, 600);
         }
+        // Rechargement ou fermeture dans les 600 ms qui suivent une frappe : la dernière saisie n'est pas perdue.
+        window.addEventListener('pagehide', () => {
+            if (!draftTimer) return;
+            clearTimeout(draftTimer);
+            draftTimer = 0;
+            persistDraft();
+        });
 
         function readDraft(uid) {
             try { return loadDraft(window.localStorage, uid); } catch { return null; }
@@ -554,6 +564,9 @@
         }
 
         document.getElementById('draftDiscardBtn').addEventListener('click', () => {
+            clearTimeout(draftTimer);
+            draftTimer = 0;
+            draftDirty = false;
             if (currentUser) {
                 try { clearDraft(window.localStorage, currentUser.uid); } catch { /* stockage indisponible */ }
             }
@@ -930,6 +943,7 @@
                 }
 
                 clearTimeout(draftTimer);
+                draftTimer = 0;
                 clearDraft(window.localStorage, currentUser.uid);
                 await notify('success', suite
                     ? 'Chapitre soumis ! Il sera visible apres validation par un moderateur.'
