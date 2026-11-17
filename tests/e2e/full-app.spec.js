@@ -31,8 +31,8 @@ test.describe('Love Ink - E2E global', () => {
         await registerWithUi(page, user, { type: 'lesdeux', bio: 'Bio e2e initiale' });
         await ensureFeedLoaded(page);
 
-        await page.fill('#searchInput', `nomatch-${Date.now()}`);
-        await page.click('#searchBtn');
+        await page.fill('#navSearchInput', `nomatch-${Date.now()}`);
+        await page.press('#navSearchInput', 'Enter');
         await closeModalIfPresent(page);
 
         await page.goto('/publier.html');

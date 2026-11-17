@@ -12,14 +12,18 @@ body{margin:0;font-family:var(--font-sans);background:var(--cream)}
 </style>
 <link rel="stylesheet" href="../css/feed-extras.css">
 <link rel="stylesheet" href="../css/immersive.css">
+<link rel="stylesheet" href="../css/app.css">
 <script type="module" src="../js/components/feed-extras.js"></script>
 </head>
 <body>
+<div id="appNavRoot"></div>
 <div class="li-feed-extras">
   <section class="li-featured" id="liFeatured" hidden></section>
   <section class="li-continue" id="liContinue" hidden></section>
 </div>
+<section id="categories" style="min-height:120vh;padding:40px 24px"><h2 style="font-family:var(--font-serif)">Catégories (repère de défilement)</h2></section>
 <script type="module">
+import { mountAppNav, setNavPseudo, setNavNotificationsBadge, wireNavInteractions } from "../js/components/nav-component.js";
 import { recordReading } from '../js/core/reading-history.js';
 const day = 86400000, now = Date.now();
 const stories = [
@@ -33,6 +37,13 @@ recordReading('d', stories[3], 0.42);
 recordReading('b', stories[1], 0.08);
 recordReading('x', stories[0], 0.99);          // termine : ne doit pas apparaitre
 localStorage.setItem('loveInk_pos_a', '0.3');  // position ancienne sans meta : resolue via allStories
+// Barre de navigation : rendue sans Firebase ; la recherche reste sur place (pas de feed.html sous tests/).
+mountAppNav({ variant: 'feed', active: 'feed', showUser: true, footer: false });
+setNavPseudo('Plume Harnais');
+// L'écoute Firebase (sans compte en local) remet la cloche à 0 : on pose le compteur ensuite.
+setTimeout(() => setNavNotificationsBadge(3), 1500);
+wireNavInteractions({ onLogout: () => console.info('[harnais] déconnexion') });
+document.addEventListener('li:search', (e) => { e.preventDefault(); console.info('[harnais] recherche :', e.detail); });
 document.dispatchEvent(new CustomEvent('li:feed-loaded', { detail: { stories } }));
 </script>
 </body>

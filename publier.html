@@ -17,7 +17,7 @@
 <body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
-    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    import { mountAppNav } from './js/components/nav-component.js?v=20261117-navbar';
     mountAppNav({ variant: 'classic', active: 'publier', showUser: true, showPublish: true });
     </script>
 
@@ -228,7 +228,7 @@
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
         import { resolvePublicAuthorName, authorNameErrorMessage, PSEUDO_SETTINGS_URL } from './js/core/public-author.js';
-        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20261117-navbar';
         import { MEDIA_CONFIG } from './js/core/media-config.js';
         import {
             checkStoryFiles, cleanAlt, deleteStoryImages, getMediaClient, publishStoryImages, storyImages
