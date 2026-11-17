@@ -12,32 +12,21 @@
 //   node scripts/e2e-prod-cleanup-plan.mjs [--project love-ink] [--domain loveink-e2e.test] [--json plan.json]
 
 import { writeFileSync } from 'node:fs';
+import { LINKED_COLLECTIONS, DEFAULT_TEST_DOMAIN, validateTestDomain } from './lib/e2e-test-accounts.mjs';
 
-// Collections rattachées à un compte : champ porteur de l'uid et mode de requête.
-// `docId` : le document a pour identifiant l'uid ; `in` : égalité ; `array` : uid présent dans un tableau.
-const LINKED_COLLECTIONS = Object.freeze([
-    { collection: 'utilisateurs', mode: 'docId' },
-    { collection: 'histoires', field: 'auteurId', mode: 'in', label: (d) => d.titre || '(sans titre)' },
-    { collection: 'commentaires', field: 'auteurId', mode: 'in' },
-    { collection: 'likes', field: 'userId', mode: 'in' },
-    { collection: 'abonnements', field: 'abonneId', mode: 'in' },
-    { collection: 'abonnements', field: 'auteurId', mode: 'in' },
-    { collection: 'notifications', field: 'utilisateurId', mode: 'in' },
-    { collection: 'conversations', field: 'participants', mode: 'array' },
-    { collection: 'messages', field: 'expediteurId', mode: 'in' },
-    { collection: 'candidatures_moderateur', field: 'userId', mode: 'in' }
-]);
+// Collections rattachées à un compte et règles de sûreté : voir lib/e2e-test-accounts.mjs (partagées avec l’application).
 const QUERY_CHUNK = 30; // limite Firestore des opérateurs `in` / `array-contains-any`.
 
 function parseArgs(argv) {
-    const args = { project: process.env.FIREBASE_PROJECT || 'love-ink', domain: 'loveink-e2e.test', json: '' };
+    const args = { project: process.env.FIREBASE_PROJECT || 'love-ink', domain: DEFAULT_TEST_DOMAIN, json: '' };
     for (let i = 0; i < argv.length; i += 1) {
         const key = argv[i].replace(/^--/, '');
         if (!(key in args)) throw new Error(`Option inconnue : ${argv[i]}`);
         args[key] = argv[i + 1] || '';
         i += 1;
     }
-    if (!args.domain || args.domain.includes('@')) throw new Error('--domain attend un domaine sans @ (ex. loveink-e2e.test).');
+    const domainError = validateTestDomain(args.domain);
+    if (domainError) throw new Error(domainError);
     return args;
 }
 
