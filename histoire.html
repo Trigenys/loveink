@@ -26,7 +26,7 @@
 <body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
-    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    import { mountAppNav } from './js/components/nav-component.js?v=20261117-navbar';
     mountAppNav({ variant: 'classic', active: 'histoire', showUser: true, showPublish: true });
     </script>
 
@@ -70,7 +70,7 @@
         import { renderGallery } from './js/core/story-images.js';
         import { notify } from './js/components/ui-notify.js';
         import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
-        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20261117-navbar';
 
         const storyContainer = document.getElementById('storyContainer');
         const commentsContainer = document.getElementById('commentsContainer');

@@ -132,7 +132,7 @@
 <body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
-    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    import { mountAppNav } from './js/components/nav-component.js?v=20261117-navbar';
     mountAppNav({ variant: 'classic', active: 'notifications', showUser: true, showPublish: true });
     </script>
 
@@ -159,7 +159,7 @@
         import { auth } from './js/core/firebase-config.js';
         import { firebaseAPI } from './js/core/firebase-data.js';
         import { logoutAndRedirect, requireAuth } from './js/core/auth-session.js';
-        import { setNavPseudo, setNavNotificationsBadge, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+        import { setNavPseudo, setNavNotificationsBadge, wireNavInteractions } from './js/components/nav-component.js?v=20261117-navbar';
 
         let currentUser = null;
         let notifications = [];

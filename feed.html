@@ -212,55 +212,6 @@
             color: var(--rose-deep);
         }
 
-        .search-bar {
-            background: white;
-            border-bottom: 1px solid var(--border);
-            padding: 14px 5vw;
-        }
-
-        .search-inner {
-            display: flex;
-            gap: 12px;
-            max-width: 760px;
-            margin: 0 auto;
-        }
-
-        .search-input {
-            flex: 1;
-            padding: 11px 20px;
-            border: 1.5px solid var(--rose-pale);
-            border-radius: 30px;
-            font-family: var(--font-sans);
-            font-size: 14px;
-            color: var(--ink);
-            background: var(--rose-blush);
-            transition: border-color var(--transition), background var(--transition);
-            outline: none;
-        }
-
-        .search-input:focus {
-            border-color: var(--rose-mid);
-            background: white;
-        }
-
-        .search-input::placeholder { color: var(--ink-faint); }
-
-        .search-btn {
-            background: var(--rose-deep);
-            color: white;
-            border: none;
-            padding: 0 24px;
-            border-radius: 30px;
-            font-family: var(--font-sans);
-            font-size: 13px;
-            font-weight: 500;
-            letter-spacing: 0.04em;
-            cursor: pointer;
-            transition: background var(--transition);
-        }
-
-        .search-btn:hover { background: #6a3030; }
-
         .section-title {
             font-family: var(--font-serif);
             font-size: clamp(28px, 4vw, 42px);
@@ -585,12 +536,6 @@
         }
 
         @media (max-width: 680px) {
-            .search-inner {
-                flex-direction: column;
-            }
-            .search-btn {
-                min-height: 42px;
-            }
             .nav-username,
             .nav-dropdown-arrow {
                 display: none;
@@ -610,16 +555,9 @@
 <body class="li-app">
     <div id="appNavRoot"></div>
     <script type="module">
-    import { mountAppNav } from './js/components/nav-component.js?v=20260325-logo';
+    import { mountAppNav } from './js/components/nav-component.js?v=20261117-navbar';
     mountAppNav({ variant: 'feed', active: 'feed', showUser: true });
     </script>
-
-    <div class="search-bar">
-        <div class="search-inner">
-            <input id="searchInput" class="search-input" type="text" placeholder="Rechercher une histoire, un auteur, une catégorie…">
-            <button id="searchBtn" class="search-btn">Rechercher</button>
-        </div>
-    </div>
 
     <div class="li-feed-extras">
         <section class="li-featured" id="liFeatured" aria-label="Histoire a la une" hidden></section>
@@ -669,14 +607,15 @@
     import { feedEntries } from './js/core/series.js';
     import { notify } from './js/components/ui-notify.js';
     import { requireAuth, logoutAndRedirect } from './js/core/auth-session.js';
-    import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20260325-logo';
+    import { setNavPseudo, wireNavInteractions } from './js/components/nav-component.js?v=20261117-navbar';
+    import { queryFromSearch } from './js/components/nav-model.js';
     import { renderCategoryTiles, applyCategoryCounts, markActiveCategory, loadCategoryCounts } from './js/components/feed-categories.js';
 
 
     const categoriesGrid = document.getElementById('categoriesGrid');
     const storiesGrid = document.getElementById('storiesGrid');
-    const searchInput = document.getElementById('searchInput');
-    const searchBtn = document.getElementById('searchBtn');
+    // Le champ de recherche vit dans la barre de navigation (commune à toutes les pages).
+    const searchInput = document.getElementById('navSearchInput') || document.createElement('input');
 
     let allStories = [];
 
@@ -830,14 +769,24 @@
     }
 
     function setupUIEvents() {
-        searchBtn.addEventListener('click', applySearch);
-        searchInput.addEventListener('keydown', (event) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                applySearch();
+        // La barre émet « li:search » : on filtre sur place au lieu de recharger le fil.
+        document.addEventListener('li:search', (event) => {
+            event.preventDefault();
+            searchInput.value = event.detail?.query ?? '';
+            applySearch();
+            if (event.detail?.source === 'submit' && searchInput.value) {
+                document.getElementById('storiesSection')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
+    }
 
+    // Recherche lancée depuis une autre page : feed.html?q=...
+    function applyInitialQuery() {
+        const query = queryFromSearch(window.location.search);
+        if (!query) return;
+        searchInput.value = query;
+        applySearch();
+        document.getElementById('storiesSection')?.scrollIntoView({ block: 'start' });
     }
 
     // Auteurs reels, derives des histoires publiees chargees (hors utilisateur courant).
@@ -914,6 +863,7 @@
         }
     });
 
+
     requireAuth({
         auth,
         redirectTo: 'index.html',
@@ -921,6 +871,7 @@
             setNavPseudo(pseudo);
             renderCategories();
             await loadStories();
+            applyInitialQuery();
             await renderAuthors(allStories, user?.uid);
         }
     });

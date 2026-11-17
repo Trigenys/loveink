@@ -167,3 +167,20 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Prévention** : ne jamais lancer la suite e2e sans liste explicite de specs ; les specs hermétiques
   (`chapitres`, `publier-wizard`) se lancent par nom. Suivi proposé : faire sauter `full-app.spec.js` sauf
   opt-in explicite (`E2E_ALLOW_PROD=1`) pour que l'oubli du filtre ne puisse plus écrire en production.
+
+## 2026-11-17 — E2E : filtre de spec perdu par le lanceur, suite complète exécutée (récidive, sans impact)
+
+- **Contexte** : refonte de la barre de navigation, e2e hermétique `navbar.spec.js` lancé depuis un worktree
+  sans `node_modules`, via le lanceur `.bin/playwright` du dépôt principal (`NODE_PATH` vers ses modules).
+- **Cause** : le lanceur shell d'un autre dossier n'a pas transmis l'argument `navbar` : Playwright a sélectionné
+  les 34 tests des 8 specs (dont `full-app`, `admin-*`, `smoke-pages`) au lieu de 9. Deuxième occurrence de
+  « suite lancée sans filtre ».
+- **Classification** : récidive d'incident de procédure ; aucune écriture en production, car depuis l'incident
+  précédent le client vise les émulateurs sur un hôte local (`firebase-target.js`) et ceux-ci étaient arrêtés :
+  les inscriptions ont échoué au lieu d'atteindre `love-ink`.
+- **Résolution** : exécution interrompue dès la détection (dossiers `test-results/full-app-*`), relance par
+  `node <node_modules>/@playwright/test/cli.js test tests/e2e/navbar.spec.js`.
+- **Prévention** (contrôle renforcé, erreur répétée) : avant toute campagne locale, lancer la même commande avec
+  `--list` et vérifier le total (« N tests in 1 file ») ; passer les specs par **chemin** et appeler `cli.js`
+  directement plutôt qu'un lanceur `.bin` d'un autre dépôt. Le garde-fou émulateurs reste la dernière barrière :
+  ne jamais poser `loveInk_firebaseTarget=production` en local.
