@@ -84,8 +84,21 @@ la configuration Playwright echoue immediatement sauf derogation explicite.
 E2E_ALLOW_PROD=1 E2E_BASE_URL="https://votre-staging.web.app" npm run test:e2e:remote
 ```
 
-Comptes de test deja crees en production : inventaire en lecture seule avec
-`node scripts/e2e-prod-cleanup-plan.mjs` (voir `docs/engineering/lessons-learned.md`).
+Comptes de test deja crees en production (`*@loveink-e2e.test`) : plan en lecture seule, relecture,
+puis suppression explicite (voir `docs/engineering/lessons-learned.md`). Rien n'est supprime sans `--apply --confirm`.
+
+```bash
+gcloud auth application-default login
+npm install --no-save firebase-admin@12
+node scripts/e2e-prod-cleanup-plan.mjs --json plan.json                          # 1. inventaire a relire
+node scripts/e2e-prod-cleanup-apply.mjs --plan plan.json                          # 2. simulation
+node scripts/e2e-prod-cleanup-apply.mjs --plan plan.json --apply --confirm love-ink  # 3. suppression
+node scripts/e2e-prod-cleanup-plan.mjs                                            # 4. controle : 0 compte
+```
+
+Chaque compte est reverifie en direct (Auth, profil, contact prive) et chaque document relu avant suppression :
+un e-mail hors domaine de test ecarte le compte, une conversation avec un participant reel est conservee.
+Non couverts : fichiers Storage, compteurs des histoires reelles, `sanctions` et `ops_logs`.
 
 Tests de roles (optionnels) avec comptes existants:
 

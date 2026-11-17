@@ -112,8 +112,10 @@ tout travail sur Hosting, SEO, déploiement ou mailer. Une entrée = contexte, c
 - **Classification** : incident de données (pollution de la production) ; défaut de garde-fou, pas de bug applicatif.
 - **Résolution** : e2e sur la Firebase Emulator Suite (Auth, Firestore, Hosting) sous le projet `demo-love-ink`
   (`npm run test:e2e`). Le client vise les émulateurs sur tout hôte local (`js/core/firebase-target.js`).
-  Comptes déjà créés : inventaire en lecture seule (`scripts/e2e-prod-cleanup-plan.mjs`) ; la suppression
-  reste une décision de l'utilisatrice.
+  Comptes déjà créés : inventaire en lecture seule (`scripts/e2e-prod-cleanup-plan.mjs`), puis suppression
+  lancée par l'utilisatrice (`scripts/e2e-prod-cleanup-apply.mjs`, simulation par défaut, `--apply --confirm
+  love-ink`), qui revérifie chaque compte et chaque document en direct ; règles partagées et testées dans
+  `scripts/lib/e2e-test-accounts.mjs` (`tests/seo/e2e-prod-cleanup.test.mjs`).
 - **Prévention vérifiable** :
   - `playwright.config.js` échoue immédiatement sur un hôte non local sans `E2E_ALLOW_PROD=1` ;
   - `registerWithUi` / `loginWithUi` vérifient dans la page que le client vise les émulateurs avant d'écrire ;
